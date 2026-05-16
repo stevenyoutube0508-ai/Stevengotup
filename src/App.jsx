@@ -17,6 +17,16 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer
 } from "recharts";
+import {
+  Home, Store, ShoppingBag, LayoutGrid, Package, Paintbrush,
+  Megaphone, Truck, BarChart3, Bot, CreditCard, Building2,
+  LayoutDashboard, UserPlus, Wallet, Headset, Settings,
+  LogOut, X, CheckCircle2, AlertTriangle, XCircle, Lock,
+  Bell, Eye, Plus, Pencil, Trash2, Link, Clock, DollarSign,
+  TrendingUp, Users, Ticket, ShoppingCart, Star, Zap,
+  AlertCircle, ChevronRight, Search, BarChart2, Activity,
+  Globe, Phone, Mail, MapPin, Calendar
+} from "lucide-react";
 
 /* ─── ESTILOS ─────────────────────────────────────────────── */
 const STYLES = `
@@ -53,7 +63,7 @@ const STYLES = `
 const T = {
   bg:"#f8f9fc", white:"#fff", border:"#e8ebf4", sidebar:"#0a1628",
   text:"#111827", mid:"#6b7280", light:"#9ca3af",
-  coral:"#f97316", coralL:"#fff7ed", coralD:"#ea580c",
+  coral:"#ff4d4c", coralL:"#fff7ed", coralD:"#ff4d4c",
   navy:"#0a1628", navyL:"#eef1f8",
   violet:"#6d28d9", violetL:"#ede9fe", violetD:"#4c1d95",
   indigo:"#4338ca", indigoL:"#e0e7ff",
@@ -487,15 +497,16 @@ function Modal({title,icon,onClose,children,wide,extraWide}){
           {icon&&<div style={{width:36,height:36,borderRadius:10,background:T.coralL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{icon}</div>}
           <span style={{fontWeight:800,fontSize:17,color:T.text}}>{title}</span>
         </div>
-        <button onClick={onClose} style={{width:30,height:30,borderRadius:"50%",background:T.bg,border:`1px solid ${T.border}`,color:T.mid,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>×</button>
+        <button onClick={onClose} style={{width:30,height:30,borderRadius:"50%",background:T.bg,border:`1px solid ${T.border}`,color:T.mid,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><X size={16}/></button>
       </div>
       {children}
     </div>
   </div>;
 }
 function Toast({msg,type="ok"}){
+  const ic = type==="err" ? <XCircle size={15}/> : type==="warn" ? <AlertTriangle size={15}/> : <CheckCircle2 size={15}/>;
   return <div style={{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:99999,background:type==="err"?T.red:type==="warn"?T.amber:T.green,color:"#fff",borderRadius:20,padding:"10px 22px",fontSize:12,fontWeight:700,boxShadow:T.shMd,whiteSpace:"nowrap",animation:"fadeIn .25s ease",display:"flex",alignItems:"center",gap:7}}>
-    {type==="ok"?"✓":type==="warn"?"⚠":"✕"} {msg}
+    {ic} {msg}
   </div>;
 }
 function StatCard({icon,label,value,sub,color=T.coral,onClick}){
@@ -575,13 +586,13 @@ function Login({onLogin}){
           <label style={{fontSize:11,fontWeight:700,color:T.mid,display:"block",marginBottom:6,letterSpacing:".5px",textTransform:"uppercase"}}>Contraseña</label>
           <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} style={inp} onFocus={e=>e.target.style.borderColor=T.coral} onBlur={e=>e.target.style.borderColor=T.border}/>
         </div>
-        {err&&<div style={{background:T.redL,border:`1px solid ${T.red}30`,borderRadius:10,padding:"10px 14px",fontSize:13,color:T.red,marginBottom:16}}>⚠ {err}</div>}
+        {err&&<div style={{background:T.redL,border:`1px solid ${T.red}30`,borderRadius:10,padding:"10px 14px",fontSize:13,color:T.red,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={14}/> {err}</div>}
         <button onClick={submit} disabled={loading} style={{width:"100%",padding:"14px",background:T.coral,border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:800,cursor:loading?"not-allowed":"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 18px ${T.coral}50`,transition:"opacity .15s",opacity:loading?.7:1}}>
-          {loading?<div style={{width:18,height:18,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,.4)",borderTopColor:"#fff",animation:"spin .7s linear infinite"}}/>:"🔐"}{loading?"Verificando…":"Ingresar"}
+          {loading?<div style={{width:18,height:18,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,.4)",borderTopColor:"#fff",animation:"spin .7s linear infinite"}}/>:<Lock size={16}/>}{loading?"Verificando…":"Ingresar"}
         </button>
       </div>
       <button onClick={()=>window.location.href="?menu"} style={{width:"100%",marginTop:12,padding:"12px",background:"transparent",border:`1px solid ${T.border}`,borderRadius:12,color:T.mid,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=T.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-        👁️ Ver menú del cliente (demo público)
+        <Eye size={15}/> Ver menú del cliente (demo público)
       </button>
     </div>
   </div>;
@@ -589,17 +600,17 @@ function Login({onLogin}){
 
 /* ─── ADMIN SIDEBAR ───────────────────────────────────────── */
 const getAdminNav = (vl) => [
-  {id:"home",   label:"🏠 Home"},
-  {id:"sucursales", label:`${vl.nav_branches||"🏪 Sucursales"}`},
-  {id:"productos",  label:vl.nav_products||"🍽️ Productos"},
-  {id:"categorias", label:`🗂️ ${vl.categoryPlural||vl.category||"Categorías"}`},
-  {id:"stock",      label:vl.nav_stock||"📦 Fuera de stock"},
-  {id:"diseno",     label:vl.nav_design||"🎨 Diseño"},
-  {id:"banners",    label:"🎯 Banners"},
-  {id:"delivery",   label:vl.nav_delivery||"🛵 Pedidos"},
-  {id:"informes",   label:"📊 Informes"},
-  {id:"ai",         label:"🤖 Asistente IA"},
-  {id:"facturacion",label:"💳 Facturación"},
+  {id:"home",        icon:Home,        label:"Home"},
+  {id:"sucursales",  icon:Building2,   label:vl.branch||"Sucursales"},
+  {id:"productos",   icon:ShoppingBag, label:vl.itemPlural||"Productos"},
+  {id:"categorias",  icon:LayoutGrid,  label:vl.categoryPlural||"Categorías"},
+  {id:"stock",       icon:Package,     label:vl.stock||"Fuera de stock"},
+  {id:"diseno",      icon:Paintbrush,  label:vl.design||"Diseño"},
+  {id:"banners",     icon:Megaphone,   label:"Banners"},
+  {id:"delivery",    icon:Truck,       label:vl.delivery||"Pedidos"},
+  {id:"informes",    icon:BarChart3,   label:"Informes"},
+  {id:"ai",          icon:Bot,         label:"Asistente IA"},
+  {id:"facturacion", icon:CreditCard,  label:"Facturación"},
 ];
 function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,onClose,vertical}){
   const plan=billing?.plan||"pro";
@@ -637,7 +648,10 @@ function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,on
         const badge=item.id==="delivery"&&newOrders>0?newOrders:0;
         const isActive=active===item.id;
         return <div key={item.id} onClick={()=>onSelect(item.id)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",borderRadius:10,cursor:"pointer",background:isActive?T.coralL:"transparent",marginBottom:2,transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=isActive?T.coralL:T.bg} onMouseLeave={e=>e.currentTarget.style.background=isActive?T.coralL:"transparent"}>
-          <span style={{fontSize:13,fontWeight:isActive?700:500,color:isActive?T.coralD:T.mid}}>{item.label}</span>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <item.icon size={16} color={isActive?T.coralD:T.mid} strokeWidth={isActive?2.5:2}/>
+            <span style={{fontSize:13,fontWeight:isActive?700:500,color:isActive?T.coralD:T.mid}}>{item.label}</span>
+          </div>
           {badge>0&&<span style={{minWidth:18,height:18,borderRadius:9,background:T.amber,color:"#fff",fontSize:9,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}}>{badge}</span>}
         </div>;
       })}
@@ -649,10 +663,10 @@ function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,on
           <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
           <div style={{color:T.light,fontSize:9}}>{user.title}</div>
         </div>
-        <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,fontSize:11,padding:"4px 7px",cursor:"pointer"}}>⏻</button>
+        <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,fontSize:11,padding:"4px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><LogOut size={14}/></button>
       </div>
     </div>
-    <button onClick={onClose} className="mob-close-btn" style={{display:"none",position:"absolute",top:12,right:12,background:T.bg,border:`1px solid ${T.border}`,borderRadius:8,color:T.mid,fontSize:18,width:32,height:32,cursor:"pointer",alignItems:"center",justifyContent:"center"}}>×</button>
+    <button onClick={onClose} className="mob-close-btn" style={{display:"none",position:"absolute",top:12,right:12,background:T.bg,border:`1px solid ${T.border}`,borderRadius:8,color:T.mid,width:32,height:32,cursor:"pointer",alignItems:"center",justifyContent:"center"}}><X size={16}/></button>
   </nav>
   </>;
 }
@@ -687,9 +701,9 @@ function SecHome({products,orders,config,billing,onNav,vertical}){
     </Card>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))",gap:14,marginBottom:20}}>
       <StatCard icon={(vertical||VERTICALS.restaurant).icon} label={vl.home_products} value={products.filter(p=>p.active&&p.stock).length} color={vc} onClick={()=>onNav("productos")}/>
-      <StatCard icon="📋" label={`${vl.order}s pendientes`} value={pendingOrders} sub={pendingOrders>0?"¡Atención!":""} color={pendingOrders>0?T.amber:T.mid} onClick={()=>onNav("delivery")}/>
-      <StatCard icon="💰" label="Ingresos hoy" value={fmtCOP(todayRev)} color={T.green}/>
-      <StatCard icon="👁️" label={`Vistas ${vl.catalog.toLowerCase()}`} value={products.reduce((s,p)=>s+p.clicks,0)} sub="↑ Esta semana" color={T.blue}/>
+      <StatCard icon={<Truck size={20}/>} label={`${vl.order}s pendientes`} value={pendingOrders} sub={pendingOrders>0?"¡Atención!":""} color={pendingOrders>0?T.amber:T.mid} onClick={()=>onNav("delivery")}/>
+      <StatCard icon={<DollarSign size={20}/>} label="Ingresos hoy" value={fmtCOP(todayRev)} color={T.green}/>
+      <StatCard icon={<Eye size={20}/>} label={`Vistas ${vl.catalog.toLowerCase()}`} value={products.reduce((s,p)=>s+p.clicks,0)} sub="↑ Esta semana" color={T.blue}/>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
       <Card style={{minWidth:0,overflow:"hidden"}}>
@@ -2243,7 +2257,7 @@ function SecReservas(){
       </div>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-      {[["📅","Hoy",reservations.filter(r=>r.date===todayStr()).length,T.coral],["✅","Confirmadas",reservations.filter(r=>r.status==="confirmada").length,T.green],["🪑","En mesa",reservations.filter(r=>r.status==="sentada").length,T.blue],["⏳","Pendientes",reservations.filter(r=>r.status==="pendiente").length,T.amber]].map(([ic,l,v,c])=>(
+      {[[<Calendar size={20}/>,"Hoy",reservations.filter(r=>r.date===todayStr()).length,T.coral],[<CheckCircle2 size={20}/>,"Confirmadas",reservations.filter(r=>r.status==="confirmada").length,T.green],[<Users size={20}/>,"En mesa",reservations.filter(r=>r.status==="sentada").length,T.blue],[<Clock size={20}/>,"Pendientes",reservations.filter(r=>r.status==="pendiente").length,T.amber]].map(([ic,l,v,c])=>(
         <StatCard key={l} icon={ic} label={l} value={v} color={c}/>
       ))}
     </div>
@@ -2456,10 +2470,10 @@ function SecInformes({products}){
     <h2 style={{fontSize:22,fontWeight:800,color:T.text,marginBottom:4}}>Informes</h2>
     <p style={{color:T.mid,fontSize:13,marginBottom:20}}>Análisis de desempeño — Abril 2026</p>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12,marginBottom:20}}>
-      <StatCard icon="👁️" label="Vistas totales" value="1,391" sub="↑ 18.3%" color={T.coral}/>
-      <StatCard icon="📦" label="Pedidos semana" value="246" sub="↑ 8.1%" color={T.green}/>
-      <StatCard icon="⏰" label="Hora pico" value="8 PM" sub="98 visitas/h" color={T.amber}/>
-      <StatCard icon="💰" label="Ticket promedio" value={fmtCOP(42000)} color={T.blue}/>
+      <StatCard icon={<Eye size={20}/>} label="Vistas totales" value="1,391" sub="↑ 18.3%" color={T.coral}/>
+      <StatCard icon={<Package size={20}/>} label="Pedidos semana" value="246" sub="↑ 8.1%" color={T.green}/>
+      <StatCard icon={<Clock size={20}/>} label="Hora pico" value="8 PM" sub="98 visitas/h" color={T.amber}/>
+      <StatCard icon={<DollarSign size={20}/>} label="Ticket promedio" value={fmtCOP(42000)} color={T.blue}/>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
       <Card style={{minWidth:0,overflow:"hidden"}}>
@@ -3460,12 +3474,12 @@ function CustomerView({config,products,cats,onBack,onAddOrder,branches,banners=[
 
 /* ─── CEO SIDEBAR ─────────────────────────────────────────── */
 const CEO_NAV = [
-  {id:"ceo_dash",label:"Dashboard",icon:"📊"},
-  {id:"ceo_restaurantes",label:"Restaurantes",icon:"🏪"},
-  {id:"ceo_onboarding",label:"Nuevo restaurante",icon:"➕"},
-  {id:"ceo_pagos",label:"Pagos",icon:"💰"},
-  {id:"ceo_soporte",label:"Soporte",icon:"🎫"},
-  {id:"ceo_plataforma",label:"Configuración",icon:"⚙️"},
+  {id:"ceo_dash",        label:"Dashboard",          icon:LayoutDashboard},
+  {id:"ceo_restaurantes",label:"Restaurantes",        icon:Store},
+  {id:"ceo_onboarding",  label:"Nuevo restaurante",   icon:UserPlus},
+  {id:"ceo_pagos",       label:"Pagos",               icon:Wallet},
+  {id:"ceo_soporte",     label:"Soporte",             icon:Headset},
+  {id:"ceo_plataforma",  label:"Configuración",       icon:Settings},
 ];
 function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPayments}){
   const suspended=restaurants.filter(r=>r.status==="suspended").length;
@@ -3486,8 +3500,8 @@ function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPa
         </div>
       </div>
       {(suspended>0||openT>0)&&<div style={{marginTop:8,background:T.redL,border:`1px solid ${T.red}20`,borderRadius:8,padding:"6px 10px"}}>
-        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red}}>⚠ {suspended} restaurante{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
-        {openT>0&&<div style={{fontSize:10,fontWeight:700,color:T.amber,marginTop:suspended>0?2:0}}>🎫 {openT} ticket{openT>1?"s":""} abierto{openT>1?"s":""}</div>}
+        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red,display:"flex",alignItems:"center",gap:5}}><AlertTriangle size={11}/> {suspended} restaurante{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
+        {openT>0&&<div style={{fontSize:10,fontWeight:700,color:T.amber,marginTop:suspended>0?2:0,display:"flex",alignItems:"center",gap:5}}><Ticket size={11}/> {openT} ticket{openT>1?"s":""} abierto{openT>1?"s":""}</div>}
       </div>}
     </div>
     <div style={{flex:1,padding:"12px 8px",overflowY:"auto"}}>
@@ -3495,8 +3509,8 @@ function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPa
         const badge=(item.id==="ceo_soporte"&&openT>0)?openT:(item.id==="ceo_restaurantes"&&suspended>0)?suspended:(item.id==="ceo_pagos"&&pendingPayments>0)?pendingPayments:0;
         const isActive=active===item.id;
         return <div key={item.id} onClick={()=>onSelect(item.id)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",borderRadius:10,cursor:"pointer",background:isActive?T.coralL:"transparent",marginBottom:2,transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=isActive?T.coralL:T.bg} onMouseLeave={e=>e.currentTarget.style.background=isActive?T.coralL:"transparent"}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:16}}>{item.icon}</span>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <item.icon size={16} color={isActive?T.coralD:T.mid} strokeWidth={isActive?2.5:2}/>
             <span style={{fontSize:13,fontWeight:isActive?700:500,color:isActive?T.coralD:T.mid}}>{item.label}</span>
           </div>
           {badge>0&&<span style={{minWidth:18,height:18,borderRadius:9,background:item.id==="ceo_soporte"?T.amber:item.id==="ceo_pagos"?T.green:T.red,color:"#fff",fontSize:9,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}}>{badge}</span>}
@@ -3509,7 +3523,7 @@ function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPa
         <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
         <div style={{color:T.light,fontSize:9}}>CEO & Fundador</div>
       </div>
-      <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,fontSize:11,padding:"4px 7px",cursor:"pointer"}}>⏻</button>
+      <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,fontSize:11,padding:"4px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><LogOut size={14}/></button>
     </div>
   </nav>;
 }
@@ -3523,20 +3537,20 @@ function CEODash({restaurants,tickets}){
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{marginBottom:20}}><h1 style={{fontSize:24,fontWeight:900,color:T.text}}>Dashboard Global 📊</h1><p style={{color:T.mid,fontSize:13,marginTop:3}}>{new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p></div>
     {suspended.length>0&&<div style={{background:"linear-gradient(135deg,#fee2e2,#fecaca)",border:"1.5px solid #fca5a5",borderRadius:14,padding:"13px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
-      <span style={{fontSize:20}}>🔴</span>
+      <XCircle size={18} color="#991b1b"/>
       <div><div style={{fontWeight:800,color:"#991b1b",fontSize:13}}>{suspended.length} restaurante{suspended.length>1?"s":""} suspendido{suspended.length>1?"s":""}</div><div style={{fontSize:12,color:"#b91c1c"}}>{suspended.map(r=>r.name).join(", ")} — requieren atención urgente</div></div>
     </div>}
     {trial.length>0&&<div style={{background:"linear-gradient(135deg,#fef3c7,#fde68a)",border:"1.5px solid #fcd34d",borderRadius:14,padding:"12px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-      <span style={{fontSize:18}}>⚡</span>
+      <AlertTriangle size={18} color="#92400e"/>
       <div style={{fontWeight:700,color:"#92400e",fontSize:13}}>{trial.map(r=>r.name).join(", ")} en trial — {trial.map(r=>`${r.daysLeft}d`).join(", ")} restantes</div>
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))",gap:14,marginBottom:22}}>
-      <StatCard icon="🏪" label="Restaurantes activos" value={active.length} sub={`${restaurants.length} total`} color={T.indigo}/>
-      <StatCard icon="💰" label="MRR" value={fmtCOP(mrr)} sub="↑ 12% este mes" color={T.green}/>
-      <StatCard icon="📅" label="ARR estimado" value={fmtCOP(mrr*12)} color={T.coral}/>
-      <StatCard icon="🔴" label="Suspendidos" value={suspended.length} color={suspended.length>0?T.red:T.mid}/>
-      <StatCard icon="⚡" label="En trial" value={trial.length} color={T.amber}/>
-      <StatCard icon="🎫" label="Tickets abiertos" value={tickets.filter(t=>t.status==="open").length} color={T.blue}/>
+      <StatCard icon={<Store size={20}/>} label="Restaurantes activos" value={active.length} sub={`${restaurants.length} total`} color={T.indigo}/>
+      <StatCard icon={<DollarSign size={20}/>} label="MRR" value={fmtCOP(mrr)} sub="↑ 12% este mes" color={T.green}/>
+      <StatCard icon={<BarChart3 size={20}/>} label="ARR estimado" value={fmtCOP(mrr*12)} color={T.coral}/>
+      <StatCard icon={<XCircle size={20}/>} label="Suspendidos" value={suspended.length} color={suspended.length>0?T.red:T.mid}/>
+      <StatCard icon={<Zap size={20}/>} label="En trial" value={trial.length} color={T.amber}/>
+      <StatCard icon={<Ticket size={20}/>} label="Tickets abiertos" value={tickets.filter(t=>t.status==="open").length} color={T.blue}/>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"3fr 2fr",gap:16,marginBottom:18}}>
       <Card>
@@ -3900,10 +3914,10 @@ function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading}){
 
     {/* Stats */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:14,marginBottom:20}}>
-      <StatCard icon="⏳" label="Pendientes" value={pending.length} color={pending.length>0?T.amber:T.mid}/>
-      <StatCard icon="✅" label="Aprobados" value={approved.length} color={T.green}/>
-      <StatCard icon="💰" label="Total aprobado" value={fmtCOP(totalApproved)} color={T.indigo}/>
-      <StatCard icon="📊" label="MRR activo" value={fmtCOP(mrr)} color={T.coral}/>
+      <StatCard icon={<Clock size={20}/>} label="Pendientes" value={pending.length} color={pending.length>0?T.amber:T.mid}/>
+      <StatCard icon={<CheckCircle2 size={20}/>} label="Aprobados" value={approved.length} color={T.green}/>
+      <StatCard icon={<DollarSign size={20}/>} label="Total aprobado" value={fmtCOP(totalApproved)} color={T.indigo}/>
+      <StatCard icon={<BarChart3 size={20}/>} label="MRR activo" value={fmtCOP(mrr)} color={T.coral}/>
     </div>
 
     {/* Pendientes */}
@@ -3998,9 +4012,9 @@ function CEOSoporte({tickets,onUpdateTicket}){
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{marginBottom:20}}><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Soporte & Tickets</h2><p style={{color:T.mid,fontSize:13,marginTop:2}}>{open.length} abiertos · {tickets.filter(t=>t.status==="resolved").length} resueltos</p></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:20}}>
-      <StatCard icon="🎫" label="Abiertos" value={open.length} color={open.length>0?T.red:T.mid}/>
-      <StatCard icon="🔴" label="Alta prioridad" value={open.filter(t=>t.priority==="high").length} color={T.red}/>
-      <StatCard icon="✅" label="Resueltos" value={tickets.filter(t=>t.status==="resolved").length} color={T.green}/>
+      <StatCard icon={<Ticket size={20}/>} label="Abiertos" value={open.length} color={open.length>0?T.red:T.mid}/>
+      <StatCard icon={<XCircle size={20}/>} label="Alta prioridad" value={open.filter(t=>t.priority==="high").length} color={T.red}/>
+      <StatCard icon={<CheckCircle2 size={20}/>} label="Resueltos" value={tickets.filter(t=>t.status==="resolved").length} color={T.green}/>
     </div>
     {[...open,...tickets.filter(t=>t.status==="resolved")].map(t=>(
       <Card key={t.id} style={{padding:"14px 16px",marginBottom:8,borderLeft:`3px solid ${PR[t.priority]||T.mid}`,cursor:"pointer"}} className="hov" onClick={()=>setSel(t)}>
@@ -4421,7 +4435,7 @@ export default function App(){
               <span style={{fontSize:12,color:T.mid}}>
                 {restaurants.filter(r=>r.status==="active").length} restaurantes activos · MRR: {fmtCOP(restaurants.filter(r=>r.status==="active").reduce((s,r)=>s+r.mrr,0))}
               </span>
-              <Btn sm v="danger" onClick={logout}>🔓 Cerrar sesión</Btn>
+              <Btn sm v="danger" onClick={logout} icon={<LogOut size={13}/>}>Cerrar sesión</Btn>
             </div>
           </div>
           <div style={{flex:1,overflowY:"auto",padding:"24px 28px"}} key={ceoSection}>
@@ -4451,7 +4465,7 @@ export default function App(){
   const ADMIN_RESP_CSS=`
     .admin-sidebar{transition:transform .25s ease;z-index:99}
     .admin-content-pad{padding:24px 28px}
-    .admin-topbar-name{display:flex;align-items:center;gap:10}
+    .admin-topbar-name{display:flex;align-items:center;gap:10px}
     .admin-topbar-actions{display:flex;gap:8;align-items:center}
     .admin-preview-panel{display:flex}
     .mob-hamburger{display:none!important}
@@ -4514,8 +4528,8 @@ export default function App(){
                 {newOrders} nuevo{newOrders>1?"s":""}
               </div>
             )}
-            <Btn sm v="ghost" onClick={()=>setMenuView(true)} icon="🔗">{vertical.labels.btn_view||"Ver catálogo"}</Btn>
-            <Btn sm v="danger"  onClick={logout}>⏻</Btn>
+            <Btn sm v="ghost" onClick={()=>setMenuView(true)} icon={<Eye size={13}/>}>{vertical.labels.btn_view||"Ver catálogo"}</Btn>
+            <Btn sm v="danger" onClick={logout} icon={<LogOut size={13}/>}/>
           </div>
         </div>
 
