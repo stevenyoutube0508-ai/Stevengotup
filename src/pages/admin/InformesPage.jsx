@@ -1,0 +1,7 @@
+import { SecInformes } from "../../features/admin/reports/SecInformes";
+import { useAdminStore } from "../../stores/useAdminStore";
+
+export default function InformesPage(){
+  const products = useAdminStore(s => s.products);
+  return <SecInformes products={products}/>;
+}
