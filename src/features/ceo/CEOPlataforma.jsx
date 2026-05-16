@@ -1,0 +1,51 @@
+import {useState} from "react";
+import {T} from "../../constants/theme";
+import {Card,Btn,Field,Toggle} from "../../shared/components";
+
+export function CEOPlataforma(){
+  const [cfg,setCfg]=useState({trialDays:"14",graceDays:"7",starterPrice:"49900",proPrice:"99900",businessPrice:"189900",supportEmail:"soporte@picku.co",maintenanceMode:false,newRegistrations:true});
+  const [saved,setSaved]=useState(false);
+  const set=k=>v=>setCfg(p=>({...p,[k]:v}));
+  const save=()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);};
+  return <div style={{animation:"fadeUp .35s ease"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
+      <div><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Configuración de la plataforma</h2><p style={{color:T.mid,fontSize:13,marginTop:3}}>Ajustes globales de Picku</p></div>
+      <Btn onClick={save}>{saved?"✓ ¡Guardado!":"Guardar cambios"}</Btn>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+      <Card>
+        <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16}}>📦 Precios de planes (COP/mes)</div>
+        <Field label="Plan Starter" value={cfg.starterPrice} onChange={set("starterPrice")} type="number" prefix="$"/>
+        <Field label="Plan Pro" value={cfg.proPrice} onChange={set("proPrice")} type="number" prefix="$"/>
+        <Field label="Plan Business" value={cfg.businessPrice} onChange={set("businessPrice")} type="number" prefix="$"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+          <Field label="Días de trial" value={cfg.trialDays} onChange={set("trialDays")} type="number" suffix="días"/>
+          <Field label="Días de gracia" value={cfg.graceDays} onChange={set("graceDays")} type="number" suffix="días" hint="Antes de suspender"/>
+        </div>
+      </Card>
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <Card>
+          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16}}>⚙️ Opciones del sistema</div>
+          <Field label="Email de soporte" value={cfg.supportEmail} onChange={set("supportEmail")} type="email"/>
+          {[["newRegistrations","Nuevos registros habilitados"],["maintenanceMode","Modo mantenimiento"]].map(([k,l])=>(
+            <div key={k} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+              <span style={{fontSize:13,color:T.text}}>{l}</span>
+              <Toggle value={cfg[k]} onChange={v=>setCfg(p=>({...p,[k]:v}))} sm/>
+            </div>
+          ))}
+          {cfg.maintenanceMode&&<div style={{background:T.amberL,border:`1px solid ${T.amber}30`,borderRadius:8,padding:"8px 12px",fontSize:11,color:T.amber,fontWeight:700,marginTop:8}}>⚠️ Restaurantes verán página de mantenimiento</div>}
+        </Card>
+        <Card>
+          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:14}}>📊 Estado del sistema</div>
+          {[["🌐","Plataforma","Operativa",T.green],["💾","Base de datos","Conectada",T.green],["📧","Email","Activo",T.green],["💳","Wompi","Conectado",T.green]].map(([ic,lb,st,co])=>(
+            <div key={lb} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9,fontSize:13}}>
+              <span style={{color:T.mid}}>{ic} {lb}</span>
+              <span style={{fontWeight:700,color:co,display:"flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:"50%",background:co,display:"inline-block"}}/>{st}</span>
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+    <div style={{marginTop:16}}><Btn full onClick={save} style={{padding:"14px"}}>{saved?"✓ Cambios guardados":"Guardar configuración"}</Btn></div>
+  </div>;
+}
