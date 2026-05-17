@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { Store, DollarSign, Calendar, AlertCircle, Zap, Ticket, CheckCircle2, CreditCard, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEODash({restaurants,tickets}){
@@ -15,22 +16,22 @@ export function CEODash({restaurants,tickets}){
   const trial=restaurants.filter(r=>r.status==="trial");
   const mrr=active.reduce((s,r)=>s+r.mrr,0);
   return <div style={{animation:"fadeUp .35s ease"}}>
-    <div style={{marginBottom:20}}><h1 style={{fontSize:24,fontWeight:900,color:T.text}}>Dashboard Global 📊</h1><p style={{color:T.mid,fontSize:13,marginTop:3}}>{new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p></div>
+    <div style={{marginBottom:20}}><h1 style={{fontSize:24,fontWeight:900,color:T.text,display:"flex",alignItems:"center",gap:8}}>Dashboard Global</h1><p style={{color:T.mid,fontSize:13,marginTop:3}}>{new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p></div>
     {suspended.length>0&&<div style={{background:"linear-gradient(135deg,#fee2e2,#fecaca)",border:"1.5px solid #fca5a5",borderRadius:14,padding:"13px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
-      <span style={{fontSize:20}}>🔴</span>
+      <AlertCircle size={20} color="#991b1b"/>
       <div><div style={{fontWeight:800,color:"#991b1b",fontSize:13}}>{suspended.length} restaurante{suspended.length>1?"s":""} suspendido{suspended.length>1?"s":""}</div><div style={{fontSize:12,color:"#b91c1c"}}>{suspended.map(r=>r.name).join(", ")} — requieren atención urgente</div></div>
     </div>}
     {trial.length>0&&<div style={{background:"linear-gradient(135deg,#fef3c7,#fde68a)",border:"1.5px solid #fcd34d",borderRadius:14,padding:"12px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-      <span style={{fontSize:18}}>⚡</span>
+      <Zap size={18} color="#92400e"/>
       <div style={{fontWeight:700,color:"#92400e",fontSize:13}}>{trial.map(r=>r.name).join(", ")} en trial — {trial.map(r=>`${r.daysLeft}d`).join(", ")} restantes</div>
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))",gap:14,marginBottom:22}}>
-      <StatCard icon="🏪" label="Restaurantes activos" value={active.length} sub={`${restaurants.length} total`} color={T.indigo}/>
-      <StatCard icon="💰" label="MRR" value={fmtCOP(mrr)} sub="↑ 12% este mes" color={T.green}/>
-      <StatCard icon="📅" label="ARR estimado" value={fmtCOP(mrr*12)} color={T.coral}/>
-      <StatCard icon="🔴" label="Suspendidos" value={suspended.length} color={suspended.length>0?T.red:T.mid}/>
-      <StatCard icon="⚡" label="En trial" value={trial.length} color={T.amber}/>
-      <StatCard icon="🎫" label="Tickets abiertos" value={tickets.filter(t=>t.status==="open").length} color={T.blue}/>
+      <StatCard icon={Store} label="Restaurantes activos" value={active.length} sub={`${restaurants.length} total`} color={T.indigo}/>
+      <StatCard icon={DollarSign} label="MRR" value={fmtCOP(mrr)} sub="↑ 12% este mes" color={T.green}/>
+      <StatCard icon={Calendar} label="ARR estimado" value={fmtCOP(mrr*12)} color={T.coral}/>
+      <StatCard icon={AlertCircle} label="Suspendidos" value={suspended.length} color={suspended.length>0?T.red:T.mid}/>
+      <StatCard icon={Zap} label="En trial" value={trial.length} color={T.amber}/>
+      <StatCard icon={Ticket} label="Tickets abiertos" value={tickets.filter(t=>t.status==="open").length} color={T.blue}/>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"3fr 2fr",gap:16,marginBottom:18}}>
       <Card>
@@ -62,9 +63,9 @@ export function CEODash({restaurants,tickets}){
     </div>
     <Card>
       <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:14}}>Actividad reciente</div>
-      {[{time:"Hace 2h",icon:"✅",text:"Crepes & Waffles registrado (Trial 14d)",color:T.green},{time:"Hace 5h",icon:"💳",text:"Pago recibido: La Leña — Pro $99.900",color:T.indigo},{time:"Hace 8h",icon:"🎫",text:"Ticket: La Leña — Error iOS Safari (Alta)",color:T.amber},{time:"Hace 1d",icon:"⚠️",text:"Pizza & Co suspendida — 18 días sin pago",color:T.red},{time:"Hace 2d",icon:"📈",text:"El Corral Premium superó 500 pedidos",color:T.coral}].map((a,i)=>(
+      {[{time:"Hace 2h",icon:CheckCircle2,text:"Crepes & Waffles registrado (Trial 14d)",color:T.green},{time:"Hace 5h",icon:CreditCard,text:"Pago recibido: La Leña — Pro $99.900",color:T.indigo},{time:"Hace 8h",icon:Ticket,text:"Ticket: La Leña — Error iOS Safari (Alta)",color:T.amber},{time:"Hace 1d",icon:AlertTriangle,text:"Pizza & Co suspendida — 18 días sin pago",color:T.red},{time:"Hace 2d",icon:TrendingUp,text:"El Corral Premium superó 500 pedidos",color:T.coral}].map((a,i)=>(
         <div key={i} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
-          <div style={{width:32,height:32,borderRadius:10,background:a.color+"15",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{a.icon}</div>
+          <div style={{width:32,height:32,borderRadius:10,background:a.color+"15",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><a.icon size={14} color={a.color}/></div>
           <div style={{flex:1}}><div style={{fontSize:13,color:T.text,fontWeight:500}}>{a.text}</div><div style={{fontSize:11,color:T.light,marginTop:2}}>{a.time}</div></div>
         </div>
       ))}

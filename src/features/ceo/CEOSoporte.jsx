@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { Ticket, AlertCircle, CheckCircle2, Store, User, Calendar, Circle } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEOSoporte({tickets,onUpdateTicket}){
@@ -22,14 +23,14 @@ export function CEOSoporte({tickets,onUpdateTicket}){
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{marginBottom:20}}><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Soporte & Tickets</h2><p style={{color:T.mid,fontSize:13,marginTop:2}}>{open.length} abiertos · {tickets.filter(t=>t.status==="resolved").length} resueltos</p></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:20}}>
-      <StatCard icon="🎫" label="Abiertos" value={open.length} color={open.length>0?T.red:T.mid}/>
-      <StatCard icon="🔴" label="Alta prioridad" value={open.filter(t=>t.priority==="high").length} color={T.red}/>
-      <StatCard icon="✅" label="Resueltos" value={tickets.filter(t=>t.status==="resolved").length} color={T.green}/>
+      <StatCard icon={Ticket} label="Abiertos" value={open.length} color={open.length>0?T.red:T.mid}/>
+      <StatCard icon={AlertCircle} label="Alta prioridad" value={open.filter(t=>t.priority==="high").length} color={T.red}/>
+      <StatCard icon={CheckCircle2} label="Resueltos" value={tickets.filter(t=>t.status==="resolved").length} color={T.green}/>
     </div>
     {[...open,...tickets.filter(t=>t.status==="resolved")].map(t=>(
       <Card key={t.id} style={{padding:"14px 16px",marginBottom:8,borderLeft:`3px solid ${PR[t.priority]||T.mid}`,cursor:"pointer"}} className="hov" onClick={()=>setSel(t)}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:5}}>
-          <div><div style={{fontWeight:800,color:T.text,fontSize:14}}>{t.subject}</div><div style={{fontSize:11,color:T.mid,marginTop:2}}>🏪 {t.restaurant} · 👤 {t.user} · 📅 {t.date}</div></div>
+          <div><div style={{fontWeight:800,color:T.text,fontSize:14}}>{t.subject}</div><div style={{fontSize:11,color:T.mid,marginTop:2,display:"flex",alignItems:"center",gap:5}}><Store size={10}/>{t.restaurant}<User size={10}/>{t.user}<Calendar size={10}/>{t.date}</div></div>
           <div style={{display:"flex",gap:5,flexShrink:0}}>
             <Tag color={PR[t.priority]||T.mid} sm>{t.priority==="high"?"Alta":t.priority==="medium"?"Media":"Baja"}</Tag>
             <Tag color={t.status==="open"?T.amber:T.green}>{t.status==="open"?"Abierto":"Resuelto"}</Tag>
@@ -38,11 +39,11 @@ export function CEOSoporte({tickets,onUpdateTicket}){
         <div style={{fontSize:12,color:T.mid}}>{t.messages?.[0]?.text?.slice(0,80)}{t.messages?.[0]?.text?.length>80?"…":""}</div>
       </Card>
     ))}
-    {sel&&<Modal title={sel.subject} icon="🎫" onClose={()=>setSel(null)} wide>
+    {sel&&<Modal title={sel.subject} icon={Ticket} onClose={()=>setSel(null)} wide>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        <Tag color={PR[sel.priority]||T.mid}>{sel.priority==="high"?"🔴 Alta":sel.priority==="medium"?"🟡 Media":"🟢 Baja"}</Tag>
+        <Tag color={PR[sel.priority]||T.mid}>{sel.priority==="high"?<><Circle size={8} fill={T.red} color={T.red}/> Alta</>:sel.priority==="medium"?<><Circle size={8} fill={T.amber} color={T.amber}/> Media</>:<><Circle size={8} fill={T.green} color={T.green}/> Baja</>}</Tag>
         <Tag color={sel.status==="open"?T.amber:T.green}>{sel.status==="open"?"Abierto":"Resuelto"}</Tag>
-        <span style={{fontSize:11,color:T.mid}}>🏪 {sel.restaurant}</span>
+        <span style={{fontSize:11,color:T.mid,display:"flex",alignItems:"center",gap:4}}><Store size={10}/>{sel.restaurant}</span>
       </div>
       <div style={{background:T.bg,borderRadius:12,padding:14,marginBottom:14,maxHeight:260,overflowY:"auto"}}>
         {sel.messages?.map((m,i)=>(
@@ -59,7 +60,7 @@ export function CEOSoporte({tickets,onUpdateTicket}){
           <Btn disabled={!reply.trim()} onClick={sendReply}>Enviar respuesta</Btn>
         </div>
       </>}
-      {sel.status==="resolved"&&<div style={{background:T.greenL,borderRadius:10,padding:"10px 14px",fontSize:12,color:T.green,fontWeight:700}}>✅ Ticket resuelto</div>}
+      {sel.status==="resolved"&&<div style={{background:T.greenL,borderRadius:10,padding:"10px 14px",fontSize:12,color:T.green,fontWeight:700,display:"flex",alignItems:"center",gap:6}}><CheckCircle2 size={14}/> Ticket resuelto</div>}
     </Modal>}
   </div>;
 }

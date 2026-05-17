@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { Clock, CheckCircle2, DollarSign, BarChart3, Eye, XCircle } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading}){
@@ -39,21 +40,21 @@ export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading
       <td style={{padding:"12px 14px"}}><Tag color={planColor[r.plan]||T.mid} sm>{r.plan?.charAt(0).toUpperCase()+r.plan?.slice(1)}</Tag></td>
       <td style={{padding:"12px 14px",fontWeight:800,color:T.indigo}}>{fmtCOP(r.amount)}</td>
       <td style={{padding:"12px 14px"}}>
-        {r.receipt_data?<button onClick={()=>setViewReceipt(r)} style={{background:T.indigoL,color:T.indigo,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>👁 Ver comprobante</button>:<span style={{fontSize:11,color:T.light}}>Sin comprobante</span>}
+        {r.receipt_data?<button onClick={()=>setViewReceipt(r)} style={{background:T.indigoL,color:T.indigo,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Eye size={12}/> Ver comprobante</button>:<span style={{fontSize:11,color:T.light}}>Sin comprobante</span>}
       </td>
       <td style={{padding:"12px 14px"}}>
         {showActions?
           <div style={{display:"flex",gap:6}}>
             <button onClick={()=>doApprove(r)} disabled={acting===r.id} style={{background:T.green,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:acting===r.id?"not-allowed":"pointer",opacity:acting===r.id?.6:1}}>
-              {acting===r.id?"…":"✅ Aprobar"}
+              {acting===r.id?"…":<><CheckCircle2 size={12}/> Aprobar</>}
             </button>
             <button onClick={()=>{setRejectModal(r);setRejectNote("");}} disabled={acting===r.id} style={{background:T.redL,color:T.red,border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>
-              ❌ Rechazar
+              <XCircle size={12}/> Rechazar
             </button>
           </div>:
           <div>
-            {r.status==="approved"&&<Tag color={T.green}>✅ Aprobado</Tag>}
-            {r.status==="rejected"&&<div><Tag color={T.red}>❌ Rechazado</Tag>{r.ceo_notes&&<div style={{fontSize:10,color:T.mid,marginTop:3}}>{r.ceo_notes}</div>}</div>}
+            {r.status==="approved"&&<Tag color={T.green}><CheckCircle2 size={10}/> Aprobado</Tag>}
+            {r.status==="rejected"&&<div><Tag color={T.red}><XCircle size={10}/> Rechazado</Tag>{r.ceo_notes&&<div style={{fontSize:10,color:T.mid,marginTop:3}}>{r.ceo_notes}</div>}</div>}
           </div>
         }
       </td>
@@ -68,16 +69,16 @@ export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading
 
     {/* Stats */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:14,marginBottom:20}}>
-      <StatCard icon="⏳" label="Pendientes" value={pending.length} color={pending.length>0?T.amber:T.mid}/>
-      <StatCard icon="✅" label="Aprobados" value={approved.length} color={T.green}/>
-      <StatCard icon="💰" label="Total aprobado" value={fmtCOP(totalApproved)} color={T.indigo}/>
-      <StatCard icon="📊" label="MRR activo" value={fmtCOP(mrr)} color={T.coral}/>
+      <StatCard icon={Clock} label="Pendientes" value={pending.length} color={pending.length>0?T.amber:T.mid}/>
+      <StatCard icon={CheckCircle2} label="Aprobados" value={approved.length} color={T.green}/>
+      <StatCard icon={DollarSign} label="Total aprobado" value={fmtCOP(totalApproved)} color={T.indigo}/>
+      <StatCard icon={BarChart3} label="MRR activo" value={fmtCOP(mrr)} color={T.coral}/>
     </div>
 
     {/* Pendientes */}
     {pending.length>0&&<Card style={{marginBottom:16,overflow:"hidden",padding:0,border:`2px solid ${T.amber}40`}}>
       <div style={{padding:"12px 18px",borderBottom:`1px solid ${T.border}`,background:T.amberL,display:"flex",alignItems:"center",gap:8}}>
-        <span style={{fontSize:18}}>⏳</span>
+        <Clock size={18} color={T.amber}/>
         <div style={{fontWeight:800,fontSize:14,color:T.amber}}>Solicitudes pendientes · {pending.length}</div>
         <div style={{fontSize:11,color:T.mid,marginLeft:"auto"}}>Revisa el comprobante antes de aprobar</div>
       </div>
@@ -91,7 +92,7 @@ export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading
 
     {/* Sin pendientes */}
     {!loading&&pending.length===0&&<div style={{background:T.greenL,border:`1px solid ${T.green}30`,borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",gap:10,alignItems:"center"}}>
-      <span style={{fontSize:18}}>✅</span>
+      <CheckCircle2 size={18} color={T.green}/>
       <div style={{fontWeight:700,color:T.green,fontSize:13}}>Sin pagos pendientes por revisar</div>
     </div>}
 

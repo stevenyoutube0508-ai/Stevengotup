@@ -6,6 +6,8 @@ import { VERTICALS, getVertical } from "../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../utils/format";
 import { pointInPoly } from "../utils/geo";
+import { Lock, Eye, AlertTriangle } from "lucide-react";
+import { LogoIcon, LogoFull } from "../shared/components/Logo";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../shared/components";
 
 export function Login({onLogin}){
@@ -26,16 +28,13 @@ export function Login({onLogin}){
     <style>{STYLES}</style>
     <div style={{width:"100%",maxWidth:420,animation:"fadeUp .4s ease"}}>
       <div style={{textAlign:"center",marginBottom:36}}>
-        {/* ── Picku logo ── */}
-        <div style={{width:72,height:72,borderRadius:22,background:T.navy,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",boxShadow:`0 10px 40px ${T.navy}40`}}>
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-            <rect x="7" y="6" width="10" height="26" rx="5" fill="white"/>
-            <rect x="21" y="6" width="10" height="14" rx="5" fill={T.coral}/>
-            <rect x="21" y="24" width="10" height="8" rx="4" fill={T.coral} opacity=".6"/>
-          </svg>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:0,filter:`drop-shadow(0 10px 32px ${T.coral}50)`}}>
+          <LogoIcon size={72}/>
         </div>
-        <div style={{color:T.navy,fontWeight:900,fontSize:30,letterSpacing:"-.5px",lineHeight:1}}>Pick<span style={{color:T.coral}}>u</span></div>
-        <div style={{color:T.light,fontSize:11,marginTop:7,letterSpacing:"2px",fontWeight:600,textTransform:"uppercase"}}>Digital Business Platform</div>
+        <div style={{fontWeight:900,fontSize:30,letterSpacing:"-.5px",lineHeight:1,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+          <span style={{color:T.navy}}>picku</span><span style={{color:T.coral}}>.ai</span>
+        </div>
+        <div style={{color:T.light,fontSize:11,marginTop:8,letterSpacing:"2px",fontWeight:600,textTransform:"uppercase"}}>Digital Business Platform</div>
       </div>
       <div style={{background:T.white,border:`1px solid ${T.border}`,borderRadius:20,padding:32,boxShadow:"0 8px 40px rgba(0,0,0,.07)"}}>
         <div style={{marginBottom:14}}>
@@ -46,13 +45,13 @@ export function Login({onLogin}){
           <label style={{fontSize:11,fontWeight:700,color:T.mid,display:"block",marginBottom:6,letterSpacing:".5px",textTransform:"uppercase"}}>Contraseña</label>
           <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} style={inp} onFocus={e=>e.target.style.borderColor=T.coral} onBlur={e=>e.target.style.borderColor=T.border}/>
         </div>
-        {err&&<div style={{background:T.redL,border:`1px solid ${T.red}30`,borderRadius:10,padding:"10px 14px",fontSize:13,color:T.red,marginBottom:16}}>⚠ {err}</div>}
+        {err&&<div style={{background:T.redL,border:`1px solid ${T.red}30`,borderRadius:10,padding:"10px 14px",fontSize:13,color:T.red,marginBottom:16,display:"flex",alignItems:"center",gap:7}}><AlertTriangle size={14}/>{err}</div>}
         <button onClick={submit} disabled={loading} style={{width:"100%",padding:"14px",background:T.coral,border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:800,cursor:loading?"not-allowed":"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 18px ${T.coral}50`,transition:"opacity .15s",opacity:loading?.7:1}}>
-          {loading?<div style={{width:18,height:18,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,.4)",borderTopColor:"#fff",animation:"spin .7s linear infinite"}}/>:"🔐"}{loading?"Verificando…":"Ingresar"}
+          {loading?<div style={{width:18,height:18,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,.4)",borderTopColor:"#fff",animation:"spin .7s linear infinite"}}/>:<Lock size={16}/>}{loading?"Verificando…":"Ingresar"}
         </button>
       </div>
-      <button onClick={()=>window.location.href="?menu"} style={{width:"100%",marginTop:12,padding:"12px",background:"transparent",border:`1px solid ${T.border}`,borderRadius:12,color:T.mid,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=T.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-        👁️ Ver menú del cliente (demo público)
+      <button onClick={()=>window.location.href="?menu"} style={{width:"100%",marginTop:12,padding:"12px",background:"transparent",border:`1px solid ${T.border}`,borderRadius:12,color:T.mid,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:7,transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=T.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+        <Eye size={14}/> Ver menú del cliente (demo público)
       </button>
     </div>
   </div>;

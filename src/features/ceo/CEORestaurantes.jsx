@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { Eye, CheckCircle2, Mail, AlertCircle, Calendar, User, Package, ClipboardList, DollarSign, Store, FileText, AlertTriangle } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEORestaurantes({restaurants,onUpdate,showToast}){
@@ -66,32 +67,32 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
                   {exp&&<Tag color={T.amber}>⚠ {res.daysLeft}d</Tag>}
                 </div>
               </div>
-              <div style={{fontSize:12,color:T.mid,marginBottom:5}}>👤 {res.owner} · 📧 {res.email}</div>
+              <div style={{fontSize:12,color:T.mid,marginBottom:5,display:"flex",alignItems:"center",gap:5}}><User size={11}/>{res.owner} <Mail size={11}/>{res.email}</div>
               <div style={{display:"flex",gap:14,flexWrap:"wrap",fontSize:11,color:T.mid}}>
-                <span>📦 {res.products} productos</span><span>📋 {res.orders} pedidos</span><span>💰 {fmtCOP(res.mrr)}/mes</span>{res.status!=="inactive"&&<span>📅 {res.nextPayment}</span>}
+                <span style={{display:"flex",alignItems:"center",gap:4}}><Package size={10}/>{res.products} productos</span><span style={{display:"flex",alignItems:"center",gap:4}}><ClipboardList size={10}/>{res.orders} pedidos</span><span style={{display:"flex",alignItems:"center",gap:4}}><DollarSign size={10}/>{fmtCOP(res.mrr)}/mes</span>{res.status!=="inactive"&&<span style={{display:"flex",alignItems:"center",gap:4}}><Calendar size={10}/>{res.nextPayment}</span>}
               </div>
             </div>
           </div>
           <div style={{display:"flex",gap:7,marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`,flexWrap:"wrap"}}>
-            <Btn sm v="ghost" onClick={()=>setSel(res.id)}>👁️ Detalle</Btn>
+            <Btn sm v="ghost" icon={Eye} onClick={()=>setSel(res.id)}>Detalle</Btn>
             {res.status==="active"&&<Btn sm v="danger" onClick={()=>changeStatus(res,"suspended")}>Suspender</Btn>}
-            {res.status==="suspended"&&<Btn sm v="success" onClick={()=>extendSub(res)}>✅ Reactivar + 30d</Btn>}
-            {res.status==="trial"&&<Btn sm v="primary" onClick={()=>changeStatus(res,"active")}>✓ Activar</Btn>}
-            <Btn sm v="amber" onClick={()=>window.open(`mailto:${res.email}`)}>📧 Contactar</Btn>
+            {res.status==="suspended"&&<Btn sm v="success" icon={CheckCircle2} onClick={()=>extendSub(res)}>Reactivar + 30d</Btn>}
+            {res.status==="trial"&&<Btn sm v="primary" onClick={()=>changeStatus(res,"active")}>Activar</Btn>}
+            <Btn sm v="amber" icon={Mail} onClick={()=>window.open(`mailto:${res.email}`)}>Contactar</Btn>
           </div>
         </Card>;
       })}
       {shown.length===0&&<Card style={{textAlign:"center",padding:"50px 20px"}}><div style={{fontSize:44,marginBottom:10}}>🔍</div><div style={{color:T.mid}}>Sin resultados</div></Card>}
     </div>
-    {r&&<Modal title={r.name} icon="🏪" onClose={()=>setSel(null)} wide>
+    {r&&<Modal title={r.name} icon={Store} onClose={()=>setSel(null)} wide>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <div>
           <div style={{height:110,borderRadius:12,overflow:"hidden",marginBottom:14,background:T.bg,display:"flex",alignItems:"center",justifyContent:"center"}}>
             {r.coverImg?<img src={r.coverImg} style={{width:"100%",height:"100%",objectFit:"cover"}} alt=""/>:<span style={{fontSize:44}}>{r.logo}</span>}
           </div>
           <div style={{display:"flex",gap:5,marginBottom:12}}><Tag color={PLAN_MAP[r.plan]?.color||T.mid}>{PLAN_MAP[r.plan]?.label}</Tag><Tag color={STATUS_MAP[r.status]?.color||T.mid}>{STATUS_MAP[r.status]?.label}</Tag></div>
-          {[["👤","Propietario",r.owner],["📧","Email",r.email],["📞","Teléfono",r.phone],["📍","Ciudad",r.city],["📅","Registrado",r.createdAt],["💳","Próximo pago",r.nextPayment],["💰","MRR",fmtCOP(r.mrr)],["📦","Productos",r.products],["📋","Pedidos",r.orders]].map(([ic,lb,vl])=>(
-            <div key={lb} style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:12,paddingBottom:7,borderBottom:`1px solid ${T.border}`}}><span style={{color:T.mid}}>{ic} {lb}</span><span style={{color:T.text,fontWeight:600,textAlign:"right",maxWidth:"55%"}}>{vl}</span></div>
+          {[[User,"Propietario",r.owner],[Mail,"Email",r.email],[Store,"Teléfono",r.phone],[Store,"Ciudad",r.city],[Calendar,"Registrado",r.createdAt],[Calendar,"Próximo pago",r.nextPayment],[DollarSign,"MRR",fmtCOP(r.mrr)],[Package,"Productos",r.products],[ClipboardList,"Pedidos",r.orders]].map(([Ic,lb,vl])=>(
+            <div key={lb} style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:12,paddingBottom:7,borderBottom:`1px solid ${T.border}`}}><span style={{color:T.mid,display:"flex",alignItems:"center",gap:5}}><Ic size={11}/>{lb}</span><span style={{color:T.text,fontWeight:600,textAlign:"right",maxWidth:"55%"}}>{vl}</span></div>
           ))}
         </div>
         <div>
@@ -106,14 +107,14 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
           <div>
             <div style={{fontSize:12,fontWeight:700,color:T.mid,marginBottom:8}}>Acciones</div>
             <div style={{display:"flex",flexDirection:"column",gap:7}}>
-              {r.status==="active"&&<Btn full v="danger" onClick={()=>{changeStatus(r,"suspended");setSel(null);}}>🔴 Suspender cuenta</Btn>}
-              {r.status==="suspended"&&<Btn full v="success" onClick={()=>{changeStatus(r,"active");setSel(null);}}>✅ Reactivar cuenta</Btn>}
-              {r.status==="trial"&&<Btn full v="primary" onClick={()=>{changeStatus(r,"active");setSel(null);}}>✓ Convertir a activo</Btn>}
-              <Btn full v="green" onClick={()=>extendSub(r)} icon="📅">Extender 30 días</Btn>
-              <Btn full v="neutral" onClick={()=>window.open(`mailto:${r.email}`)} icon="📧">Enviar email</Btn>
+              {r.status==="active"&&<Btn full v="danger" icon={AlertCircle} onClick={()=>{changeStatus(r,"suspended");setSel(null);}}>Suspender cuenta</Btn>}
+              {r.status==="suspended"&&<Btn full v="success" icon={CheckCircle2} onClick={()=>{changeStatus(r,"active");setSel(null);}}>Reactivar cuenta</Btn>}
+              {r.status==="trial"&&<Btn full v="primary" onClick={()=>{changeStatus(r,"active");setSel(null);}}>Convertir a activo</Btn>}
+              <Btn full v="green" onClick={()=>extendSub(r)} icon={Calendar}>Extender 30 días</Btn>
+              <Btn full v="neutral" onClick={()=>window.open(`mailto:${r.email}`)} icon={Mail}>Enviar email</Btn>
             </div>
           </div>
-          {r.notes&&<div style={{marginTop:14,background:T.indigoL,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.indigo}}>📝 {r.notes}</div>}
+          {r.notes&&<div style={{marginTop:14,background:T.indigoL,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.indigo,display:"flex",alignItems:"center",gap:6}}><FileText size={12}/>{r.notes}</div>}
         </div>
       </div>
     </Modal>}

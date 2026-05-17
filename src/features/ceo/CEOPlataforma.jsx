@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { Package, Settings, BarChart3, Globe, HardDrive, Mail, CreditCard, AlertTriangle } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEOPlataforma(){
@@ -21,7 +22,7 @@ export function CEOPlataforma(){
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
       <Card>
-        <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16}}>📦 Precios de planes (COP/mes)</div>
+        <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><Package size={14}/> Precios de planes (COP/mes)</div>
         <Field label="Plan Starter" value={cfg.starterPrice} onChange={set("starterPrice")} type="number" prefix="$"/>
         <Field label="Plan Pro" value={cfg.proPrice} onChange={set("proPrice")} type="number" prefix="$"/>
         <Field label="Plan Business" value={cfg.businessPrice} onChange={set("businessPrice")} type="number" prefix="$"/>
@@ -32,7 +33,7 @@ export function CEOPlataforma(){
       </Card>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
         <Card>
-          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16}}>⚙️ Opciones del sistema</div>
+          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><Settings size={14}/> Opciones del sistema</div>
           <Field label="Email de soporte" value={cfg.supportEmail} onChange={set("supportEmail")} type="email"/>
           {[["newRegistrations","Nuevos registros habilitados"],["maintenanceMode","Modo mantenimiento"]].map(([k,l])=>(
             <div key={k} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
@@ -40,13 +41,13 @@ export function CEOPlataforma(){
               <Toggle value={cfg[k]} onChange={v=>setCfg(p=>({...p,[k]:v}))} sm/>
             </div>
           ))}
-          {cfg.maintenanceMode&&<div style={{background:T.amberL,border:`1px solid ${T.amber}30`,borderRadius:8,padding:"8px 12px",fontSize:11,color:T.amber,fontWeight:700,marginTop:8}}>⚠️ Restaurantes verán página de mantenimiento</div>}
+          {cfg.maintenanceMode&&<div style={{background:T.amberL,border:`1px solid ${T.amber}30`,borderRadius:8,padding:"8px 12px",fontSize:11,color:T.amber,fontWeight:700,marginTop:8,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={12}/> Restaurantes verán página de mantenimiento</div>}
         </Card>
         <Card>
-          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:14}}>📊 Estado del sistema</div>
-          {[["🌐","Plataforma","Operativa",T.green],["💾","Base de datos","Conectada",T.green],["📧","Email","Activo",T.green],["💳","Wompi","Conectado",T.green]].map(([ic,lb,st,co])=>(
+          <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><BarChart3 size={14}/> Estado del sistema</div>
+          {[[Globe,"Plataforma","Operativa",T.green],[HardDrive,"Base de datos","Conectada",T.green],[Mail,"Email","Activo",T.green],[CreditCard,"Wompi","Conectado",T.green]].map(([Ic,lb,st,co])=>(
             <div key={lb} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9,fontSize:13}}>
-              <span style={{color:T.mid}}>{ic} {lb}</span>
+              <span style={{color:T.mid,display:"flex",alignItems:"center",gap:6}}><Ic size={13}/> {lb}</span>
               <span style={{fontWeight:700,color:co,display:"flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:"50%",background:co,display:"inline-block"}}/>{st}</span>
             </div>
           ))}

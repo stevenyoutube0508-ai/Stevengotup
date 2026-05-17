@@ -7,6 +7,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
+import { CheckCircle2, Mail, Store, User, Package, Calendar } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export function CEOOnboarding({onAdd,showToast}){
@@ -22,15 +23,15 @@ export function CEOOnboarding({onAdd,showToast}){
     onAdd(r);setDone(r);showToast(`✓ ${form.name} creado exitosamente`);
   };
   if(done)return <div style={{maxWidth:500,margin:"0 auto",textAlign:"center",animation:"fadeUp .35s ease"}}>
-    <div style={{width:72,height:72,borderRadius:22,background:T.greenL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 18px"}}>✅</div>
+    <div style={{width:72,height:72,borderRadius:22,background:T.greenL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}><CheckCircle2 size={36} color={T.green}/></div>
     <h2 style={{fontSize:22,fontWeight:900,color:T.text,marginBottom:8}}>¡Cuenta creada!</h2>
     <p style={{color:T.mid,fontSize:14,marginBottom:22}}>La cuenta de <strong>{done.name}</strong> está activa.</p>
     <Card style={{marginBottom:18,textAlign:"left"}}>
-      {[[selV.icon,"Tipo de negocio",selV.name],["🏪","Negocio",done.name],["👤","Propietario",done.owner],["📧","Email",done.email],["📦","Plan",PLAN_MAP[done.plan]?.label],["📅","Próximo pago",done.nextPayment]].map(([ic,lb,vl])=>(
-        <div key={lb} style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:13}}><span style={{color:T.mid}}>{ic} {lb}</span><span style={{color:T.text,fontWeight:700}}>{vl}</span></div>
+      {[[null,"Tipo de negocio",selV.name],[Store,"Negocio",done.name],[User,"Propietario",done.owner],[Mail,"Email",done.email],[Package,"Plan",PLAN_MAP[done.plan]?.label],[Calendar,"Próximo pago",done.nextPayment]].map(([Ic,lb,vl])=>(
+        <div key={lb} style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:13}}><span style={{color:T.mid,display:"flex",alignItems:"center",gap:5}}>{Ic&&<Ic size={12}/>}{lb}</span><span style={{color:T.text,fontWeight:700}}>{vl}</span></div>
       ))}
     </Card>
-    {done.sendWelcome&&<div style={{background:T.greenL,border:`1px solid ${T.green}30`,borderRadius:10,padding:"10px 14px",fontSize:12,color:T.green,marginBottom:18}}>📨 Email de bienvenida enviado a {done.email}</div>}
+    {done.sendWelcome&&<div style={{background:T.greenL,border:`1px solid ${T.green}30`,borderRadius:10,padding:"10px 14px",fontSize:12,color:T.green,marginBottom:18,display:"flex",alignItems:"center",gap:6}}><Mail size={12}/> Email de bienvenida enviado a {done.email}</div>}
     <div style={{display:"flex",gap:10}}>
       <Btn full v="neutral" onClick={()=>{setDone(null);setStep(0);setForm(INIT_FORM);}}>Crear otro</Btn>
       <Btn full onClick={()=>setDone(null)}>Ver en Clientes</Btn>

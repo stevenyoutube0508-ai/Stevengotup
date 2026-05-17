@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { T, STYLES } from "../../constants/theme";
 import { fmtCOP } from "../../utils/format";
+import { LogOut } from "lucide-react";
 import { Btn, Toast } from "../../shared/components";
+import { LogoFull } from "../../shared/components/Logo";
 import { CEOSidebar } from "../../shared/layout/CEOSidebar";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useAdminStore } from "../../stores/useAdminStore";
@@ -53,7 +55,7 @@ export default function CEOLayout(){
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
         <div style={{background:T.white,borderBottom:`1px solid ${T.border}`,padding:"11px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:40,boxShadow:T.sh}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:13,color:T.navy,fontWeight:700}}>Pick<span style={{color:T.coral}}>u</span> <span style={{color:T.light,fontWeight:500}}>· CEO Panel</span></span>
+            <LogoFull height={26}/>
             <div style={{display:"flex",alignItems:"center",gap:5,background:T.greenL,borderRadius:20,padding:"3px 10px"}}>
               <span style={{width:5,height:5,borderRadius:"50%",background:T.green,display:"inline-block",animation:"pulse2 2s infinite"}}/>
               <span style={{fontSize:10,fontWeight:700,color:T.green}}>Sistema operativo</span>
@@ -63,7 +65,7 @@ export default function CEOLayout(){
             <span style={{fontSize:12,color:T.mid}}>
               {restaurants.filter(r => r.status === "active").length} restaurantes activos · MRR: {fmtCOP(restaurants.filter(r => r.status === "active").reduce((s,r)=>s+r.mrr,0))}
             </span>
-            <Btn sm v="danger" onClick={logout}>🔓 Cerrar sesión</Btn>
+            <Btn sm v="danger" icon={LogOut} onClick={logout}>Cerrar sesión</Btn>
           </div>
         </div>
         <main style={{flex:1,overflowY:"auto",padding:"24px 28px"}}>

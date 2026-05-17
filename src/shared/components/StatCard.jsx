@@ -2,6 +2,8 @@ import { T } from "../../constants/theme";
 import { Card } from "./Card.jsx";
 
 export function StatCard({icon,label,value,sub,color=T.coral,onClick}){
+  const isComp = icon && (typeof icon === "function" || typeof icon.render === "function");
+  const IconComp = isComp ? icon : null;
   return <Card style={{padding:"18px 20px",cursor:onClick?"pointer":"default"}} onClick={onClick} className={onClick?"hov":""}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
       <div>
@@ -9,7 +11,9 @@ export function StatCard({icon,label,value,sub,color=T.coral,onClick}){
         <div style={{fontSize:26,fontWeight:900,color:T.text,letterSpacing:"-.5px",lineHeight:1}}>{value}</div>
         {sub&&<div style={{fontSize:11,fontWeight:600,marginTop:5,color:sub.startsWith("↑")?T.green:sub.startsWith("↓")?T.red:T.mid}}>{sub}</div>}
       </div>
-      <div style={{width:44,height:44,borderRadius:14,background:color+"15",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{icon}</div>
+      <div style={{width:44,height:44,borderRadius:14,background:color+"15",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {IconComp ? <IconComp size={22} color={color}/> : <span style={{fontSize:20}}>{icon}</span>}
+      </div>
     </div>
   </Card>;
 }

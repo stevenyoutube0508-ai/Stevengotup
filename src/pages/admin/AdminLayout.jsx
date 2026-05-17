@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { T, STYLES } from "../../constants/theme";
 import { getVertical } from "../../constants/verticals";
+import { Link, LogOut } from "lucide-react";
 import { Btn, Toast } from "../../shared/components";
 import { PageLoader } from "../../shared/components/PageLoader";
 import { SuspendedScreen } from "../../features/customer/CustomerView";
@@ -78,7 +79,7 @@ export default function AdminLayout() {
 
   if (!dbLoaded) {
     return <PageLoader label="Cargando tu negocio…" />;
-  }
+  } 
 
   const ADMIN_RESP_CSS = `
     .admin-sidebar{transition:transform .25s ease;z-index:99}
@@ -250,18 +251,11 @@ export default function AdminLayout() {
                 </div>
               )}
 
-              <Btn
-                sm
-                v="ghost"
-                onClick={() => navigate("/admin/preview")}
-                icon="🔗"
-              >
+              <Btn sm v="ghost" icon={Link} onClick={() => navigate("/admin/preview")}>
                 {vertical.labels.btn_view || "Ver catálogo"}
               </Btn>
 
-              <Btn sm v="danger" onClick={handleLogout}>
-                ⏻
-              </Btn>
+              <Btn sm v="danger" icon={LogOut} onClick={handleLogout}/>
             </div>
           </div>
 

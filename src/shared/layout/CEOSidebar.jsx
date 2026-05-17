@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { BarChart3, Store, Plus, DollarSign, Ticket, Settings, AlertTriangle, LogOut } from "lucide-react";
+import { LogoFull } from "../components/Logo";
 import { T, CM, STYLES } from "../../constants/theme";
 import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
 import { VERTICALS, getVertical } from "../../constants/verticals";
@@ -8,12 +10,12 @@ import { pointInPoly } from "../../utils/geo";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 
 export const CEO_NAV = [
-  {id:"ceo_dash",label:"Dashboard",icon:"📊"},
-  {id:"ceo_restaurantes",label:"Restaurantes",icon:"🏪"},
-  {id:"ceo_onboarding",label:"Nuevo restaurante",icon:"➕"},
-  {id:"ceo_pagos",label:"Pagos",icon:"💰"},
-  {id:"ceo_soporte",label:"Soporte",icon:"🎫"},
-  {id:"ceo_plataforma",label:"Configuración",icon:"⚙️"},
+  {id:"ceo_dash",label:"Dashboard",icon:BarChart3},
+  {id:"ceo_restaurantes",label:"Restaurantes",icon:Store},
+  {id:"ceo_onboarding",label:"Nuevo restaurante",icon:Plus},
+  {id:"ceo_pagos",label:"Pagos",icon:DollarSign},
+  {id:"ceo_soporte",label:"Soporte",icon:Ticket},
+  {id:"ceo_plataforma",label:"Configuración",icon:Settings},
 ];
 
 export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPayments}){
@@ -21,22 +23,13 @@ export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pe
   const openT=tickets.filter(t=>t.status==="open").length;
   return <nav style={{width:230,background:T.white,borderRight:`1px solid ${T.border}`,minHeight:"100vh",display:"flex",flexDirection:"column",flexShrink:0,position:"sticky",top:0}}>
     <div style={{padding:"20px 16px 14px",borderBottom:`1px solid ${T.border}`}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3}}>
-        <div style={{width:38,height:38,borderRadius:12,background:T.navy,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-          <svg width="24" height="24" viewBox="0 0 38 38" fill="none">
-            <rect x="7" y="6" width="10" height="26" rx="5" fill="white"/>
-            <rect x="21" y="6" width="10" height="14" rx="5" fill={T.coral}/>
-            <rect x="21" y="24" width="10" height="8" rx="4" fill={T.coral} opacity=".6"/>
-          </svg>
-        </div>
-        <div>
-          <div style={{color:T.navy,fontWeight:900,fontSize:18,letterSpacing:"-.3px"}}>Pick<span style={{color:T.coral}}>u</span></div>
-          <div style={{color:T.light,fontSize:9,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase"}}>CEO Panel</div>
-        </div>
+      <div style={{marginBottom:3}}>
+        <LogoFull height={32}/>
+        <div style={{color:T.light,fontSize:9,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",marginTop:4,marginLeft:2}}>CEO Panel</div>
       </div>
       {(suspended>0||openT>0)&&<div style={{marginTop:8,background:T.redL,border:`1px solid ${T.red}20`,borderRadius:8,padding:"6px 10px"}}>
-        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red}}>⚠ {suspended} restaurante{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
-        {openT>0&&<div style={{fontSize:10,fontWeight:700,color:T.amber,marginTop:suspended>0?2:0}}>🎫 {openT} ticket{openT>1?"s":""} abierto{openT>1?"s":""}</div>}
+        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red,display:"flex",alignItems:"center",gap:4}}><AlertTriangle size={10}/> {suspended} restaurante{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
+        {openT>0&&<div style={{fontSize:10,fontWeight:700,color:T.amber,marginTop:suspended>0?2:0,display:"flex",alignItems:"center",gap:4}}><Ticket size={10}/> {openT} ticket{openT>1?"s":""} abierto{openT>1?"s":""}</div>}
       </div>}
     </div>
     <div style={{flex:1,padding:"12px 8px",overflowY:"auto"}}>
@@ -45,7 +38,7 @@ export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pe
         const isActive=active===item.id;
         return <div key={item.id} onClick={()=>onSelect(item.id)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",borderRadius:10,cursor:"pointer",background:isActive?T.coralL:"transparent",marginBottom:2,transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=isActive?T.coralL:T.bg} onMouseLeave={e=>e.currentTarget.style.background=isActive?T.coralL:"transparent"}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:16}}>{item.icon}</span>
+            <item.icon size={16}/>
             <span style={{fontSize:13,fontWeight:isActive?700:500,color:isActive?T.coralD:T.mid}}>{item.label}</span>
           </div>
           {badge>0&&<span style={{minWidth:18,height:18,borderRadius:9,background:item.id==="ceo_soporte"?T.amber:item.id==="ceo_pagos"?T.green:T.red,color:"#fff",fontSize:9,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 4px"}}>{badge}</span>}
@@ -58,7 +51,7 @@ export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pe
         <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
         <div style={{color:T.light,fontSize:9}}>CEO & Fundador</div>
       </div>
-      <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,fontSize:11,padding:"4px 7px",cursor:"pointer"}}>⏻</button>
+      <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><LogOut size={13}/></button>
     </div>
   </nav>;
 }

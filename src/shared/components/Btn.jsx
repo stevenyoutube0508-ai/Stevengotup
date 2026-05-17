@@ -14,7 +14,9 @@ export function Btn({children,v="primary",onClick,disabled,full,sm,icon,style:sx
     dark:{bg:T.navy,c:"#fff",b:"none",sh:"none"},
   };
   const vt=vs[v]||vs.primary;
+  const isComp = icon && (typeof icon === "function" || typeof icon.render === "function");
+  const IconComp = isComp ? icon : null;
   return <button onClick={disabled?undefined:onClick} disabled={disabled} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6,background:vt.bg,color:vt.c,border:vt.b,boxShadow:vt.sh,borderRadius:10,padding:sm?"6px 14px":"10px 22px",fontWeight:700,fontSize:sm?12:13,fontFamily:"'Plus Jakarta Sans',sans-serif",cursor:disabled?"not-allowed":"pointer",opacity:disabled?.45:1,width:full?"100%":"auto",transition:"all .15s",...sx}}>
-    {icon&&<span style={{fontSize:sm?13:15}}>{icon}</span>}{children}
+    {icon&&(IconComp?<IconComp size={sm?13:15}/>:<span style={{fontSize:sm?13:15}}>{icon}</span>)}{children}
   </button>;
 }
