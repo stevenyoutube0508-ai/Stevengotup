@@ -34,21 +34,27 @@ export default function CEOLayout(){
 
   useEffect(() => {
     if(user?.role === "ceo") loadCEOData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const active = ID_BY_ROUTE[location.pathname] || "ceo_dash";
   const pendingPayments = paymentRequests.filter(r => r.status === "pending").length;
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
   return <>
     <style>{STYLES}</style>
-    {toast && <Toast msg={toast.msg} type={toast.type}/>} 
+    {toast && <Toast msg={toast.msg} type={toast.type}/>}
     <div style={{display:"flex",minHeight:"100vh",background:T.bg}}>
       <CEOSidebar
         active={active}
         onSelect={id => navigate(ROUTE_BY_ID[id] || "/ceo/dashboard")}
         restaurants={restaurants}
         tickets={tickets}
-        onLogout={logout}
+        onLogout={handleLogout}
         user={user}
         pendingPayments={pendingPayments}
       />
@@ -65,7 +71,7 @@ export default function CEOLayout(){
             <span style={{fontSize:12,color:T.mid}}>
               {restaurants.filter(r => r.status === "active").length} restaurantes activos · MRR: {fmtCOP(restaurants.filter(r => r.status === "active").reduce((s,r)=>s+r.mrr,0))}
             </span>
-            <Btn sm v="danger" icon={LogOut} onClick={logout}>Cerrar sesión</Btn>
+            <Btn sm v="danger" icon={LogOut} onClick={handleLogout}>Cerrar sesión</Btn>
           </div>
         </div>
         <main style={{flex:1,overflowY:"auto",padding:"24px 28px"}}>

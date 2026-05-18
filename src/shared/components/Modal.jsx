@@ -4,6 +4,7 @@ import {
   isValidElement,
   useEffect,
   useId,
+  useRef,
 } from "react";
 import { X } from "lucide-react";
 
@@ -65,14 +66,19 @@ export function Modal({
 }) {
   const titleId = useId();
 
+  // Keep a ref so the keydown handler always calls the latest onClose
+  // without re-registering the listener on every parent re-render.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
+
+  // Run ONLY on mount / unmount — avoids the body-overflow getting stuck
+  // when the parent re-renders and inline onClose changes reference.
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose?.();
-      }
+      if (event.key === "Escape") onCloseRef.current?.();
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -81,7 +87,8 @@ export function Modal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClose]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const maxWidth = extraWide ? 940 : wide ? 680 : 500;
 

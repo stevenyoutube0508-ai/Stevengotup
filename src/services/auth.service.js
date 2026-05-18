@@ -44,11 +44,24 @@ export async function logoutUser(){
 }
 
 export function onAuthChanged(callback){
-  const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  let lastUserId = null;
+
+  const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
     if(!session?.user){
+      lastUserId = null;
       callback(null);
       return;
     }
+
+    // TOKEN_REFRESHED fires every ~1h with the same user.
+    // Skip the Supabase round-trip and avoid triggering mass re-renders
+    // when nothing about the user has actually changed.
+    if(event === "TOKEN_REFRESHED" && session.user.id === lastUserId){
+      return;
+    }
+
+    lastUserId = session.user.id;
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
