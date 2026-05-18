@@ -8,6 +8,22 @@ import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../../utils/format";
 import { pointInPoly } from "../../../utils/geo";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../../shared/components";
+import { Pencil, Trash } from "lucide-react";
+
+function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
+  return (
+    <Icon
+      size={size}
+      color={color}
+      strokeWidth={2.35}
+      style={{
+        flexShrink: 0,
+        verticalAlign: "-2px",
+        ...style,
+      }}
+    />
+  );
+}
 
 export function SecCategorias({cats,products,onAdd,onUpdate,onDelete,vertical,branches}){
   const vl = vertical?.labels || VERTICALS.restaurant.labels;
@@ -49,8 +65,34 @@ export function SecCategorias({cats,products,onAdd,onUpdate,onDelete,vertical,br
             <div style={{flex:1}}><div style={{fontWeight:700,fontSize:15,color:T.text}}>{c.name}</div><div style={{fontSize:11,color:T.mid,marginTop:1}}>{products.filter(p=>p.catId===c.id).length} productos{multiBranch&&<span style={{marginLeft:6,color:T.coral}}>· {(c.branchIds||["all"]).includes("all")?"Todas las sucursales":branchName((c.branchIds||[])[0])}</span>}</div></div>
             {!c.active&&<Tag color={T.mid}>Inactiva</Tag>}
             <Toggle value={c.active} onChange={v=>onUpdate(c.id,{active:v})} sm/>
-            <Btn sm v="ghost" onClick={()=>openEdit(c)}>✏️</Btn>
-            <Btn sm v="danger" onClick={()=>window.confirm(`¿Eliminar "${c.name}"?`)&&onDelete(c.id)}>🗑️</Btn>
+            <Btn
+  sm
+  v="ghost"
+  onClick={(e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    openEdit(c);
+  }}
+>
+  <InlineIcon icon={Pencil} size={13} />
+  Editar
+</Btn>
+
+<Btn
+  sm
+  v="danger"
+  onClick={(e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
+    if (window.confirm(`¿Eliminar "${c.name}"?`)) {
+      onDelete(c.id);
+    }
+  }}
+>
+  <InlineIcon icon={Trash} size={13} />
+  Eliminar
+</Btn>
           </div>
         </Card>
       ))}

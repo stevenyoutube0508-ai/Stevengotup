@@ -151,7 +151,7 @@ export function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
-  const loginBackgroundUrl = fondoLogin;
+  const loginBackgroundUrl = "";
 
   const submit = async () => {
     if (loading) return;

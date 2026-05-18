@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Ban,
   Check,
@@ -677,34 +678,38 @@ export function BannersAdmin({ banners = [], onChange, primaryColor, cats = [] }
         </div>
       )}
 
-      {editIdx !== null && (
-        <div
-          onClick={() => setEditIdx(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 600,
-            background: "rgba(0,0,0,.55)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            padding: "20px 16px",
-            overflowY: "auto",
-          }}
-        >
+      {editIdx !== null &&
+  createPortal(
+    <div
+      onClick={() => setEditIdx(null)}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 99999,
+        background: "rgba(10,15,30,.62)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px 16px",
+        overflowY: "auto",
+      }}
+    >
           <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: T.white,
-              borderRadius: 24,
-              padding: 24,
-              width: "100%",
-              maxWidth: 720,
-              boxShadow: "0 24px 70px rgba(0,0,0,.26)",
-              margin: "auto",
-            }}
-          >
+  onClick={(e) => e.stopPropagation()}
+  style={{
+    background: T.white,
+    borderRadius: 24,
+    padding: 24,
+    width: "100%",
+    maxWidth: 760,
+    maxHeight: "calc(100vh - 48px)",
+    overflowY: "auto",
+    boxShadow: "0 30px 90px rgba(0,0,0,.34)",
+    margin: "auto",
+  }}
+>
             <div
               style={{
                 display: "flex",
@@ -1181,8 +1186,9 @@ export function BannersAdmin({ banners = [], onChange, primaryColor, cats = [] }
               </Btn>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+  document.body
+)}
     </Card>
   );
 }
