@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 
 export async function loadPaymentRequests(){
   return supabase.from("payment_requests").select("*").order("created_at", { ascending: false });
@@ -67,6 +68,69 @@ export async function approvePaymentRequest(req, reviewerName){
     .eq("id", req.owner_id);
 
   return { error: profRes.error, newExpiry, reviewedAt: now };
+}
+
+/**
+ * Crea un usuario admin en Supabase Auth + fila en profiles + fila en restaurant_config.
+ * Requiere que VITE_SUPABASE_SERVICE_ROLE_KEY esté definido en .env
+ *
+ * @param {object} form  - Datos del formulario de onboarding
+ * @param {string} tempPassword - Contraseña temporal generada antes de llamar
+ * @returns {{ userId: string|null, error: Error|null }}
+ */
+export async function createAdminUser(form, tempPassword) {
+  // ── 1. Crear usuario en Auth ───────────────────────────────
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: form.email,
+    password: tempPassword,
+    email_confirm: true,          // confirma inmediatamente, no necesita email
+    user_metadata: { name: form.owner },
+  });
+
+  if (authError) return { userId: null, error: authError };
+  const userId = authData.user.id;
+
+  // ── 2. Insertar / actualizar perfil ────────────────────────
+  // En algunos proyectos Supabase hay un trigger que ya crea la fila;
+  // usamos upsert para no fallar si ya existe.
+  const { error: profError } = await supabaseAdmin
+    .from("profiles")
+    .upsert({
+      id: userId,
+      role: "admin",
+      name: form.owner,
+      email: form.email,
+      business_type: form.businessType,
+      billing_plan: form.plan,
+      subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }, { onConflict: "id" });
+
+  if (profError) {
+    // Si el perfil falla intentamos limpiar el usuario creado para no dejar huérfanos
+    await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
+    return { userId: null, error: profError };
+  }
+
+  // ── 3. Crear configuración del negocio ─────────────────────
+  const { error: cfgError } = await supabaseAdmin
+    .from("restaurant_config")
+    .upsert({
+      user_id: userId,
+      name: form.name,
+      city: form.city,
+      phone: form.phone || "",
+      logo: form.logo || "🏪",
+      primary_color: form.primaryColor || "#f97316",
+      open_status: false,
+      cover_img: "",
+    }, { onConflict: "user_id" });
+
+  if (cfgError) {
+    await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
+    return { userId: null, error: cfgError };
+  }
+
+  return { userId, error: null };
 }
 
 export async function rejectPaymentRequest(req, note, reviewerName){
