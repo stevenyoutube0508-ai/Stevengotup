@@ -7,19 +7,40 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
-import { Eye, CheckCircle2, Mail, AlertCircle, Calendar, User, Package, ClipboardList, DollarSign, Store, FileText, AlertTriangle } from "lucide-react";
+import { Eye, CheckCircle2, Mail, AlertCircle, Calendar, User, Package, ClipboardList, DollarSign, Store, FileText, AlertTriangle, MapPin, Phone, Plus, Trash2, Building2 } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import { loadBusinessBranches, saveBusinessBranches } from "../../services/ceo.service";
+
+const INIT_BRANCH_FORM = {
+  name: "", address: "", city: "", phone: "",
+  services: { menuDigital: true, domicilios: false, pickup: false, reservas: false, pedidoMesa: false },
+};
 
 export function CEORestaurantes({restaurants,onUpdate,showToast}){
   const [sel,setSel]=useState(null);
   const [q,setQ]=useState("");
   const [filter,setFilter]=useState("all");
+
+  // branches per business
+  const [branches,setBranches]=useState([]);
+  const [branchLoading,setBranchLoading]=useState(false);
+  const [branchSaving,setBranchSaving]=useState(false);
+  const [showBranchForm,setShowBranchForm]=useState(false);
+  const [branchForm,setBranchForm]=useState(INIT_BRANCH_FORM);
+
   const shown=restaurants.filter(r=>{
     const mQ=!q||r.name.toLowerCase().includes(q.toLowerCase())||r.city.toLowerCase().includes(q.toLowerCase());
     const mF=filter==="all"||r.status===filter||(filter==="expiring"&&r.daysLeft<=7&&r.status==="active");
     return mQ&&mF;
   });
   const r=sel?restaurants.find(x=>x.id===sel)||sel:null;
+
+  // Load branches whenever a business detail is opened
+  useEffect(()=>{
+    if(!sel){ setBranches([]); setShowBranchForm(false); setBranchForm(INIT_BRANCH_FORM); return; }
+    setBranchLoading(true);
+    loadBusinessBranches(sel).then(data=>{ setBranches(data); setBranchLoading(false); });
+  },[sel]);
   const changeStatus=(res,status)=>{onUpdate(res.id,{status});showToast(`${res.name} → ${STATUS_MAP[status]?.label}`);if(r?.id===res.id)setSel(p=>p);};
   // Extender suscripción 30 días por email del owner
   const extendSub=async(res)=>{
@@ -36,9 +57,35 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
     }
   };
   const changePlan=(res,plan)=>{onUpdate(res.id,{plan,mrr:PLAN_MAP[plan]?.price||0});showToast(`Plan de ${res.name} → ${PLAN_MAP[plan]?.label}`);};
+
+  const addBranch=async()=>{
+    if(!branchForm.name||!branchForm.address||!branchForm.city) return;
+    const newBranch={ id:`b_${Date.now()}`, ...branchForm, status:true, deliveryZones:[], schedule:{} };
+    const updated=[...branches, newBranch];
+    setBranchSaving(true);
+    const {error}=await saveBusinessBranches(sel, updated);
+    setBranchSaving(false);
+    if(error){ showToast("❌ Error guardando sucursal","error"); return; }
+    setBranches(updated);
+    setBranchForm(INIT_BRANCH_FORM);
+    setShowBranchForm(false);
+    showToast(`✓ Sucursal "${newBranch.name}" creada`);
+  };
+
+  const deleteBranch=async(branchId)=>{
+    const updated=branches.filter(b=>b.id!==branchId);
+    const {error}=await saveBusinessBranches(sel, updated);
+    if(error){ showToast("❌ Error eliminando sucursal","error"); return; }
+    setBranches(updated);
+    showToast("Sucursal eliminada","warn");
+  };
+
+  const setBF=k=>v=>setBranchForm(p=>({...p,[k]:v}));
+  const setSvc=k=>setBranchForm(p=>({...p,services:{...p.services,[k]:!p.services[k]}}));
+
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-      <div><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Restaurantes</h2><p style={{color:T.mid,fontSize:13,marginTop:2}}>{restaurants.filter(r=>r.status!=="inactive").length} activos en la plataforma</p></div>
+      <div><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Negocios</h2><p style={{color:T.mid,fontSize:13,marginTop:2}}>{restaurants.filter(r=>r.status!=="inactive").length} activos en la plataforma</p></div>
     </div>
     <Card style={{marginBottom:14,padding:"12px 16px"}}>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
@@ -116,6 +163,95 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
           </div>
           {r.notes&&<div style={{marginTop:14,background:T.indigoL,borderRadius:10,padding:"10px 12px",fontSize:12,color:T.indigo,display:"flex",alignItems:"center",gap:6}}><FileText size={12}/>{r.notes}</div>}
         </div>
+      </div>
+
+      {/* ── SUCURSALES ───────────────────────────── */}
+      <div style={{marginTop:22,borderTop:`1px solid ${T.border}`,paddingTop:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <Building2 size={15} color={T.coral}/>
+            <span style={{fontSize:13,fontWeight:900,color:T.text}}>
+              Sucursales ({branchLoading?"…":branches.length})
+            </span>
+          </div>
+          {!showBranchForm&&<Btn sm onClick={()=>setShowBranchForm(true)}>
+            <span style={{display:"flex",alignItems:"center",gap:5}}><Plus size={12}/>Nueva sucursal</span>
+          </Btn>}
+        </div>
+
+        {/* Lista de sucursales */}
+        {branchLoading
+          ? <div style={{color:T.mid,fontSize:12,textAlign:"center",padding:"14px 0"}}>Cargando sucursales…</div>
+          : branches.length===0&&!showBranchForm
+            ? <div style={{background:T.bg,borderRadius:10,padding:"20px",textAlign:"center"}}>
+                <Building2 size={28} color={T.light} style={{margin:"0 auto 8px"}}/>
+                <div style={{color:T.mid,fontSize:12}}>Sin sucursales. Crea la primera.</div>
+              </div>
+            : branches.map(b=>(
+                <div key={b.id} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 12px",background:T.bg,borderRadius:10,marginBottom:8,border:`1px solid ${T.border}`}}>
+                  <div style={{width:34,height:34,borderRadius:9,background:T.coralL,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <Building2 size={15} color={T.coral}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:2}}>{b.name}</div>
+                    <div style={{fontSize:11,color:T.mid,display:"flex",gap:8,flexWrap:"wrap"}}>
+                      {b.address&&<span style={{display:"flex",alignItems:"center",gap:3}}><MapPin size={9}/>{b.address}</span>}
+                      {b.city&&<span>{b.city}</span>}
+                      {b.phone&&<span style={{display:"flex",alignItems:"center",gap:3}}><Phone size={9}/>{b.phone}</span>}
+                    </div>
+                    {b.services&&<div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
+                      {Object.entries({menuDigital:"Menú",domicilios:"Domicilios",pickup:"Pickup",reservas:"Reservas",pedidoMesa:"Mesa"})
+                        .filter(([k])=>b.services[k])
+                        .map(([k,lbl])=>(
+                          <span key={k} style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:20,background:T.greenL,color:T.green}}>
+                            {lbl}
+                          </span>
+                        ))}
+                    </div>}
+                  </div>
+                  <button
+                    onClick={()=>deleteBranch(b.id)}
+                    title="Eliminar sucursal"
+                    style={{background:T.redL,border:"none",borderRadius:7,color:T.red,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}
+                  >
+                    <Trash2 size={12}/>
+                  </button>
+                </div>
+              ))
+        }
+
+        {/* Formulario nueva sucursal */}
+        {showBranchForm&&(
+          <div style={{background:T.bg,borderRadius:12,padding:16,border:`1.5px solid ${T.border}`,marginTop:8}}>
+            <div style={{fontSize:12,fontWeight:800,color:T.text,marginBottom:12}}>📍 Nueva sucursal</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+              <Field label="Nombre *" value={branchForm.name} onChange={setBF("name")} placeholder="Sucursal Norte"/>
+              <Field label="Ciudad *" value={branchForm.city} onChange={setBF("city")} placeholder="Cali"/>
+              <Field label="Dirección *" value={branchForm.address} onChange={setBF("address")} placeholder="Cra 5 #15-32"/>
+              <Field label="Teléfono" value={branchForm.phone} onChange={setBF("phone")} placeholder="+57 300 000 0000"/>
+            </div>
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:700,color:T.mid,marginBottom:7}}>SERVICIOS DISPONIBLES</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {[["menuDigital","Menú Digital"],["domicilios","Domicilios"],["pickup","Pickup"],["reservas","Reservas"],["pedidoMesa","Pedido en Mesa"]].map(([k,lbl])=>(
+                  <button
+                    key={k}
+                    onClick={()=>setSvc(k)}
+                    style={{padding:"5px 12px",borderRadius:20,border:`1.5px solid ${branchForm.services[k]?T.green:T.border}`,background:branchForm.services[k]?T.greenL:T.white,color:branchForm.services[k]?T.green:T.mid,fontSize:11,fontWeight:branchForm.services[k]?700:400,cursor:"pointer",transition:"all .15s"}}
+                  >
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn v="neutral" sm onClick={()=>{setShowBranchForm(false);setBranchForm(INIT_BRANCH_FORM);}}>Cancelar</Btn>
+              <Btn sm onClick={addBranch} disabled={!branchForm.name||!branchForm.address||!branchForm.city||branchSaving}>
+                {branchSaving?"Guardando…":"✓ Guardar sucursal"}
+              </Btn>
+            </div>
+          </div>
+        )}
       </div>
     </Modal>}
   </div>;

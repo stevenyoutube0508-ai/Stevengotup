@@ -11,8 +11,8 @@ import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } fro
 
 export const CEO_NAV = [
   {id:"ceo_dash",label:"Dashboard",icon:BarChart3},
-  {id:"ceo_restaurantes",label:"Restaurantes",icon:Store},
-  {id:"ceo_onboarding",label:"Nuevo restaurante",icon:Plus},
+  {id:"ceo_restaurantes",label:"Negocios",icon:Store},
+  {id:"ceo_onboarding",label:"Nuevo negocio",icon:Plus},
   {id:"ceo_pagos",label:"Pagos",icon:DollarSign},
   {id:"ceo_soporte",label:"Soporte",icon:Ticket},
   {id:"ceo_plataforma",label:"Configuración",icon:Settings},
@@ -28,7 +28,7 @@ export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pe
         <div style={{color:T.light,fontSize:9,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",marginTop:4,marginLeft:2}}>CEO Panel</div>
       </div>
       {(suspended>0||openT>0)&&<div style={{marginTop:8,background:T.redL,border:`1px solid ${T.red}20`,borderRadius:8,padding:"6px 10px"}}>
-        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red,display:"flex",alignItems:"center",gap:4}}><AlertTriangle size={10}/> {suspended} restaurante{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
+        {suspended>0&&<div style={{fontSize:10,fontWeight:700,color:T.red,display:"flex",alignItems:"center",gap:4}}><AlertTriangle size={10}/> {suspended} negocio{suspended>1?"s":""} suspendido{suspended>1?"s":""}</div>}
         {openT>0&&<div style={{fontSize:10,fontWeight:700,color:T.amber,marginTop:suspended>0?2:0,display:"flex",alignItems:"center",gap:4}}><Ticket size={10}/> {openT} ticket{openT>1?"s":""} abierto{openT>1?"s":""}</div>}
       </div>}
     </div>

@@ -1,6 +1,32 @@
 import { supabase } from "../lib/supabase";
 import { supabaseAdmin } from "../lib/supabaseAdmin";
 
+/**
+ * Load the branches array for a specific business (by owner user_id).
+ * Uses the admin client because CEO's session doesn't satisfy the
+ * "auth.uid() = user_id" RLS policy on restaurant_config.
+ */
+export async function loadBusinessBranches(ownerId) {
+  const { data, error } = await supabaseAdmin
+    .from("restaurant_config")
+    .select("branches")
+    .eq("user_id", ownerId)
+    .single();
+  if (error) { console.error("loadBusinessBranches:", error); return []; }
+  return data?.branches || [];
+}
+
+/**
+ * Persist the branches array for a specific business.
+ */
+export async function saveBusinessBranches(ownerId, branches) {
+  const { error } = await supabaseAdmin
+    .from("restaurant_config")
+    .update({ branches: branches || [] })
+    .eq("user_id", ownerId);
+  return { error };
+}
+
 export async function loadPaymentRequests(){
   return supabase.from("payment_requests").select("*").order("created_at", { ascending: false });
 }
