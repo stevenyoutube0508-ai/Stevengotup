@@ -54,11 +54,13 @@ export function onAuthChanged(callback){
     }
 
     // TOKEN_REFRESHED fires every ~1h with the same user.
-    // Skip the Supabase round-trip and avoid triggering mass re-renders
-    // when nothing about the user has actually changed.
-    if(event === "TOKEN_REFRESHED" && session.user.id === lastUserId){
-      return;
-    }
+    // SIGNED_IN can re-fire when the browser tab regains focus after being
+    // idle (Supabase reconnects and emits SIGNED_IN even though the session
+    // never changed). Skip both to avoid a mass re-render cascade.
+    const sameUser =
+      (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") &&
+      session.user.id === lastUserId;
+    if(sameUser) return;
 
     lastUserId = session.user.id;
 

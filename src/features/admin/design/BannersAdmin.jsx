@@ -256,7 +256,7 @@ function BannerPreview({ form }) {
   );
 }
 
-export function BannersAdmin({ banners = [], onChange, primaryColor, cats = [] }) {
+export function BannersAdmin({ banners = [], onChange, onToggle, primaryColor, cats = [] }) {
   const pc = primaryColor || T.coral;
 
   const [editIdx, setEditIdx] = useState(null);
@@ -315,10 +315,12 @@ export function BannersAdmin({ banners = [], onChange, primaryColor, cats = [] }
 
   const del = (i) => onChange(banners.filter((_, j) => j !== i));
 
-  const toggle = (i) =>
-    onChange(
-      banners.map((b, j) => (j === i ? { ...b, active: !b.active } : b))
-    );
+  const toggle = (i) => {
+    const updated = banners.map((b, j) => (j === i ? { ...b, active: !b.active } : b));
+    onChange(updated);
+    // Notify parent so it can auto-save this change immediately
+    if (onToggle) onToggle(updated);
+  };
 
   const getPositionChip = (position) => {
     if (position === "productos") {

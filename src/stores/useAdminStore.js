@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { INIT_CONFIG, INIT_BILLING, INIT_BRANCHES } from "../constants/seed";
+import { INIT_CONFIG, INIT_BILLING } from "../constants/seed";
 import { getVertical } from "../constants/verticals";
 import {
   loadAdminData as loadAdminDataService,
@@ -13,6 +13,7 @@ import {
   updateOrderStatus,
   updateRestaurantConfig,
   updateRestaurantBanners,
+  saveBranches as saveBranchesService,
 } from "../services/admin.service";
 
 let toastTimer = null;
@@ -24,7 +25,7 @@ export const useAdminStore = create((set, get) => ({
   config: INIT_CONFIG,
   billing: INIT_BILLING,
   orders: [],
-  branches: INIT_BRANCHES,
+  branches: [],          // starts empty; loaded per-user from restaurant_config
   dbLoaded: false,
   adminLoading: false,
   toast: null,
@@ -48,6 +49,7 @@ export const useAdminStore = create((set, get) => ({
         cats: data.cats,
         products: data.products,
         config: data.config || state.config,
+        branches: data.config?.branches || [],   // per-user branches from DB
         orders: data.orders,
         dbLoaded: true,
         adminLoading: false,
@@ -162,12 +164,31 @@ export const useAdminStore = create((set, get) => ({
     get().showToast(`→ ${statusLabels[status] || status}`);
   },
 
-  updateBranch: (id, patch) => {
-    set(state => ({ branches: state.branches.map(x => x.id === id ? { ...x, ...patch } : x) }));
+  updateBranch: async (id, patch) => {
+    const updated = get().branches.map(x => x.id === id ? { ...x, ...patch } : x);
+    set({ branches: updated });
+    const ownerId = get().ownerId;
+    if(ownerId){
+      const { error } = await saveBranchesService(ownerId, updated);
+      if(error){
+        console.error("updateBranch error:", error);
+        get().showToast("❌ Error guardando sucursal", "error");
+      }
+    }
   },
 
-  addBranch: branch => {
-    set(state => ({ branches: [...state.branches, branch] }));
+  addBranch: async branch => {
+    const updated = [...get().branches, branch];
+    set({ branches: updated });
+    const ownerId = get().ownerId;
+    if(ownerId){
+      const { error } = await saveBranchesService(ownerId, updated);
+      if(error){
+        console.error("addBranch error:", error);
+        get().showToast("❌ Error guardando sucursal", "error");
+        return;
+      }
+    }
     get().showToast("✓ Sucursal creada");
   },
 
@@ -202,7 +223,7 @@ export const useAdminStore = create((set, get) => ({
     config: INIT_CONFIG,
     billing: INIT_BILLING,
     orders: [],
-    branches: INIT_BRANCHES,
+    branches: [],
     dbLoaded: false,
     adminLoading: false,
     toast: null,

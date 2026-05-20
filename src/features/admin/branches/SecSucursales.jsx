@@ -264,6 +264,15 @@ export function PolygonMap({
         }
       })
       .catch(() => initMap([4.711, -74.0721]));
+
+    // Cleanup: destroy the Leaflet map instance when the component unmounts
+    // so its internal DOM event-listeners don't linger and block UI interactions.
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
   }, [leafletReady]);
 
   useEffect(() => {

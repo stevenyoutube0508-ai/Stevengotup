@@ -61,6 +61,7 @@ export function mapConfigFromDb(d){
     banners: d.banners || [],
     promoPopup: d.promo_popup || null,
     socialLinks: d.social_links || {},
+    branches: d.branches || [],   // ← loaded per-user; empty for new businesses
   };
 }
 
@@ -257,5 +258,11 @@ export async function updateRestaurantBanners(userId, c){
   return supabase.from("restaurant_config").update({
     banners: c.banners || [],
     promo_popup: c.promoPopup || null,
+  }).eq("user_id", userId);
+}
+
+export async function saveBranches(userId, branches){
+  return supabase.from("restaurant_config").update({
+    branches: branches || [],
   }).eq("user_id", userId);
 }

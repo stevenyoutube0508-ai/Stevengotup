@@ -123,6 +123,7 @@ export async function createAdminUser(form, tempPassword) {
       primary_color: form.primaryColor || "#f97316",
       open_status: false,
       cover_img: "",
+      branches: [],    // new businesses start with no branches
     }, { onConflict: "user_id" });
 
   if (cfgError) {

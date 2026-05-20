@@ -174,6 +174,12 @@ export function SecBanners({ config, onUpdate, vertical, cats }) {
     setTimeout(() => setSaved(false), 2200);
   };
 
+  // Auto-save when the user flips the active toggle on a banner so the
+  // preview page reflects the change immediately without an explicit save.
+  const handleBannerToggle = (updatedBanners) => {
+    onUpdate({ ...config, banners: updatedBanners, promoPopup });
+  };
+
   return (
     <div style={{ animation: "fadeUp .35s ease" }}>
       <style>
@@ -470,6 +476,7 @@ export function SecBanners({ config, onUpdate, vertical, cats }) {
       <BannersAdmin
         banners={banners}
         onChange={setBanners}
+        onToggle={handleBannerToggle}
         primaryColor={primaryColor}
         cats={cats}
       />
