@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 
 import { T } from "../../../constants/theme";
-import { ANALYTICS_WEEK } from "../../../constants/kanban";
 import { fmtCOP } from "../../../utils/format";
 import { Card, StatCard, Tag } from "../../../shared/components";
 
@@ -125,10 +124,77 @@ function ChartHeader({ icon, title, subtitle, color = T.coral }) {
   );
 }
 
-export function SecInformes({ products = [] }) {
+const DAY_LABELS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+function buildWeekData(orders, totalViews) {
+  const now = new Date();
+  const totalOrdCount = orders.length || 1;
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now - (6 - i) * 24 * 60 * 60 * 1000);
+    const dayStr = d.toISOString().slice(0, 10);
+    const dayOrders = orders.filter((o) => {
+      const ts = o.createdAt ? String(o.createdAt).slice(0, 10) : null;
+      const od = o.date    ? String(o.date).slice(0, 10)    : null;
+      return ts === dayStr || od === dayStr;
+    });
+    return {
+      d: DAY_LABELS[d.getDay()],
+      o: dayOrders.length,
+      v: Math.round(totalViews * (dayOrders.length / totalOrdCount)),
+    };
+  });
+}
+
+export function SecInformes({ products = [], orders = [] }) {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+  // Vistas totales — sum of all product clicks
+  const totalViews = products.reduce((s, p) => s + (p.clicks || 0), 0);
+
+  // Pedidos en los últimos 7 días
+  const weekOrders = orders.filter((o) => {
+    const raw = o.createdAt || o.date || 0;
+    const d = new Date(raw);
+    return !isNaN(d) && d >= sevenDaysAgo;
+  });
+
+  // Ticket promedio sobre pedidos entregados
+  const delivered = orders.filter((o) => o.status === "entregado" && (o.total || 0) > 0);
+  const avgTicket = delivered.length
+    ? Math.round(delivered.reduce((s, o) => s + (o.total || 0), 0) / delivered.length)
+    : 0;
+
+  // Hora pico
+  const hourCounts = {};
+  orders.forEach((o) => {
+    let h = null;
+    if (o.time && typeof o.time === "string") {
+      h = parseInt(o.time.split(":")[0], 10);
+    } else if (o.createdAt) {
+      const d = new Date(o.createdAt);
+      if (!isNaN(d)) h = d.getHours();
+    }
+    if (h !== null && !isNaN(h)) hourCounts[h] = (hourCounts[h] || 0) + 1;
+  });
+  const peakEntry = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
+  const peakHour = peakEntry ? parseInt(peakEntry[0], 10) : null;
+  const peakHourLabel =
+    peakHour !== null
+      ? `${peakHour > 12 ? peakHour - 12 : peakHour || 12} ${peakHour >= 12 ? "PM" : "AM"}`
+      : "—";
+  const peakHourCount = peakEntry ? peakEntry[1] : 0;
+
+  // Chart data (last 7 days)
+  const weekData = buildWeekData(orders, totalViews);
+
+  // Top product by clicks
   const topProduct = [...products]
     .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
     .find((p) => p.clicks > 0);
+
+  // Best day (most orders)
+  const bestDayEntry = weekData.reduce((best, d) => (d.o > best.o ? d : best), weekData[0] || { d: "—", o: 0 });
 
   const insights = [
     {
@@ -136,22 +202,26 @@ export function SecInformes({ products = [] }) {
       color: T.coral,
       tag: "Optimización",
       text:
-        "Los viernes y sábados generan el 42% de tus ventas semanales. Considera personal extra esos días.",
+        weekOrders.length > 0
+          ? `${bestDayEntry.d} fue tu día con más pedidos esta semana (${bestDayEntry.o}). Considera reforzar el equipo esos días para mejorar tiempos de entrega.`
+          : "Aún no hay suficientes pedidos para detectar patrones. Comparte tu menú digital para empezar a recibir datos.",
     },
     {
       icon: PackageCheck,
       color: T.blue,
       tag: "Producto",
       text: topProduct
-        ? `${topProduct.name} está entre los productos con mayor interés. Revisa si está activo en todos tus canales para capturar más ventas.`
-        : "Bandeja Paisa tiene 289 vistas pero 0% de domicilios. Agrégala a la carta de delivery para aumentar ingresos.",
+        ? `${topProduct.name} tiene ${topProduct.clicks} vistas y es tu producto más popular. Asegúrate de que esté activo en todos tus canales para capturar más ventas.`
+        : "Aún no hay vistas registradas en tus productos. Comparte tu menú para empezar a recopilar datos.",
     },
     {
       icon: ChartNoAxesCombined,
       color: T.green,
       tag: "Precio",
       text:
-        "Tu ticket promedio de $42.000 está 15% por encima del sector. Tus clientes valoran la calidad premium.",
+        avgTicket > 0
+          ? `Tu ticket promedio es ${fmtCOP(avgTicket)}. ${avgTicket > 50000 ? "Tus clientes valoran la experiencia premium que ofreces." : "Considera combos o promociones para incrementar el valor por pedido."}`
+          : "Aún no hay pedidos entregados para calcular el ticket promedio.",
     },
   ];
 
@@ -217,7 +287,7 @@ export function SecInformes({ products = [] }) {
               lineHeight: 1.45,
             }}
           >
-            Análisis de desempeño — Abril 2026
+            Análisis de desempeño — {new Date().toLocaleDateString("es-CO", { month: "long", year: "numeric" })}
           </p>
         </div>
 
@@ -252,8 +322,8 @@ export function SecInformes({ products = [] }) {
         <StatCard
           icon={<DashboardStatIcon src={totalViewsIcon} alt="Vistas totales" />}
           label="Vistas totales"
-          value="1,391"
-          sub="↑ 18.3%"
+          value={totalViews.toLocaleString("es-CO")}
+          sub={totalViews > 0 ? "Acumuladas" : "Sin datos aún"}
           color={T.coral}
         />
 
@@ -265,16 +335,16 @@ export function SecInformes({ products = [] }) {
             />
           }
           label="Pedidos semana"
-          value="246"
-          sub="↑ 8.1%"
+          value={weekOrders.length}
+          sub={weekOrders.length > 0 ? "Últimos 7 días" : "Sin pedidos aún"}
           color={T.green}
         />
 
         <StatCard
           icon={<DashboardStatIcon src={peakHourIcon} alt="Hora pico" />}
           label="Hora pico"
-          value="8 PM"
-          sub="98 visitas/h"
+          value={peakHourLabel}
+          sub={peakHourCount > 0 ? `${peakHourCount} pedido(s)` : "Sin datos aún"}
           color={T.amber}
         />
 
@@ -286,7 +356,8 @@ export function SecInformes({ products = [] }) {
             />
           }
           label="Ticket promedio"
-          value={fmtCOP(42000)}
+          value={avgTicket > 0 ? fmtCOP(avgTicket) : "—"}
+          sub={delivered.length > 0 ? `${delivered.length} pedido(s)` : "Sin datos aún"}
           color={T.blue}
         />
       </div>
@@ -317,7 +388,7 @@ export function SecInformes({ products = [] }) {
           <div style={{ width: "100%", height: 175 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={ANALYTICS_WEEK}
+                data={weekData}
                 margin={{ top: 8, right: 8, left: -25, bottom: 0 }}
               >
                 <defs>
@@ -373,7 +444,7 @@ export function SecInformes({ products = [] }) {
           <div style={{ width: "100%", height: 175 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={ANALYTICS_WEEK}
+                data={weekData}
                 margin={{ top: 8, right: 8, left: -25, bottom: 0 }}
               >
                 <XAxis

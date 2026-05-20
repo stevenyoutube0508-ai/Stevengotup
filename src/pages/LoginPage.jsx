@@ -18,7 +18,6 @@ import {
 import { supabase } from "../lib/supabase";
 import { T, STYLES } from "../constants/theme";
 import { LogoIcon } from "../shared/components/Logo";
-import fondoLogin from "../assets/fondo_login.png";
 
 function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
   return (

@@ -22,6 +22,7 @@ const ROUTE_BY_ID = {
   informes: "/admin/informes",
   ai: "/admin/ai",
   facturacion: "/admin/facturacion",
+  equipo: "/admin/equipo",
 };
 
 const ID_BY_ROUTE = Object.fromEntries(

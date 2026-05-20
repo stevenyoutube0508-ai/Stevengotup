@@ -88,12 +88,31 @@ export function mapOrderFromDb(o){
   };
 }
 
+const MRR_MAP = { pro: 99900, business: 189900, starter: 49900, enterprise: 299900 };
+
+function buildBillingFromProfile(prof) {
+  if (!prof) return null;
+  const plan = prof.billing_plan || "pro";
+  const expiry = prof.subscription_expires_at ? new Date(prof.subscription_expires_at) : null;
+  const now = new Date();
+  const daysLeft = expiry ? Math.max(0, Math.round((expiry - now) / (1000 * 60 * 60 * 24))) : null;
+  const status = !expiry ? "trial" : (daysLeft <= 0 ? "suspended" : "active");
+  return {
+    plan,
+    status,
+    daysLeft,
+    nextPayment: expiry ? expiry.toISOString().slice(0, 10) : null,
+    amount: MRR_MAP[plan] || 99900,
+  };
+}
+
 export async function loadAdminData(userId){
-  const [cr, pr, cfr, or] = await Promise.all([
+  const [cr, pr, cfr, or, profR] = await Promise.all([
     supabase.from("categories").select("*").eq("user_id", userId).order("sort_order"),
     supabase.from("products").select("*").eq("user_id", userId),
     supabase.from("restaurant_config").select("*").eq("user_id", userId).single(),
     supabase.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+    supabase.from("profiles").select("billing_plan,subscription_expires_at").eq("id", userId).single(),
   ]);
 
   return {
@@ -101,7 +120,8 @@ export async function loadAdminData(userId){
     products: pr.data?.length ? pr.data.map(mapProductFromDb) : [],
     config: cfr.data ? mapConfigFromDb(cfr.data) : null,
     orders: or.data?.length ? or.data.map(mapOrderFromDb) : [],
-    errors: [cr.error, pr.error, cfr.error, or.error].filter(Boolean),
+    billing: buildBillingFromProfile(profR.data),
+    errors: [cr.error, pr.error, cfr.error, or.error, profR.error].filter(Boolean),
   };
 }
 

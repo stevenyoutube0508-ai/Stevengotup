@@ -28,6 +28,7 @@ import {
   Megaphone,
   Navigation,
   Pencil,
+  Plus,
   Printer,
   QrCode,
   Settings,
@@ -1287,6 +1288,25 @@ export function BranchQR({ br, ownerId }) {
   );
 }
 
+const DEFAULT_SCHEDULE = {
+  mon: { active: true,  open: "09:00", close: "22:00" },
+  tue: { active: true,  open: "09:00", close: "22:00" },
+  wed: { active: true,  open: "09:00", close: "22:00" },
+  thu: { active: true,  open: "09:00", close: "22:00" },
+  fri: { active: true,  open: "09:00", close: "23:00" },
+  sat: { active: true,  open: "10:00", close: "23:00" },
+  sun: { active: false, open: "10:00", close: "20:00" },
+};
+
+const INIT_BRANCH_FORM = {
+  name: "",
+  address: "",
+  city: "",
+  phone: "",
+  manager: "",
+  services: { menuDigital: true, domicilios: false, pickup: false },
+};
+
 export function SecSucursales({
   branches,
   onUpdateBranch,
@@ -1296,13 +1316,8 @@ export function SecSucursales({
   const [selected, setSelected] = useState(null);
   const [subTab, setSubTab] = useState("overview");
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    city: "",
-    phone: "",
-    manager: "",
-  });
+  const [form, setForm] = useState(INIT_BRANCH_FORM);
+  const [formSaving, setFormSaving] = useState(false);
   const [infoForm, setInfoForm] = useState(null);
   const [infoSaved, setInfoSaved] = useState(false);
 
@@ -1370,6 +1385,27 @@ export function SecSucursales({
       mapLink: b.mapLink || "",
     });
     setInfoSaved(false);
+  };
+
+  const saveBranch = async () => {
+    if (!form.name.trim() || !form.address.trim() || !form.city.trim()) return;
+    const newBranch = {
+      id: `b_${Date.now()}`,
+      name: form.name,
+      address: form.address,
+      city: form.city,
+      phone: form.phone,
+      manager: form.manager,
+      services: { ...form.services },
+      status: true,
+      deliveryZones: [],
+      schedule: DEFAULT_SCHEDULE,
+    };
+    setFormSaving(true);
+    await onAddBranch(newBranch);
+    setFormSaving(false);
+    setModal(false);
+    setForm(INIT_BRANCH_FORM);
   };
 
   const updZone = (zoneId, patch) => {
@@ -1495,21 +1531,34 @@ export function SecSucursales({
           </p>
         </div>
 
-        {selected && (
-          <Btn
-            v="neutral"
-            sm
-            onClick={() => {
-              setSelected(null);
-              setInfoForm(null);
-            }}
-          >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <InlineIcon icon={ArrowLeft} size={14} />
-              Volver
-            </span>
-          </Btn>
-        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          {selected && (
+            <Btn
+              v="neutral"
+              sm
+              onClick={() => {
+                setSelected(null);
+                setInfoForm(null);
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <InlineIcon icon={ArrowLeft} size={14} />
+                Volver
+              </span>
+            </Btn>
+          )}
+          {!selected && (
+            <Btn
+              sm
+              onClick={() => { setForm(INIT_BRANCH_FORM); setModal(true); }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                <InlineIcon icon={Plus} size={15} />
+                Nueva sucursal
+              </span>
+            </Btn>
+          )}
+        </div>
       </div>
 
       <div
@@ -1521,6 +1570,44 @@ export function SecSucursales({
         }}
       >
         <div className={selected ? "suc-list-mobile-hidden" : ""}>
+          {branches.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "48px 20px",
+                border: `2px dashed ${T.border}`,
+                borderRadius: 18,
+                color: T.mid,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 16,
+                  background: T.coralL,
+                  color: T.coral,
+                  display: "grid",
+                  placeItems: "center",
+                  margin: "0 auto 12px",
+                }}
+              >
+                <Building2 size={22} strokeWidth={2.4} />
+              </div>
+              <div style={{ fontWeight: 900, fontSize: 14, color: T.text, marginBottom: 6 }}>
+                Sin sucursales
+              </div>
+              <div style={{ fontSize: 12, marginBottom: 16 }}>
+                Crea la primera sucursal de este negocio.
+              </div>
+              <Btn sm onClick={() => { setForm(INIT_BRANCH_FORM); setModal(true); }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <InlineIcon icon={Plus} size={14} />
+                  Nueva sucursal
+                </span>
+              </Btn>
+            </div>
+          )}
           {branches.map((b) => (
             <div
               key={b.id}
@@ -2161,127 +2248,326 @@ export function SecSucursales({
               </div>
             )}
 
-            {subTab === "horarios" && (
-              <Card>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontSize: 14,
-                    fontWeight: 900,
-                    color: T.text,
-                    marginBottom: 16,
-                  }}
-                >
-                  <InlineIcon icon={Clock} size={16} color={T.coral} />
-                  Horarios de atención
-                </div>
+            {subTab === "horarios" && (() => {
+              // Use existing schedule or fall back to DEFAULT_SCHEDULE for display.
+              // If the branch was created before the default-schedule feature,
+              // its schedule might be an empty object — we render DEFAULT_SCHEDULE
+              // in that case so the user sees the days and can edit them.
+              const effectiveSchedule =
+                br.schedule && Object.keys(br.schedule).length > 0
+                  ? br.schedule
+                  : DEFAULT_SCHEDULE;
 
-                {Object.entries(br.schedule || {}).map(([day, cfg]) => (
+              const updSchedule = (day, patch) => {
+                const ns = { ...effectiveSchedule, [day]: { ...effectiveSchedule[day], ...patch } };
+                upd(br.id, { schedule: ns });
+              };
+
+              return (
+                <Card>
                   <div
-                    key={day}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
-                      padding: "10px 0",
-                      borderBottom: `1px solid ${T.border}`,
+                      gap: 8,
+                      fontSize: 14,
+                      fontWeight: 900,
+                      color: T.text,
+                      marginBottom: 16,
                     }}
                   >
+                    <InlineIcon icon={Clock} size={16} color={T.coral} />
+                    Horarios de atención
+                  </div>
+
+                  {Object.entries(effectiveSchedule).map(([day, cfg]) => (
                     <div
+                      key={day}
                       style={{
-                        width: 76,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: T.text,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "10px 0",
+                        borderBottom: `1px solid ${T.border}`,
+                        flexWrap: "wrap",
                       }}
                     >
-                      {DAYS_ES[day]}
-                    </div>
-
-                    <Toggle
-                      value={cfg.active}
-                      onChange={(v) => {
-                        const ns = {
-                          ...br.schedule,
-                          [day]: { ...cfg, active: v },
-                        };
-                        upd(br.id, { schedule: ns });
-                      }}
-                      sm
-                    />
-
-                    {cfg.active ? (
                       <div
                         style={{
-                          display: "flex",
-                          gap: 8,
-                          alignItems: "center",
+                          width: 82,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: T.text,
+                          flexShrink: 0,
                         }}
                       >
-                        <input
-                          type="time"
-                          value={cfg.open}
-                          onChange={(e) => {
-                            const ns = {
-                              ...br.schedule,
-                              [day]: { ...cfg, open: e.target.value },
-                            };
-                            upd(br.id, { schedule: ns });
-                          }}
-                          style={{
-                            padding: "6px 8px",
-                            border: `1px solid ${T.border}`,
-                            borderRadius: 9,
-                            fontSize: 12,
-                            color: T.text,
-                            background: T.bg,
-                          }}
-                        />
-
-                        <span style={{ color: T.mid, fontSize: 12 }}>a</span>
-
-                        <input
-                          type="time"
-                          value={cfg.close}
-                          onChange={(e) => {
-                            const ns = {
-                              ...br.schedule,
-                              [day]: { ...cfg, close: e.target.value },
-                            };
-                            upd(br.id, { schedule: ns });
-                          }}
-                          style={{
-                            padding: "6px 8px",
-                            border: `1px solid ${T.border}`,
-                            borderRadius: 9,
-                            fontSize: 12,
-                            color: T.text,
-                            background: T.bg,
-                          }}
-                        />
+                        {DAYS_ES[day]}
                       </div>
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: T.light,
-                          fontStyle: "italic",
-                        }}
-                      >
-                        Cerrado
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </Card>
-            )}
+
+                      <Toggle
+                        value={cfg.active}
+                        onChange={(v) => updSchedule(day, { active: v })}
+                        sm
+                      />
+
+                      {cfg.active ? (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <input
+                            type="time"
+                            value={cfg.open || "09:00"}
+                            onChange={(e) => updSchedule(day, { open: e.target.value })}
+                            style={{
+                              padding: "6px 8px",
+                              border: `1px solid ${T.border}`,
+                              borderRadius: 9,
+                              fontSize: 12,
+                              color: T.text,
+                              background: T.bg,
+                            }}
+                          />
+                          <span style={{ color: T.mid, fontSize: 12 }}>a</span>
+                          <input
+                            type="time"
+                            value={cfg.close || "22:00"}
+                            onChange={(e) => updSchedule(day, { close: e.target.value })}
+                            style={{
+                              padding: "6px 8px",
+                              border: `1px solid ${T.border}`,
+                              borderRadius: 9,
+                              fontSize: 12,
+                              color: T.text,
+                              background: T.bg,
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 12, color: T.light, fontStyle: "italic" }}>
+                          Cerrado
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </Card>
+              );
+            })()}
 
             {subTab === "qr" && <BranchQR br={br} ownerId={ownerId} />}
           </div>
         )}
       </div>
+
+      {/* ── Modal: Nueva sucursal ─────────────────────────────── */}
+      {modal && (
+        <div
+          onClick={() => setModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 600,
+            background: "rgba(0,0,0,.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: T.white,
+              borderRadius: 22,
+              padding: 24,
+              width: "100%",
+              maxWidth: 500,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 24px 60px rgba(15,23,42,.18)",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  fontWeight: 900,
+                  fontSize: 18,
+                  color: T.text,
+                }}
+              >
+                <SoftIcon icon={Building2} color={T.coral} box={36} size={18} />
+                Nueva sucursal
+              </div>
+              <button
+                onClick={() => setModal(false)}
+                style={{
+                  background: T.bg,
+                  border: "none",
+                  borderRadius: 10,
+                  width: 32,
+                  height: 32,
+                  cursor: "pointer",
+                  color: T.mid,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <X size={16} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            {/* Fields */}
+            <Field
+              label="Nombre de la sucursal *"
+              value={form.name}
+              onChange={(v) => setForm((p) => ({ ...p, name: v }))}
+              placeholder="Ej: Sede Norte, El Peñón…"
+              required
+            />
+
+            <Field
+              label="Dirección *"
+              value={form.address}
+              onChange={(v) => setForm((p) => ({ ...p, address: v }))}
+              placeholder="Cra 5 #15-32"
+              required
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 10,
+              }}
+            >
+              <Field
+                label="Ciudad *"
+                value={form.city}
+                onChange={(v) => setForm((p) => ({ ...p, city: v }))}
+                placeholder="Cali"
+                required
+              />
+              <Field
+                label="Teléfono"
+                value={form.phone}
+                onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
+                placeholder="+57 300 000 0000"
+              />
+            </div>
+
+            <Field
+              label="Encargado"
+              value={form.manager}
+              onChange={(v) => setForm((p) => ({ ...p, manager: v }))}
+              placeholder="Nombre del responsable"
+            />
+
+            {/* Services */}
+            <div style={{ marginBottom: 18 }}>
+              <label
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: T.mid,
+                  display: "block",
+                  marginBottom: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: ".5px",
+                }}
+              >
+                Servicios que ofrece
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { id: "menuDigital", Icon: ClipboardList, label: "Menú Digital", color: T.coral },
+                  { id: "domicilios",  Icon: Bike,          label: "Domicilios",   color: T.blue  },
+                  { id: "pickup",      Icon: Store,         label: "Pickup / Llevar", color: T.pink },
+                ].map((s) => (
+                  <label
+                    key={s.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 13px",
+                      borderRadius: 12,
+                      border: `1.5px solid ${form.services[s.id] ? s.color + "44" : T.border}`,
+                      background: form.services[s.id] ? s.color + "08" : T.bg,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.services[s.id] || false}
+                      onChange={() =>
+                        setForm((p) => ({
+                          ...p,
+                          services: { ...p.services, [s.id]: !p.services[s.id] },
+                        }))
+                      }
+                      style={{ accentColor: s.color, width: 16, height: 16 }}
+                    />
+                    <InlineIcon icon={s.Icon} size={15} color={form.services[s.id] ? s.color : T.light} />
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: form.services[s.id] ? T.text : T.mid,
+                      }}
+                    >
+                      {s.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Horarios note */}
+            <div
+              style={{
+                background: T.coralL,
+                borderRadius: 12,
+                padding: "10px 13px",
+                fontSize: 12,
+                color: T.coral,
+                fontWeight: 700,
+                marginBottom: 18,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <InlineIcon icon={Clock} size={14} />
+              Los horarios se configuran desde la pestaña "Horarios" de la sucursal.
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn full v="neutral" onClick={() => setModal(false)}>
+                Cancelar
+              </Btn>
+              <Btn
+                full
+                disabled={!form.name.trim() || !form.address.trim() || !form.city.trim() || formSaving}
+                onClick={saveBranch}
+              >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <InlineIcon icon={formSaving ? Clock : Check} size={15} />
+                  {formSaving ? "Guardando…" : "Crear sucursal"}
+                </span>
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

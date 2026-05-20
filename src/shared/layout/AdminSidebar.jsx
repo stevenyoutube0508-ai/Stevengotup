@@ -1,5 +1,22 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Home, Store, Utensils, FolderOpen, Package, Paintbrush, Target, Bike, BarChart3, Bot, CreditCard, LogOut } from "lucide-react";
+import {
+  Home, Store, Utensils, FolderOpen, Package, Paintbrush, Target,
+  Bike, BarChart3, Bot, CreditCard, LogOut, Users,
+  Shirt, Wrench, Gamepad2, Sparkles, Smartphone, ShoppingCart, PawPrint, Briefcase,
+} from "lucide-react";
+
+/** Icono del catálogo según el tipo de negocio */
+const CATALOG_ICON = {
+  restaurant: Utensils,
+  fashion:    Shirt,
+  hardware:   Wrench,
+  toys:       Gamepad2,
+  beauty:     Sparkles,
+  tech:       Smartphone,
+  grocery:    ShoppingCart,
+  pets:       PawPrint,
+  services:   Briefcase,
+};
 import { LogoFull } from "../components/Logo";
 import { T, CM, STYLES } from "../../constants/theme";
 import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
@@ -11,25 +28,29 @@ import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } fro
 
 const strip = s => s?.replace(/^[^\wÀ-ɏ(]+/u, "").trim() ?? s;
 
-export const getAdminNav = (vl) => [
-  {id:"home",        label:"Home",                                        icon:Home},
-  {id:"sucursales",  label:strip(vl.nav_branches)||"Sucursales",          icon:Store},
-  {id:"productos",   label:strip(vl.nav_products)||"Productos",           icon:Utensils},
-  {id:"categorias",  label:strip(vl.categoryPlural||vl.category)||"Categorías", icon:FolderOpen},
-  {id:"stock",       label:strip(vl.nav_stock)||"Fuera de stock",         icon:Package},
-  {id:"diseno",      label:strip(vl.nav_design)||"Diseño",                icon:Paintbrush},
-  {id:"banners",     label:"Banners",                                     icon:Target},
-  {id:"delivery",    label:strip(vl.nav_delivery)||"Pedidos",             icon:Bike},
-  {id:"informes",    label:"Informes",                                    icon:BarChart3},
-  {id:"ai",          label:"Asistente IA",                                icon:Bot},
-  {id:"facturacion", label:"Facturación",                                 icon:CreditCard},
-];
+export const getAdminNav = (vl, verticalId = "restaurant") => {
+  const catalogIcon = CATALOG_ICON[verticalId] || Utensils;
+  return [
+    {id:"home",        label:"Home",                                        icon:Home},
+    {id:"sucursales",  label:"Sucursales",                                  icon:Store},
+    {id:"productos",   label:"Productos",                                   icon:catalogIcon},
+    {id:"categorias",  label:"Categorías",                                  icon:FolderOpen},
+    {id:"stock",       label:strip(vl.nav_stock)||"Fuera de stock",         icon:Package},
+    {id:"diseno",      label:strip(vl.nav_design)||"Diseño",                icon:Paintbrush},
+    {id:"banners",     label:"Banners",                                     icon:Target},
+    {id:"delivery",    label:strip(vl.nav_delivery)||"Pedidos",             icon:Bike},
+    {id:"informes",    label:"Informes",                                    icon:BarChart3},
+    {id:"ai",          label:"Asistente IA",                                icon:Bot},
+    {id:"facturacion", label:"Facturación",                                 icon:CreditCard},
+    {id:"equipo",      label:"Equipo",                                      icon:Users},
+  ];
+};
 
 export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,onClose,vertical}){
   const plan=billing?.plan||"pro";
   const planColor={starter:T.blue,pro:T.violet,business:T.pink}[plan]||T.coral;
   const vl = vertical?.labels || VERTICALS.restaurant.labels;
-  const nav = getAdminNav(vl);
+  const nav = getAdminNav(vl, vertical?.id || "restaurant");
   return <>
     {/* Overlay mobile */}
     {isOpen&&<div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:98,display:"none"}} className="mob-overlay"/>}

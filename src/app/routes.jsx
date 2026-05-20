@@ -22,6 +22,10 @@ const InformesPage = React.lazy(() => import("../pages/admin/InformesPage"));
 const AIPage = React.lazy(() => import("../pages/admin/AIPage"));
 const FacturacionPage = React.lazy(() => import("../pages/admin/FacturacionPage"));
 const MenuPreviewPage = React.lazy(() => import("../pages/admin/MenuPreviewPage"));
+const EquipoPage      = React.lazy(() => import("../pages/admin/EquipoPage"));
+
+const StaffLayout       = React.lazy(() => import("../pages/staff/StaffLayout"));
+const StaffDeliveryPage = React.lazy(() => import("../pages/staff/StaffDeliveryPage"));
 
 const CEOLayout = React.lazy(() => import("../pages/ceo/CEOLayout"));
 const DashPage = React.lazy(() => import("../pages/ceo/DashPage"));
@@ -74,7 +78,8 @@ export const router = createBrowserRouter([
               { path: "informes", element: lazyPage(InformesPage) },
               { path: "ai", element: lazyPage(AIPage) },
               { path: "facturacion", element: lazyPage(FacturacionPage) },
-              { path: "preview", element: lazyPage(MenuPreviewPage) },
+              { path: "preview",    element: lazyPage(MenuPreviewPage) },
+              { path: "equipo",     element: lazyPage(EquipoPage) },
             ],
           },
         ],
@@ -93,6 +98,19 @@ export const router = createBrowserRouter([
               { path: "pagos", element: lazyPage(PagosPage) },
               { path: "soporte", element: lazyPage(SoportePage) },
               { path: "plataforma", element: lazyPage(PlataformaPage) },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RoleGuard role="staff" />,
+        children: [
+          {
+            path: "/staff",
+            element: lazyLayout(StaffLayout),
+            children: [
+              { index: true, element: <Navigate to="/staff/delivery" replace /> },
+              { path: "delivery", element: lazyPage(StaffDeliveryPage) },
             ],
           },
         ],

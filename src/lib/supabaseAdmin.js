@@ -21,6 +21,7 @@ export const supabaseAdmin = createClient(
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+      storageKey: "sb-admin-local",   // evita conflicto con el cliente normal
     },
   }
 );

@@ -11,6 +11,16 @@ import { Eye, CheckCircle2, Mail, AlertCircle, Calendar, User, Package, Clipboar
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
 import { loadBusinessBranches, saveBusinessBranches } from "../../services/ceo.service";
 
+const DEFAULT_SCHEDULE = {
+  mon: { active: true,  open: "09:00", close: "22:00" },
+  tue: { active: true,  open: "09:00", close: "22:00" },
+  wed: { active: true,  open: "09:00", close: "22:00" },
+  thu: { active: true,  open: "09:00", close: "22:00" },
+  fri: { active: true,  open: "09:00", close: "23:00" },
+  sat: { active: true,  open: "10:00", close: "23:00" },
+  sun: { active: false, open: "10:00", close: "20:00" },
+};
+
 const INIT_BRANCH_FORM = {
   name: "", address: "", city: "", phone: "",
   services: { menuDigital: true, domicilios: false, pickup: false, reservas: false, pedidoMesa: false },
@@ -60,7 +70,7 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
 
   const addBranch=async()=>{
     if(!branchForm.name||!branchForm.address||!branchForm.city) return;
-    const newBranch={ id:`b_${Date.now()}`, ...branchForm, status:true, deliveryZones:[], schedule:{} };
+    const newBranch={ id:`b_${Date.now()}`, ...branchForm, status:true, deliveryZones:[], schedule: DEFAULT_SCHEDULE };
     const updated=[...branches, newBranch];
     setBranchSaving(true);
     const {error}=await saveBusinessBranches(sel, updated);

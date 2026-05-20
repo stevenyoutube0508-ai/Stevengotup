@@ -829,45 +829,135 @@ export function SecProductos({
                 fontSize: 11,
                 fontWeight: 800,
                 color: T.mid,
-                marginBottom: 8,
+                marginBottom: 10,
+                textTransform: "uppercase",
+                letterSpacing: ".5px",
               }}
             >
               <InlineIcon icon={Store} size={13} />
-              Sucursal
+              Sucursales donde aparece
             </label>
 
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                ["all", "Todas las sucursales", Globe2],
-                ...(branches || []).map((b) => [b.id, b.name, Store]),
-              ].map(([k, l, Icon]) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setD((p) => ({ ...p, branchIds: [k] }))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {/* "Todas las sucursales" option */}
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 13px",
+                  borderRadius: 12,
+                  border: `1.5px solid ${
+                    (d.branchIds || ["all"]).includes("all") ? T.coral + "66" : T.border
+                  }`,
+                  background: (d.branchIds || ["all"]).includes("all") ? T.coralL : T.bg,
+                  cursor: "pointer",
+                  userSelect: "none",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={(d.branchIds || ["all"]).includes("all")}
+                  onChange={() => setD((p) => ({ ...p, branchIds: ["all"] }))}
+                  style={{ accentColor: T.coral, width: 16, height: 16, cursor: "pointer" }}
+                />
+                <InlineIcon
+                  icon={Globe2}
+                  size={14}
+                  color={(d.branchIds || ["all"]).includes("all") ? T.coral : T.light}
+                />
+                <span
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 7,
-                    padding: "8px 14px",
-                    borderRadius: 12,
-                    border: `2px solid ${
-                      (d.branchIds || ["all"])[0] === k ? T.coral : T.border
-                    }`,
-                    background:
-                      (d.branchIds || ["all"])[0] === k ? T.coralL : T.bg,
-                    color:
-                      (d.branchIds || ["all"])[0] === k ? T.coral : T.mid,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: "pointer",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: (d.branchIds || ["all"]).includes("all") ? T.coral : T.mid,
                   }}
                 >
-                  <Icon size={13} strokeWidth={2.4} />
-                  {l}
-                </button>
-              ))}
+                  Todas las sucursales
+                </span>
+              </label>
+
+              {/* Individual branches */}
+              {(branches || []).map((b) => {
+                const isAll = (d.branchIds || ["all"]).includes("all");
+                const isChecked = !isAll && (d.branchIds || []).includes(b.id);
+                return (
+                  <label
+                    key={b.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 13px",
+                      borderRadius: 12,
+                      border: `1.5px solid ${isChecked ? T.coral + "44" : T.border}`,
+                      background: isChecked ? T.coralL : T.bg,
+                      cursor: "pointer",
+                      userSelect: "none",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => {
+                        if (isAll) {
+                          // Switch from "Todas" mode to selecting just this branch
+                          setD((p) => ({ ...p, branchIds: [b.id] }));
+                        } else {
+                          const cur = (d.branchIds || []).filter((x) => x !== "all");
+                          const next = cur.includes(b.id)
+                            ? cur.filter((x) => x !== b.id)
+                            : [...cur, b.id];
+                          setD((p) => ({
+                            ...p,
+                            branchIds: next.length ? next : ["all"],
+                          }));
+                        }
+                      }}
+                      style={{ accentColor: T.coral, width: 16, height: 16, cursor: "pointer" }}
+                    />
+                    <InlineIcon
+                      icon={Store}
+                      size={14}
+                      color={isChecked ? T.coral : T.light}
+                    />
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: isChecked ? T.coral : T.mid,
+                      }}
+                    >
+                      {b.name}
+                    </span>
+                    {b.city && (
+                      <span style={{ fontSize: 11, color: T.light, marginLeft: "auto" }}>
+                        {b.city}
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
             </div>
+
+            {/* Summary hint */}
+            {!(d.branchIds || ["all"]).includes("all") && (
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  color: T.coral,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <InlineIcon icon={Store} size={12} />
+                Asignado a {(d.branchIds || []).length} sucursal
+                {(d.branchIds || []).length !== 1 ? "es" : ""}
+              </div>
+            )}
           </div>
         )}
 

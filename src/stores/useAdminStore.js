@@ -51,6 +51,7 @@ export const useAdminStore = create((set, get) => ({
         config: data.config || state.config,
         branches: data.config?.branches || [],   // per-user branches from DB
         orders: data.orders,
+        billing: data.billing || state.billing,  // real plan from profiles table
         dbLoaded: true,
         adminLoading: false,
       }));

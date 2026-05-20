@@ -3,5 +3,6 @@ import { useAdminStore } from "../../stores/useAdminStore";
 
 export default function InformesPage(){
   const products = useAdminStore(s => s.products);
-  return <SecInformes products={products}/>;
+  const orders   = useAdminStore(s => s.orders);
+  return <SecInformes products={products} orders={orders}/>;
 }

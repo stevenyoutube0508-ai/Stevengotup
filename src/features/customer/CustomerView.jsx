@@ -276,9 +276,18 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const cartCount=cart.reduce((s,c)=>s+c.qty,0);
   const getEffPrice=p=>orderMode==="domicilio"&&p.deliveryPrice?p.deliveryPrice:p.price;
   const channelOk=p=>orderMode==="domicilio"?(p.forDelivery!==false):(p.forMenu!==false);
-  const activeCats=cats.filter(c=>c.active&&products.some(p=>p.catId===c.id&&p.active&&channelOk(p)));
-  const catProds=q?products.filter(p=>p.active&&channelOk(p)&&(p.name.toLowerCase().includes(q.toLowerCase())||p.desc.toLowerCase().includes(q.toLowerCase()))):products.filter(p=>p.catId===activeCat&&p.active&&channelOk(p));
-  const featured=products.filter(p=>p.featured&&p.active&&p.stock&&channelOk(p));
+  // branchOk: show the product only if it's assigned to "all" branches
+  // OR the currently selected branch. When there's only one branch (or no
+  // branch selection yet), selBranch falls back to branches[0] — still correct.
+  const branchOk=p=>{
+    const ids=p.branchIds||["all"];
+    if(ids.includes("all")) return true;
+    if(!selBranch) return true;
+    return ids.includes(selBranch.id);
+  };
+  const activeCats=cats.filter(c=>c.active&&products.some(p=>p.catId===c.id&&p.active&&channelOk(p)&&branchOk(p)));
+  const catProds=q?products.filter(p=>p.active&&channelOk(p)&&branchOk(p)&&(p.name.toLowerCase().includes(q.toLowerCase())||(p.desc||"").toLowerCase().includes(q.toLowerCase()))):products.filter(p=>p.catId===activeCat&&p.active&&channelOk(p)&&branchOk(p));
+  const featured=products.filter(p=>p.featured&&p.active&&p.stock&&channelOk(p)&&branchOk(p));
   const add=p=>setCart(c=>[...c,{uid:Date.now()+Math.random(),product:p,qty:1,total:getEffPrice(p)}]);
   const rem=uid=>setCart(c=>c.filter(x=>x.uid!==uid));
   const ff=v=>setForm(f=>({...f,...v}));
@@ -328,7 +337,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     setTrackedOrder(o);setCart([]);setCheckout(false);setStep(1);setSubmitting(false);
   };
   if(screen==="landing"){
-    const mostOrdered=products.filter(p=>p.active&&p.stock&&channelOk(p)&&(p.clicks||0)>0).sort((a,b)=>(b.clicks||0)-(a.clicks||0)).slice(0,8);
+    const mostOrdered=products.filter(p=>p.active&&p.stock&&channelOk(p)&&branchOk(p)&&(p.clicks||0)>0).sort((a,b)=>(b.clicks||0)-(a.clicks||0)).slice(0,8);
     const btnBase={width:"100%",padding:"14px 18px",borderRadius:14,cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,border:"none",textAlign:"left"};
     return <div style={{minHeight:"100vh",background:isDark?CM.bg:"#fff",paddingBottom:72}}>
       <style>{STYLES}</style>
@@ -556,7 +565,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       <div className="cat-grid">
         {activeCats.map((c,i)=><CategoryCard key={c.id} c={c} pc={pc} isDark={isDark}
           onClick={()=>setActiveCat(c.id)} idx={i}
-          prodCount={products.filter(p=>p.catId===c.id&&p.active).length}/>)}
+          prodCount={products.filter(p=>p.catId===c.id&&p.active&&channelOk(p)&&branchOk(p)).length}/>)}
       </div>
       {activeCats.length===0&&<div style={{textAlign:"center",padding:"50px 20px"}}><div style={{fontSize:44,marginBottom:10}}>{vertIcon}</div><div style={{color:mid,fontSize:14}}>Sin categorías activas</div></div>}
     </div>}
@@ -784,7 +793,7 @@ export function PublicMenu({onBack}){
   const [config,setConfig]=useState(INIT_CONFIG);
   const [products,setProducts]=useState([]);
   const [cats,setCats]=useState([]);
-  const [branches,setBranches]=useState(INIT_BRANCHES);
+  const [branches,setBranches]=useState([]);
   const [loading,setLoading]=useState(true);
   const [ownerId,setOwnerId]=useState(null);
   const [suspended,setSuspended]=useState(false);
@@ -801,6 +810,7 @@ export function PublicMenu({onBack}){
         }
         if(prof?.business_type) setBusinessType(prof.business_type);
         setConfig({name:cfg.name,tagline:cfg.tagline,logo:cfg.logo,primaryColor:cfg.primary_color,menuStyle:cfg.menu_style,menuFont:cfg.menu_font,city:cfg.city,address:cfg.address,phone:cfg.phone,whatsapp:cfg.whatsapp,schedule:cfg.schedule,coverImg:cfg.cover_img,bgImg:"",openStatus:cfg.open_status,deliveryFee:cfg.delivery_fee,showAllergens:cfg.show_allergens,banners:cfg.banners||[],promoPopup:cfg.promo_popup||null,socialLinks:cfg.social_links||{}});
+        setBranches(cfg.branches||[]);
         const [cr,pr]=await Promise.all([
           supabase.from("categories").select("*").eq("user_id",cfg.user_id).order("sort_order"),
           supabase.from("products").select("*").eq("user_id",cfg.user_id),
