@@ -23,6 +23,7 @@ const AIPage = React.lazy(() => import("../pages/admin/AIPage"));
 const FacturacionPage = React.lazy(() => import("../pages/admin/FacturacionPage"));
 const MenuPreviewPage = React.lazy(() => import("../pages/admin/MenuPreviewPage"));
 const EquipoPage      = React.lazy(() => import("../pages/admin/EquipoPage"));
+const ReservasPage    = React.lazy(() => import("../pages/admin/ReservasPage"));
 
 const StaffLayout       = React.lazy(() => import("../pages/staff/StaffLayout"));
 const StaffDeliveryPage = React.lazy(() => import("../pages/staff/StaffDeliveryPage"));
@@ -57,6 +58,12 @@ export const router = createBrowserRouter([
     element: lazyPage(MenuPage),
   },
   {
+    // URL que se imprime en el QR: /menu/<userId>
+    // Opcionalmente ?b=<branchId> para pre-seleccionar sucursal
+    path: "/menu/:userId",
+    element: lazyPage(MenuPage),
+  },
+  {
     element: <AuthGuard />,
     children: [
       {
@@ -80,6 +87,7 @@ export const router = createBrowserRouter([
               { path: "facturacion", element: lazyPage(FacturacionPage) },
               { path: "preview",    element: lazyPage(MenuPreviewPage) },
               { path: "equipo",     element: lazyPage(EquipoPage) },
+              { path: "reservas",   element: lazyPage(ReservasPage) },
             ],
           },
         ],

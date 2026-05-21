@@ -243,7 +243,7 @@ export function SecDiseno({ config, onUpdate }) {
               letterSpacing: "-.45px",
             }}
           >
-            Diseño del menú
+            Diseño del catálogo
           </h2>
 
           <p
@@ -310,7 +310,7 @@ export function SecDiseno({ config, onUpdate }) {
             <SectionTitle
               icon={Store}
               title="Identidad"
-              subtitle="Define los datos principales que aparecerán en el encabezado del menú."
+              subtitle="Define los datos principales que aparecerán en el encabezado del catálogo."
             />
 
             <Field
@@ -378,7 +378,7 @@ export function SecDiseno({ config, onUpdate }) {
             <SectionTitle
               icon={Palette}
               title="Colores y estilo"
-              subtitle="Escoge el color principal y el modo visual del menú."
+              subtitle="Escoge el color principal y el modo visual del catálogo."
             />
 
             <div style={{ marginBottom: 16 }}>
@@ -466,7 +466,7 @@ export function SecDiseno({ config, onUpdate }) {
                   marginBottom: 8,
                 }}
               >
-                Estilo del menú
+                Estilo del catálogo
               </label>
 
               <div
@@ -547,7 +547,7 @@ export function SecDiseno({ config, onUpdate }) {
               <Toggle
                 value={d.showAllergens}
                 onChange={set("showAllergens")}
-                label="Mostrar alérgenos en el menú"
+                label="Mostrar alérgenos en el catálogo"
               />
             </div>
           </Card>
@@ -556,7 +556,7 @@ export function SecDiseno({ config, onUpdate }) {
             <SectionTitle
               icon={ImageIcon}
               title="Fotos"
-              subtitle="Carga imágenes que hagan que tu menú se vea más profesional."
+              subtitle="Carga imágenes que hagan que tu catálogo se vea más profesional."
             />
 
             <PhotoInput
@@ -568,7 +568,7 @@ export function SecDiseno({ config, onUpdate }) {
             />
 
             <PhotoInput
-              label="Fondo del menú (opcional)"
+              label="Fondo del catálogo (opcional)"
               value={d.bgImg}
               onChange={set("bgImg")}
               height={76}
@@ -580,7 +580,7 @@ export function SecDiseno({ config, onUpdate }) {
             <SectionTitle
               icon={Globe2}
               title="Redes sociales"
-              subtitle="Los clientes verán los accesos en el menú. Pega el link completo o solo el número para WhatsApp."
+              subtitle="Los clientes verán los accesos en el catálogo. Pega el link completo o solo el número para WhatsApp."
             />
 
             <div
@@ -734,288 +734,91 @@ export function SecDiseno({ config, onUpdate }) {
               </div>
             </div>
 
-            <div
-              style={{
-                minHeight: 300,
-                background: previewBg,
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
+            <div style={{ background: previewBg, position: "relative", overflow: "hidden" }}>
               {d.bgImg && (
-                <img
-                  src={d.bgImg}
-                  alt=""
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: d.menuStyle === "dark" ? 0.16 : 0.1,
-                  }}
-                />
+                <img src={d.bgImg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: d.menuStyle === "dark" ? 0.14 : 0.08 }} />
               )}
 
-              <div
-                style={{
-                  height: 160,
-                  position: "relative",
-                  overflow: "hidden",
-                  background: d.primaryColor + "18",
-                }}
-              >
-                {d.coverImg ? (
-                  <img
-                    src={d.coverImg}
-                    alt=""
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      opacity: 0.72,
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: `linear-gradient(135deg, ${d.primaryColor}22, ${d.primaryColor}08)`,
-                      display: "grid",
-                      placeItems: "center",
-                      color: d.primaryColor,
-                    }}
-                  >
-                    <Upload size={34} strokeWidth={2.1} />
-                  </div>
-                )}
-
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      d.menuStyle === "dark"
-                        ? "linear-gradient(to top,rgba(17,16,9,1),rgba(0,0,0,.08))"
-                        : "linear-gradient(to top,rgba(248,247,244,1),rgba(255,255,255,.08))",
-                  }}
-                />
+              {/* ── SPLASH MINI ─────────────────────────────── */}
+              <div style={{ height: 88, background: d.primaryColor, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, position: "relative" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, overflow: "hidden", background: "rgba(255,255,255,.22)", display: "grid", placeItems: "center", border: "2px solid rgba(255,255,255,.3)" }}>
+                  {d.logo && (d.logo.startsWith("http") || d.logo.startsWith("data:"))
+                    ? <img src={d.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    : <Store size={16} color="#fff" strokeWidth={2.3} />}
+                </div>
+                <div style={{ color: "#fff", fontSize: 10, fontWeight: 900, letterSpacing: "-.2px" }}>{d.name || "Tu negocio"}</div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[0, 1, 2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: "rgba(255,255,255,.5)" }} />)}
+                </div>
+                <div style={{ position: "absolute", top: 6, right: 8, fontSize: 8, color: "rgba(255,255,255,.5)", fontWeight: 700 }}>Splash</div>
               </div>
 
-              <div
-                style={{
-                  position: "relative",
-                  marginTop: -34,
-                  padding: "0 18px 18px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-end",
-                    gap: 12,
-                    marginBottom: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 66,
-                      height: 66,
-                      borderRadius: 20,
-                      background: d.primaryColor + "22",
-                      border: `3px solid ${d.primaryColor}66`,
-                      display: "grid",
-                      placeItems: "center",
-                      overflow: "hidden",
-                      flexShrink: 0,
-                      boxShadow: "0 14px 34px rgba(15,23,42,.18)",
-                    }}
-                  >
-                    {d.logo &&
-                    (d.logo.startsWith("http") || d.logo.startsWith("data:")) ? (
-                      <img
-                        src={d.logo}
-                        alt=""
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          background: "#fff",
-                        }}
-                      />
-                    ) : (
-                      <Store size={30} color={d.primaryColor} strokeWidth={2.25} />
-                    )}
+              {/* ── MENU TOPBAR ─────────────────────────────── */}
+              <div style={{ background: d.menuStyle === "dark" ? "rgba(17,16,9,.97)" : "rgba(255,255,255,.97)", borderBottom: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)"}`, padding: "7px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, overflow: "hidden", background: d.primaryColor + "22", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    {d.logo && (d.logo.startsWith("http") || d.logo.startsWith("data:"))
+                      ? <img src={d.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      : <Store size={13} color={d.primaryColor} strokeWidth={2.3} />}
                   </div>
-
-                  <div style={{ minWidth: 0, paddingBottom: 3 }}>
-                    <div
-                      style={{
-                        color: previewText,
-                        fontWeight: 900,
-                        fontSize: 20,
-                        letterSpacing: "-.35px",
-                        lineHeight: 1.15,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {d.name || "Nombre del restaurante"}
-                    </div>
-
-                    <div
-                      style={{
-                        color: d.primaryColor,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        marginTop: 3,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {d.tagline || "Tu slogan aparecerá aquí"}
+                  <div>
+                    <div style={{ color: previewText, fontWeight: 800, fontSize: 11, lineHeight: 1 }}>{d.name || "Tu negocio"}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+                      <span style={{ width: 4, height: 4, borderRadius: "50%", background: d.openStatus ? "#22c55e" : "#ef4444", display: "inline-block" }} />
+                      <span style={{ color: d.openStatus ? "#22c55e" : "#ef4444", fontSize: 8, fontWeight: 700 }}>{d.openStatus ? "Abierto" : "Cerrado"}</span>
                     </div>
                   </div>
                 </div>
+                <div style={{ background: d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.05)", borderRadius: 20, padding: "3px 8px", fontSize: 8, fontWeight: 700, color: previewMuted }}>📍 Sucursal ‹</div>
+              </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 9,
-                    marginBottom: 12,
-                  }}
-                >
-                  {["Entradas", "Principales"].map((label, i) => (
-                    <div
-                      key={label}
-                      style={{
-                        background:
-                          d.menuStyle === "dark"
-                            ? "rgba(255,255,255,.08)"
-                            : "#fff",
-                        border:
-                          d.menuStyle === "dark"
-                            ? "1px solid rgba(255,255,255,.1)"
-                            : `1px solid ${T.border}`,
-                        borderRadius: 15,
-                        padding: 11,
-                        boxShadow:
-                          d.menuStyle === "dark"
-                            ? "none"
-                            : "0 8px 20px rgba(15,23,42,.04)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 10,
-                          background: d.primaryColor + "18",
-                          color: d.primaryColor,
-                          display: "grid",
-                          placeItems: "center",
-                          marginBottom: 8,
-                        }}
-                      >
-                        <Sparkles size={14} strokeWidth={2.4} />
+              {/* ── BANNER SLOT ─────────────────────────────── */}
+              {d.coverImg ? (
+                <div style={{ height: 62, overflow: "hidden", position: "relative" }}>
+                  <img src={d.coverImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: .75 }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.1))" }} />
+                  <div style={{ position: "absolute", bottom: 7, left: 10, color: "#fff", fontWeight: 800, fontSize: 10 }}>🔥 Oferta especial</div>
+                </div>
+              ) : (
+                <div style={{ height: 50, background: d.primaryColor + "12", border: `1.5px dashed ${d.primaryColor}33`, margin: "8px 10px", borderRadius: 10, display: "grid", placeItems: "center" }}>
+                  <div style={{ color: d.primaryColor, fontSize: 8, fontWeight: 700, opacity: .7, display: "flex", alignItems: "center", gap: 4 }}>
+                    <Upload size={10} strokeWidth={2.1} /> Banner (opcional)
+                  </div>
+                </div>
+              )}
+
+              {/* ── CATEGORÍAS ARCHIES STYLE ─────────────────── */}
+              <div style={{ padding: "8px 10px 4px" }}>
+                {[
+                  ["Entradas", "#f97316", "#ea580c"],
+                  ["Platos principales", "#8b5cf6", "#7c3aed"],
+                  ["Postres", "#059669", "#047857"],
+                ].map(([label, g0, g1], i) => (
+                  <div key={label} style={{ height: 46, borderRadius: 11, overflow: "hidden", position: "relative", marginBottom: 7, background: `linear-gradient(135deg,${g0},${g1})`, boxShadow: "0 3px 10px rgba(0,0,0,.2)" }}>
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 100%)" }} />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", padding: "0 10px 0 14px", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ color: "#fff", fontWeight: 900, fontSize: 12, textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>{label}</div>
+                        <div style={{ color: "rgba(255,255,255,.65)", fontSize: 9, marginTop: 1 }}>{4 + i * 2} productos</div>
                       </div>
-
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: previewText,
-                          fontWeight: 900,
-                          marginBottom: 3,
-                        }}
-                      >
-                        {label}
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", display: "grid", placeItems: "center" }}>
+                        <span style={{ color: "#fff", fontSize: 11, fontWeight: 900, lineHeight: 1, marginLeft: 1 }}>›</span>
                       </div>
-
-                      <div
-                        style={{
-                          width: i === 0 ? "80%" : "64%",
-                          height: 6,
-                          borderRadius: 999,
-                          background: d.primaryColor + "30",
-                        }}
-                      />
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── PRODUCTO CARD ───────────────────────────── */}
+              <div style={{ margin: "0 10px 14px", background: d.menuStyle === "dark" ? "rgba(255,255,255,.06)" : "#fff", border: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.07)"}`, borderRadius: 13, padding: 10, display: "flex", alignItems: "center", gap: 9 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: d.primaryColor + "18", color: d.primaryColor, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <ImageIcon size={18} strokeWidth={2.3} />
                 </div>
-
-                <div
-                  style={{
-                    background:
-                      d.menuStyle === "dark"
-                        ? "rgba(255,255,255,.08)"
-                        : "#fff",
-                    border:
-                      d.menuStyle === "dark"
-                        ? "1px solid rgba(255,255,255,.1)"
-                        : `1px solid ${T.border}`,
-                    borderRadius: 17,
-                    padding: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 11,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 46,
-                      height: 46,
-                      borderRadius: 15,
-                      background: d.primaryColor + "18",
-                      color: d.primaryColor,
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <ImageIcon size={20} strokeWidth={2.3} />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 900,
-                        color: previewText,
-                        marginBottom: 4,
-                      }}
-                    >
-                      Producto destacado
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: previewMuted,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Descripción corta del producto
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      color: d.primaryColor,
-                      fontSize: 13,
-                      fontWeight: 900,
-                    }}
-                  >
-                    $25K
-                  </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: previewText, marginBottom: 2 }}>Producto destacado</div>
+                  <div style={{ fontSize: 10, color: previewMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Descripción corta del producto</div>
                 </div>
+                <div style={{ color: d.primaryColor, fontSize: 12, fontWeight: 900 }}>$25K</div>
               </div>
             </div>
           </Card>
@@ -1024,7 +827,7 @@ export function SecDiseno({ config, onUpdate }) {
             <SectionTitle
               icon={CheckCircle2}
               title="Checklist visual"
-              subtitle="Pequeñas señales para saber si tu menú se verá completo."
+              subtitle="Pequeñas señales para saber si tu catálogo se verá completo."
               color={T.green}
             />
 

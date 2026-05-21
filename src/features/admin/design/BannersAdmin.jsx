@@ -391,7 +391,7 @@ export function BannersAdmin({ banners = [], onChange, onToggle, primaryColor, c
               paddingLeft: 43,
             }}
           >
-            Crea promociones visibles en el menú del cliente para destacar
+            Crea promociones visibles en el catálogo del cliente para destacar
             ofertas, lanzamientos o campañas.
           </div>
         </div>
@@ -449,7 +449,7 @@ export function BannersAdmin({ banners = [], onChange, onToggle, primaryColor, c
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            Agrega uno para mostrar promociones en el menú del cliente.
+            Agrega uno para mostrar promociones en el catálogo del cliente.
           </div>
 
           <Btn sm onClick={openNew}>

@@ -1,18 +1,17 @@
 import { useMemo, useState } from "react";
+
 import orderPendingIcon from "../../../assets/order_pending.svg";
 import orderPreparingIcon from "../../../assets/order_preparing.svg";
 import orderReadyIcon from "../../../assets/order_ready.svg";
 import orderOnWayIcon from "../../../assets/order_on_way.svg";
 import orderDeliveredIcon from "../../../assets/order_delivered.svg";
+
 import {
   ArrowRight,
   Bike,
   CalendarDays,
-  Check,
   CheckCircle2,
-  ChefHat,
   ClipboardList,
-  Clock3,
   CreditCard,
   FileText,
   Home,
@@ -31,17 +30,16 @@ import {
   Table2,
   Timer,
   Trash2,
-  Truck,
   User,
   Wallet,
   X,
 } from "lucide-react";
 
 import { T } from "../../../constants/theme";
-import { VERTICALS, getVertical } from "../../../constants/verticals";
+import { getVertical } from "../../../constants/verticals";
 import { K_NEXT } from "../../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow } from "../../../utils/format";
-import { Card, Btn, Field, Toggle, Modal } from "../../../shared/components";
+import { Card, Btn, Field, Modal } from "../../../shared/components";
 
 function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
   return (
@@ -52,6 +50,7 @@ function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
       style={{
         flexShrink: 0,
         verticalAlign: "-2px",
+        pointerEvents: "none",
         ...style,
       }}
     />
@@ -70,6 +69,7 @@ function SoftIcon({ icon: Icon, color = T.coral, size = 18, box = 38, style }) {
         display: "grid",
         placeItems: "center",
         flexShrink: 0,
+        pointerEvents: "none",
         ...style,
       }}
     >
@@ -93,6 +93,7 @@ function OrderStatusIcon({ src, alt, size = 28, faded = false }) {
         filter: faded
           ? "grayscale(.35)"
           : "drop-shadow(0 6px 10px rgba(15,23,42,.14))",
+        pointerEvents: "none",
       }}
     />
   );
@@ -113,6 +114,7 @@ function StatusBadge({ label, color }) {
         padding: "5px 10px",
         lineHeight: 1,
         whiteSpace: "nowrap",
+        flexShrink: 0,
       }}
     >
       <InlineIcon icon={CheckCircle2} size={11} />
@@ -125,10 +127,15 @@ function FilterButton({ active, onClick, icon, children, color }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick?.();
+      }}
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: 5,
         padding: "6px 10px",
         borderRadius: 999,
@@ -139,6 +146,8 @@ function FilterButton({ active, onClick, icon, children, color }) {
         fontWeight: active ? 900 : 700,
         cursor: "pointer",
         transition: "all .15s ease",
+        fontFamily: "'Plus Jakarta Sans',sans-serif",
+        whiteSpace: "nowrap",
       }}
     >
       <InlineIcon icon={icon} size={12} />
@@ -150,6 +159,7 @@ function FilterButton({ active, onClick, icon, children, color }) {
 function DetailRow({ icon, label, value }) {
   return (
     <div
+      className="delivery-detail-row"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -172,6 +182,7 @@ function DetailRow({ icon, label, value }) {
         <InlineIcon icon={icon} size={13} />
         {label}
       </span>
+
       <span
         style={{
           color: T.text,
@@ -200,7 +211,7 @@ export function SecDelivery({
   orders = [],
   onMove,
   products = [],
-  config,
+  config = {},
   onAddOrder,
   vertical,
 }) {
@@ -227,7 +238,7 @@ export function SecDelivery({
     items: [],
   });
 
-  const pc = config.primaryColor || "#f97316";
+  const pc = config?.primaryColor || "#f97316";
 
   const PAYMENT_LABEL = {
     cash: "Efectivo",
@@ -312,7 +323,6 @@ export function SecDelivery({
     form.mode === "domicilio" ? config.deliveryFee || 5000 : 0;
 
   const formTotal = formSubtotal + formDelivery;
-
   const validOrder = Boolean(form.customerName && form.items.length);
 
   const getModeMeta = (mode, table) => {
@@ -450,10 +460,7 @@ export function SecDelivery({
 
     const items =
       o.items
-        ?.map(
-          (it) =>
-            `  • ${it.qty}x ${it.name} — ${fmtCOP(it.price * it.qty)}`
-        )
+        ?.map((it) => `  • ${it.qty}x ${it.name} — ${fmtCOP(it.price * it.qty)}`)
         .join("\n") || "";
 
     const msg = `*NUEVO ${(vl.delivery_title || "DOMICILIO").toUpperCase()}*
@@ -482,7 +489,10 @@ ${items}
 ${mapsUrl}`;
 
     const waNum = phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(
+      `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`,
+      "_blank"
+    );
   };
 
   const addItem = (product) => {
@@ -580,7 +590,7 @@ ${mapsUrl}`;
       total: formTotal,
     };
 
-    onAddOrder(o);
+    onAddOrder?.(o);
     setSelId(o.id);
     setNewModal(false);
     resetForm();
@@ -588,73 +598,352 @@ ${mapsUrl}`;
 
   return (
     <div
+      className="delivery-root"
       style={{
         animation: "fadeUp .35s ease",
-        display: "flex",
-        gap: 0,
-        height: "calc(100vh - 110px)",
+        width: "100%",
+        minWidth: 0,
+        height: "calc(100dvh - 110px)",
         overflow: "hidden",
         background: T.bg,
       }}
     >
       <style>
         {`
-          @media(max-width:920px){
-            .delivery-shell{
-              flex-direction:column!important;
-              height:auto!important;
-              min-height:calc(100vh - 110px)!important;
-              overflow:visible!important;
+          .delivery-root,
+          .delivery-root * {
+            box-sizing: border-box;
+          }
+
+          .delivery-shell {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            overflow: hidden;
+          }
+
+          .delivery-list {
+            width: 292px;
+            flex-shrink: 0;
+            background: ${T.white};
+            border-right: 1px solid ${T.border};
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+          }
+
+          .delivery-list-scroll {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+          }
+
+          .delivery-detail {
+            flex: 1;
+            min-width: 0;
+            overflow-y: auto;
+            background: ${T.bg};
+          }
+
+          .delivery-detail-content {
+            padding: 22px 24px;
+          }
+
+          .delivery-detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+          }
+
+          .delivery-status-scroll {
+            width: 100%;
+            overflow-x: auto;
+          }
+
+          .delivery-status-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(92px, 1fr));
+            min-width: 560px;
+          }
+
+          .delivery-actions-card {
+            padding: 14px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: ${T.sh};
+          }
+
+          .new-order-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 14px;
+          }
+
+          .new-order-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+          }
+
+          .product-list-box {
+            max-height: 210px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            border: 1px solid ${T.border};
+            border-radius: 14px;
+            background: ${T.white};
+          }
+
+          .delivery-wa-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+          }
+
+          .delivery-wa-panel {
+            background: ${T.white};
+            border-radius: 22px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            max-height: calc(100dvh - 40px);
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+          }
+
+          .delivery-wa-actions {
+            display: flex;
+            gap: 10px;
+          }
+
+          @media(max-width: 1120px) {
+            .delivery-list {
+              width: 270px !important;
             }
 
-            .delivery-list{
-              width:100%!important;
-              max-height:360px!important;
-              border-right:none!important;
-              border-bottom:1px solid ${T.border}!important;
+            .delivery-detail-content {
+              padding: 20px !important;
+            }
+          }
+
+          @media(max-width: 920px) {
+            .delivery-root {
+              height: auto !important;
+              min-height: calc(100dvh - 110px) !important;
+              overflow: visible !important;
             }
 
-            .delivery-detail{
-              overflow:visible!important;
+            .delivery-shell {
+              flex-direction: column !important;
+              height: auto !important;
+              overflow: visible !important;
             }
 
-            .delivery-detail-grid{
-              grid-template-columns:1fr!important;
+            .delivery-list {
+              width: 100% !important;
+              max-height: none !important;
+              border-right: none !important;
+              border-bottom: 1px solid ${T.border} !important;
             }
 
-            .delivery-header-actions{
-              justify-content:flex-start!important;
+            .delivery-list-scroll {
+              max-height: 360px !important;
             }
 
-            .new-order-grid{
-              grid-template-columns:1fr!important;
+            .delivery-detail {
+              overflow: visible !important;
+            }
+
+            .delivery-detail-content {
+              padding: 18px !important;
+            }
+
+            .delivery-detail-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .delivery-header-actions {
+              justify-content: flex-start !important;
+            }
+
+            .new-order-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+
+          @media(max-width: 640px) {
+            .delivery-list-header {
+              padding: 13px !important;
+            }
+
+            .delivery-list-header-top {
+              align-items: flex-start !important;
+              flex-direction: column !important;
+            }
+
+            .delivery-filter-row {
+              flex-wrap: nowrap !important;
+              overflow-x: auto !important;
+              padding-bottom: 2px !important;
+            }
+
+            .delivery-filter-row button {
+              flex-shrink: 0 !important;
+            }
+
+            .delivery-order-card {
+              padding: 12px 13px !important;
+            }
+
+            .delivery-detail-content {
+              padding: 14px !important;
+            }
+
+            .delivery-title-row {
+              flex-direction: column !important;
+              align-items: stretch !important;
+            }
+
+            .delivery-order-code {
+              font-size: 18px !important;
+              word-break: break-all !important;
+            }
+
+            .delivery-header-actions {
+              width: 100% !important;
+            }
+
+            .delivery-header-action-btn {
+              width: 100% !important;
+              justify-content: center !important;
+            }
+
+            .delivery-status-grid {
+              min-width: 520px !important;
+            }
+
+            .delivery-detail-row {
+              flex-direction: column !important;
+              gap: 4px !important;
+            }
+
+            .delivery-detail-row span:last-child {
+              max-width: 100% !important;
+              text-align: left !important;
+            }
+
+            .delivery-item-row {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+            }
+
+            .delivery-total-row {
+              font-size: 16px !important;
+            }
+
+            .delivery-payment-box {
+              flex-direction: column !important;
+              align-items: stretch !important;
+            }
+
+            .delivery-payment-box button {
+              width: 100% !important;
+            }
+
+            .delivery-actions-card {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              padding: 14px !important;
+            }
+
+            .delivery-actions-card-main {
+              width: 100% !important;
+              justify-content: center !important;
+            }
+
+            .delivery-actions-card button {
+              width: 100% !important;
+            }
+
+            .mode-options,
+            .payment-options {
+              flex-direction: column !important;
+            }
+
+            .mode-options button,
+            .payment-options button {
+              width: 100% !important;
+            }
+
+            .product-row {
+              align-items: flex-start !important;
+              flex-direction: column !important;
+            }
+
+            .product-row-price {
+              width: 100% !important;
+              justify-content: space-between !important;
+            }
+
+            .cart-item-row {
+              align-items: flex-start !important;
+              flex-direction: column !important;
+            }
+
+            .cart-item-actions {
+              width: 100% !important;
+              justify-content: space-between !important;
+            }
+
+            .new-order-footer {
+              flex-direction: column !important;
+            }
+
+            .delivery-wa-overlay {
+              align-items: flex-end !important;
+              padding: 12px !important;
+            }
+
+            .delivery-wa-panel {
+              max-width: none !important;
+              border-radius: 22px 22px 18px 18px !important;
+              padding: 18px !important;
+              max-height: calc(100dvh - 24px) !important;
+            }
+
+            .delivery-wa-actions {
+              flex-direction: column !important;
+            }
+
+            .delivery-wa-actions button {
+              width: 100% !important;
             }
           }
         `}
       </style>
 
-      <div
-        className="delivery-shell"
-        style={{
-          display: "flex",
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          className="delivery-list"
-          style={{
-            width: 292,
-            flexShrink: 0,
-            background: T.white,
-            borderRight: `1px solid ${T.border}`,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div style={{ padding: "14px 14px", borderBottom: `1px solid ${T.border}` }}>
+      <div className="delivery-shell">
+        <div className="delivery-list">
+          <div
+            className="delivery-list-header"
+            style={{
+              padding: "14px 14px",
+              borderBottom: `1px solid ${T.border}`,
+            }}
+          >
             <div
+              className="delivery-list-header-top"
               style={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -677,6 +966,7 @@ ${mapsUrl}`;
                   <InlineIcon icon={ReceiptText} size={17} color={pc} />
                   Pedidos
                 </div>
+
                 <div style={{ fontSize: 11, color: T.mid, marginTop: 3 }}>
                   {shown.length} visible{shown.length !== 1 ? "s" : ""} ·{" "}
                   {orders.length} total
@@ -684,14 +974,27 @@ ${mapsUrl}`;
               </div>
 
               <Btn sm onClick={() => setNewModal(true)}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
                   <InlineIcon icon={Plus} size={14} />
                   Nuevo
                 </span>
               </Btn>
             </div>
 
-            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            <div
+              className="delivery-filter-row"
+              style={{
+                display: "flex",
+                gap: 5,
+                flexWrap: "wrap",
+              }}
+            >
               <FilterButton
                 active={filter === "all"}
                 onClick={() => setFilter("all")}
@@ -741,7 +1044,7 @@ ${mapsUrl}`;
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto" }}>
+          <div className="delivery-list-scroll">
             {shown.length === 0 && (
               <div
                 style={{
@@ -768,16 +1071,24 @@ ${mapsUrl}`;
               const ModeIcon = modeMeta.icon;
 
               return (
-                <div
+                <button
                   key={o.id}
+                  type="button"
+                  className="delivery-order-card"
                   onClick={() => setSelId(o.id)}
                   style={{
+                    width: "100%",
                     padding: "12px 14px",
+                    border: "none",
                     borderBottom: `1px solid ${T.border}`,
                     cursor: "pointer",
                     background: selId === o.id ? `${pc}10` : "transparent",
-                    borderLeft: `4px solid ${selId === o.id ? pc : "transparent"}`,
+                    borderLeft: `4px solid ${
+                      selId === o.id ? pc : "transparent"
+                    }`,
                     transition: "all .15s",
+                    fontFamily: "'Plus Jakarta Sans',sans-serif",
+                    textAlign: "left",
                   }}
                 >
                   <div
@@ -834,28 +1145,26 @@ ${mapsUrl}`;
                       marginBottom: 3,
                     }}
                   >
-                    <InlineIcon icon={ModeIcon} size={13} color={modeMeta.color} />
+                    <InlineIcon
+                      icon={ModeIcon}
+                      size={13}
+                      color={modeMeta.color}
+                    />
                     {modeMeta.label}
                   </div>
 
                   <div style={{ fontSize: 11, color: T.light }}>
-                    {o.items?.length || 0} ítem{o.items?.length !== 1 ? "s" : ""} ·{" "}
-                    {fmtCOP(o.total)} · {o.time}
+                    {o.items?.length || 0} ítem
+                    {o.items?.length !== 1 ? "s" : ""} · {fmtCOP(o.total)} ·{" "}
+                    {o.time}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
-        <div
-          className="delivery-detail"
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            background: T.bg,
-          }}
-        >
+        <div className="delivery-detail">
           {!sel && (
             <div
               style={{
@@ -863,13 +1172,14 @@ ${mapsUrl}`;
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                height: "100%",
+                minHeight: "100%",
                 color: T.light,
                 padding: 30,
                 textAlign: "center",
               }}
             >
               <SoftIcon icon={ReceiptText} color={pc} box={64} size={30} />
+
               <div
                 style={{
                   fontSize: 16,
@@ -880,6 +1190,7 @@ ${mapsUrl}`;
               >
                 Selecciona un pedido
               </div>
+
               <div style={{ fontSize: 12, marginTop: 5, color: T.mid }}>
                 O crea uno nuevo con el botón Nuevo.
               </div>
@@ -887,8 +1198,9 @@ ${mapsUrl}`;
           )}
 
           {sel && (
-            <div style={{ padding: "22px 24px" }}>
+            <div className="delivery-detail-content">
               <div
+                className="delivery-title-row"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -898,7 +1210,7 @@ ${mapsUrl}`;
                   flexWrap: "wrap",
                 }}
               >
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div
                     style={{
                       fontSize: 11,
@@ -913,10 +1225,12 @@ ${mapsUrl}`;
                     }}
                   >
                     <InlineIcon icon={ReceiptText} size={13} color={pc} />
-                    {vl.order || "Pedido"} · {getModeMeta(sel.mode, sel.table).label}
+                    {vl.order || "Pedido"} ·{" "}
+                    {getModeMeta(sel.mode, sel.table).label}
                   </div>
 
                   <div
+                    className="delivery-order-code"
                     style={{
                       fontWeight: 900,
                       fontSize: 22,
@@ -953,6 +1267,8 @@ ${mapsUrl}`;
                   }}
                 >
                   <button
+                    type="button"
+                    className="delivery-header-action-btn"
                     onClick={() => printComanda(sel)}
                     title="Imprimir comanda para cocina"
                     style={{
@@ -976,6 +1292,8 @@ ${mapsUrl}`;
 
                   {sel.mode === "domicilio" && (
                     <button
+                      type="button"
+                      className="delivery-header-action-btn"
                       onClick={() => {
                         setDelivWaPhone("");
                         setDelivWaModal(true);
@@ -1006,74 +1324,65 @@ ${mapsUrl}`;
               </div>
 
               <Card style={{ padding: 0, overflow: "hidden", marginBottom: 18 }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${STATUS_FLOW.length}, 1fr)`,
-                  }}
-                >
-                  {STATUS_FLOW.map((status, i) => {
-                    const currentIndex = STATUS_FLOW.indexOf(sel.status);
-                    const done = i <= currentIndex;
-                    const statusIcon = STATUS_ICON[status];
+                <div className="delivery-status-scroll">
+                  <div className="delivery-status-grid">
+                    {STATUS_FLOW.map((status, i) => {
+                      const currentIndex = STATUS_FLOW.indexOf(sel.status);
+                      const done = i <= currentIndex;
+                      const statusIcon = STATUS_ICON[status];
 
-return (
-  <div
-    key={status}
-    style={{
-      padding: "11px 7px",
-      textAlign: "center",
-      background: done ? `${SC[status]}12` : "transparent",
-      borderRight:
-        i < STATUS_FLOW.length - 1
-          ? `1px solid ${T.border}`
-          : "none",
-    }}
-  >
-    <div
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 15,
-        display: "grid",
-        placeItems: "center",
-        margin: "0 auto 6px",
-        background: done ? `${SC[status]}12` : T.bg,
-        border: `1px solid ${done ? `${SC[status]}24` : T.border}`,
-      }}
-    >
-      <OrderStatusIcon
-        src={statusIcon}
-        alt={SL[status]}
-        size={28}
-        faded={!done}
-      />
-    </div>
+                      return (
+                        <div
+                          key={status}
+                          style={{
+                            padding: "11px 7px",
+                            textAlign: "center",
+                            background: done ? `${SC[status]}12` : "transparent",
+                            borderRight:
+                              i < STATUS_FLOW.length - 1
+                                ? `1px solid ${T.border}`
+                                : "none",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: 15,
+                              display: "grid",
+                              placeItems: "center",
+                              margin: "0 auto 6px",
+                              background: done ? `${SC[status]}12` : T.bg,
+                              border: `1px solid ${
+                                done ? `${SC[status]}24` : T.border
+                              }`,
+                            }}
+                          >
+                            <OrderStatusIcon
+                              src={statusIcon}
+                              alt={SL[status]}
+                              size={28}
+                              faded={!done}
+                            />
+                          </div>
 
-    <div
-      style={{
-        fontSize: 9,
-        fontWeight: 900,
-        color: done ? SC[status] : T.light,
-      }}
-    >
-      {SL[status]}
-    </div>
-  </div>
-);
-                  })}
+                          <div
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 900,
+                              color: done ? SC[status] : T.light,
+                            }}
+                          >
+                            {SL[status]}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </Card>
 
-              <div
-                className="delivery-detail-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 14,
-                  marginBottom: 18,
-                }}
-              >
+              <div className="delivery-detail-grid">
                 <Card>
                   <div
                     style={{
@@ -1090,14 +1399,34 @@ return (
                     Datos del cliente
                   </div>
 
-                  <DetailRow icon={User} label="Cliente" value={sel.customerName} />
-                  <DetailRow icon={Phone} label="Teléfono" value={sel.customerPhone} />
-                  <DetailRow icon={Mail} label="Email" value={sel.customerEmail} />
+                  <DetailRow
+                    icon={User}
+                    label="Cliente"
+                    value={sel.customerName}
+                  />
+                  <DetailRow
+                    icon={Phone}
+                    label="Teléfono"
+                    value={sel.customerPhone}
+                  />
+                  <DetailRow
+                    icon={Mail}
+                    label="Email"
+                    value={sel.customerEmail}
+                  />
 
                   {sel.mode === "domicilio" && (
                     <>
-                      <DetailRow icon={MapPin} label="Dirección" value={sel.address} />
-                      <DetailRow icon={Home} label="Referencia" value={sel.addressRef} />
+                      <DetailRow
+                        icon={MapPin}
+                        label="Dirección"
+                        value={sel.address}
+                      />
+                      <DetailRow
+                        icon={Home}
+                        label="Referencia"
+                        value={sel.addressRef}
+                      />
                     </>
                   )}
 
@@ -1135,6 +1464,7 @@ return (
                   {sel.items?.map((it, i) => (
                     <div
                       key={i}
+                      className="delivery-item-row"
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -1146,6 +1476,7 @@ return (
                       <span style={{ color: T.text, fontWeight: 700 }}>
                         {it.qty}× {it.name}
                       </span>
+
                       <span style={{ fontWeight: 900, color: T.text }}>
                         {fmtCOP(it.price * it.qty)}
                       </span>
@@ -1175,9 +1506,11 @@ return (
                     )}
 
                     <div
+                      className="delivery-total-row"
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
+                        gap: 12,
                         fontWeight: 900,
                         fontSize: 17,
                       }}
@@ -1189,6 +1522,7 @@ return (
 
                   {sel.status !== "entregado" && (
                     <div
+                      className="delivery-payment-box"
                       style={{
                         marginTop: 13,
                         padding: "10px 12px",
@@ -1213,6 +1547,7 @@ return (
                         <InlineIcon icon={CreditCard} size={13} />
                         Pago: {PAYMENT_LABEL[sel.payment] || sel.payment}
                       </span>
+
                       <Btn sm v="success">
                         Recibir pago
                       </Btn>
@@ -1222,34 +1557,25 @@ return (
               </div>
 
               {sel.status !== "entregado" && (
-                <Card
-                  style={{
-                    padding: "14px 18px",
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    boxShadow: T.sh,
-                  }}
-                >
+                <Card className="delivery-actions-card">
                   <div
-  style={{
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    background: `${SC[sel.status] || pc}12`,
-    border: `1px solid ${SC[sel.status] || pc}24`,
-    display: "grid",
-    placeItems: "center",
-    flexShrink: 0,
-  }}
->
-  <OrderStatusIcon
-    src={STATUS_ICON[sel.status]}
-    alt={SL[sel.status]}
-    size={34}
-  />
-</div>
+                    style={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: 16,
+                      background: `${SC[sel.status] || pc}12`,
+                      border: `1px solid ${SC[sel.status] || pc}24`,
+                      display: "grid",
+                      placeItems: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <OrderStatusIcon
+                      src={STATUS_ICON[sel.status]}
+                      alt={SL[sel.status]}
+                      size={34}
+                    />
+                  </div>
 
                   <div style={{ flex: 1, fontSize: 12, color: T.mid }}>
                     <span style={{ fontWeight: 900, color: T.text }}>
@@ -1264,7 +1590,7 @@ return (
                   {K_NEXT[sel.status] && (
                     <Btn
                       onClick={() => {
-                        onMove(sel.id, K_NEXT[sel.status]);
+                        onMove?.(sel.id, K_NEXT[sel.status]);
                       }}
                       style={{
                         padding: "12px 18px",
@@ -1273,6 +1599,7 @@ return (
                       }}
                     >
                       <span
+                        className="delivery-actions-card-main"
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
@@ -1285,7 +1612,7 @@ return (
                     </Btn>
                   )}
 
-                  <Btn v="ghost" onClick={() => onMove(sel.id, "entregado")}>
+                  <Btn v="ghost" onClick={() => onMove?.(sel.id, "entregado")}>
                     Finalizar
                   </Btn>
                 </Card>
@@ -1308,24 +1635,7 @@ return (
           onClose={() => setNewModal(false)}
           wide
         >
-          <style>
-            {`
-              @media(max-width:760px){
-                .new-order-grid{
-                  grid-template-columns:1fr!important;
-                }
-              }
-            `}
-          </style>
-
-          <div
-            className="new-order-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 14,
-            }}
-          >
+          <div className="new-order-grid">
             <div>
               <div style={{ marginBottom: 13 }}>
                 <label
@@ -1340,7 +1650,10 @@ return (
                   Modo
                 </label>
 
-                <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                <div
+                  className="mode-options"
+                  style={{ display: "flex", gap: 7, flexWrap: "wrap" }}
+                >
                   {[
                     ["domicilio", vl.delivery_title || "Domicilio", Bike],
                     isRestaurant && ["mesa", "Mesa", Table2],
@@ -1357,7 +1670,9 @@ return (
                           minWidth: 92,
                           padding: "9px",
                           borderRadius: 12,
-                          border: `1.5px solid ${form.mode === k ? pc : T.border}`,
+                          border: `1.5px solid ${
+                            form.mode === k ? pc : T.border
+                          }`,
                           background: form.mode === k ? `${pc}15` : "transparent",
                           color: form.mode === k ? pc : T.mid,
                           fontSize: 11,
@@ -1367,6 +1682,7 @@ return (
                           alignItems: "center",
                           justifyContent: "center",
                           gap: 6,
+                          fontFamily: "'Plus Jakarta Sans',sans-serif",
                         }}
                       >
                         <InlineIcon icon={Icon} size={13} />
@@ -1405,6 +1721,7 @@ return (
                     onChange={(v) => setForm((p) => ({ ...p, address: v }))}
                     placeholder="Cra 5 #15-32, El Peñón"
                   />
+
                   <Field
                     label="Referencia"
                     value={form.addressRef}
@@ -1445,7 +1762,10 @@ return (
                   Método de pago
                 </label>
 
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div
+                  className="payment-options"
+                  style={{ display: "flex", gap: 6, flexWrap: "wrap" }}
+                >
                   {PAYMENT_OPTIONS.map(([k, l, Icon]) => (
                     <button
                       key={k}
@@ -1454,15 +1774,19 @@ return (
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
+                        justifyContent: "center",
                         gap: 6,
                         padding: "6px 10px",
                         borderRadius: 999,
-                        border: `1.5px solid ${form.payment === k ? pc : T.border}`,
+                        border: `1.5px solid ${
+                          form.payment === k ? pc : T.border
+                        }`,
                         background: form.payment === k ? `${pc}18` : "transparent",
                         color: form.payment === k ? pc : T.mid,
                         fontSize: 11,
                         fontWeight: form.payment === k ? 900 : 700,
                         cursor: "pointer",
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
                       }}
                     >
                       <InlineIcon icon={Icon} size={12} />
@@ -1511,6 +1835,7 @@ return (
                     pointerEvents: "none",
                   }}
                 />
+
                 <input
                   value={productQ}
                   onChange={(e) => setProductQ(e.target.value)}
@@ -1525,21 +1850,12 @@ return (
                     fontSize: 13,
                     color: T.text,
                     outline: "none",
+                    fontFamily: "'Plus Jakarta Sans',sans-serif",
                   }}
                 />
               </div>
 
-              <div
-                style={{
-                  maxHeight: 210,
-                  overflowY: "auto",
-                  marginBottom: 12,
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 14,
-                  overflow: "scroll",
-                  background: T.white,
-                }}
-              >
+              <div className="product-list-box">
                 {visibleProducts.length === 0 && (
                   <div
                     style={{
@@ -1560,18 +1876,25 @@ return (
                       : p.price;
 
                   return (
-                    <div
+                    <button
                       key={p.id}
+                      type="button"
+                      className="product-row"
+                      onClick={() => addItem(p)}
                       style={{
+                        width: "100%",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
                         gap: 10,
                         padding: "9px 12px",
+                        border: "none",
                         borderBottom: `1px solid ${T.border}`,
                         cursor: "pointer",
+                        background: "transparent",
+                        fontFamily: "'Plus Jakarta Sans',sans-serif",
+                        textAlign: "left",
                       }}
-                      onClick={() => addItem(p)}
                     >
                       <div
                         style={{
@@ -1587,6 +1910,7 @@ return (
                           box={30}
                           size={14}
                         />
+
                         <span
                           style={{
                             fontSize: 13,
@@ -1602,6 +1926,7 @@ return (
                       </div>
 
                       <div
+                        className="product-row-price"
                         style={{
                           display: "flex",
                           gap: 8,
@@ -1618,9 +1943,10 @@ return (
                         >
                           {fmtCOP(itemPrice)}
                         </span>
+
                         <SoftIcon icon={Plus} color={T.green} box={24} size={13} />
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -1652,6 +1978,7 @@ return (
                   {form.items.map((it) => (
                     <div
                       key={it.id}
+                      className="cart-item-row"
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -1672,6 +1999,7 @@ return (
                       </span>
 
                       <div
+                        className="cart-item-actions"
                         style={{
                           display: "flex",
                           gap: 6,
@@ -1693,7 +2021,11 @@ return (
                             placeItems: "center",
                           }}
                         >
-                          <Minus size={12} strokeWidth={2.5} />
+                          <Minus
+                            size={12}
+                            strokeWidth={2.5}
+                            style={{ pointerEvents: "none" }}
+                          />
                         </button>
 
                         <span
@@ -1722,7 +2054,11 @@ return (
                             placeItems: "center",
                           }}
                         >
-                          <Trash2 size={12} strokeWidth={2.4} />
+                          <Trash2
+                            size={12}
+                            strokeWidth={2.4}
+                            style={{ pointerEvents: "none" }}
+                          />
                         </button>
                       </div>
                     </div>
@@ -1766,12 +2102,19 @@ return (
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <div className="new-order-footer">
             <Btn full v="neutral" onClick={() => setNewModal(false)}>
               Cancelar
             </Btn>
+
             <Btn full disabled={!validOrder} onClick={createOrder}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                }}
+              >
                 <InlineIcon icon={Plus} size={15} />
                 Crear pedido
               </span>
@@ -1782,29 +2125,12 @@ return (
 
       {delivWaModal && sel && (
         <div
+          className="delivery-wa-overlay"
           onClick={() => setDelivWaModal(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 600,
-            background: "rgba(0,0,0,.6)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-          }}
         >
           <div
+            className="delivery-wa-panel"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: T.white,
-              borderRadius: 22,
-              padding: 24,
-              width: "100%",
-              maxWidth: 420,
-              boxShadow: "0 20px 60px rgba(0,0,0,.3)",
-            }}
           >
             <div
               style={{
@@ -1855,9 +2181,14 @@ return (
                   cursor: "pointer",
                   display: "grid",
                   placeItems: "center",
+                  flexShrink: 0,
                 }}
               >
-                <X size={16} strokeWidth={2.4} />
+                <X
+                  size={16}
+                  strokeWidth={2.4}
+                  style={{ pointerEvents: "none" }}
+                />
               </button>
             </div>
 
@@ -1875,7 +2206,11 @@ return (
               <div style={{ fontWeight: 900, marginBottom: 5 }}>
                 Pedido #{sel.id.toUpperCase().slice(0, 8)}
               </div>
-              <div>{sel.customerName} · {sel.address}</div>
+
+              <div>
+                {sel.customerName} · {sel.address}
+              </div>
+
               <div
                 style={{
                   marginTop: 5,
@@ -1933,7 +2268,7 @@ return (
               en Google Maps.
             </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="delivery-wa-actions">
               <Btn full v="neutral" onClick={() => setDelivWaModal(false)}>
                 Cancelar
               </Btn>

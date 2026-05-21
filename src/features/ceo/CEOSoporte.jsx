@@ -1,14 +1,7 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { supabase } from "../../lib/supabase";
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { T, CM, STYLES } from "../../constants/theme";
-import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
-import { VERTICALS, getVertical } from "../../constants/verticals";
-import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
-import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
-import { pointInPoly } from "../../utils/geo";
+import { useState } from "react";
+import { T } from "../../constants/theme";
 import { Ticket, AlertCircle, CheckCircle2, Store, User, Calendar, Circle } from "lucide-react";
-import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import { Card, Btn, Field, Tag, Modal, StatCard } from "../../shared/components";
 
 export function CEOSoporte({tickets,onUpdateTicket}){
   const [sel,setSel]=useState(null);

@@ -62,7 +62,7 @@ function CopyBtn({ text, label }) {
   );
 }
 
-export function SecEquipo({ ownerId, showToast }) {
+export function SecEquipo({ ownerId, showToast, branches = [] }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -71,7 +71,7 @@ export function SecEquipo({ ownerId, showToast }) {
   const [resettingId, setResettingId] = useState(null);
   const [creds, setCreds] = useState(null); // { email, password } after creation
 
-  const [form, setForm] = useState({ name: "", email: "" });
+  const [form, setForm] = useState({ name: "", email: "", branchId: "" });
   const setF = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   // Load staff members
@@ -89,7 +89,7 @@ export function SecEquipo({ ownerId, showToast }) {
     if (!form.name.trim() || !form.email.trim()) return;
     setSaving(true);
     const tempPwd = randomPassword();
-    const { userId, error } = await createStaffUser(ownerId, form, tempPwd);
+    const { userId, error } = await createStaffUser(ownerId, form, tempPwd, form.branchId || null);
     setSaving(false);
     if (error) {
       showToast?.("❌ " + error.message, "error");
@@ -100,10 +100,11 @@ export function SecEquipo({ ownerId, showToast }) {
       name: form.name,
       email: form.email,
       staff_role: "delivery",
+      branch_id: form.branchId || null,
       created_at: new Date().toISOString(),
     };
     setMembers((m) => [newMember, ...m]);
-    setForm({ name: "", email: "" });
+    setForm({ name: "", email: "", branchId: "" });
     setShowModal(false);
     setCreds({ email: form.email, password: tempPwd });
   };
@@ -281,18 +282,17 @@ export function SecEquipo({ ownerId, showToast }) {
                   }}
                 >
                   <span style={{ fontSize: 12, color: T.mid }}>{m.email}</span>
-                  <span
-                    style={{
-                      background: T.greenL,
-                      color: T.green,
-                      borderRadius: 20,
-                      padding: "1px 8px",
-                      fontSize: 10,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <span style={{ background: T.greenL, color: T.green, borderRadius: 20, padding: "1px 8px", fontSize: 10, fontWeight: 800 }}>
                     {ROLE_LABELS[m.staff_role] || m.staff_role}
                   </span>
+                  {m.branch_id && (() => {
+                    const br = branches.find(b => b.id === m.branch_id);
+                    return br ? (
+                      <span style={{ background: T.blue + "14", color: T.blue, borderRadius: 20, padding: "1px 8px", fontSize: 10, fontWeight: 700 }}>
+                        📍 {br.name}
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
               </div>
 
@@ -379,6 +379,46 @@ export function SecEquipo({ ownerId, showToast }) {
                 placeholder="operador@negocio.com"
                 type="email"
               />
+
+              {/* Selector de sucursal — obligatorio si hay más de una */}
+              {branches.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: T.mid, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 7 }}>
+                    Sucursal asignada {branches.length > 1 && <span style={{ color: T.red }}>*</span>}
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {branches.map(br => (
+                      <label
+                        key={br.id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                          borderRadius: 12, border: `2px solid ${form.branchId === br.id ? T.coral : T.border}`,
+                          background: form.branchId === br.id ? T.coralL : T.white,
+                          cursor: "pointer", transition: "all .15s",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="branch"
+                          value={br.id}
+                          checked={form.branchId === br.id}
+                          onChange={() => setF("branchId", br.id)}
+                          style={{ accentColor: T.coral, width: 16, height: 16, flexShrink: 0 }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{br.name}</div>
+                          {br.city && <div style={{ fontSize: 11, color: T.mid }}>{br.city}</div>}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  {branches.length > 1 && !form.branchId && (
+                    <div style={{ fontSize: 11, color: T.amber, marginTop: 5, fontWeight: 600 }}>
+                      ⚠ Selecciona una sucursal para limitar los pedidos visibles
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -387,7 +427,7 @@ export function SecEquipo({ ownerId, showToast }) {
               </Btn>
               <Btn
                 onClick={handleCreate}
-                disabled={saving || !form.name.trim() || !form.email.trim()}
+                disabled={saving || !form.name.trim() || !form.email.trim() || (branches.length > 1 && !form.branchId)}
                 icon={saving ? Loader2 : Plus}
               >
                 {saving ? "Creando…" : "Crear operador"}

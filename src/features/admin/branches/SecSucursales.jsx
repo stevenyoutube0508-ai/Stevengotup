@@ -1142,7 +1142,10 @@ export function QRCard({ card, branchName }) {
 
 export function BranchQR({ br, ownerId }) {
   const origin = window.location.origin;
-  const base = `${origin}${window.location.pathname}?menu&r=${ownerId}&b=${br?.id}`;
+  // URL canónica: /menu/<ownerId>?b=<branchId>
+  // El cliente llega al catálogo del negocio con la sucursal pre-seleccionada.
+  const branchParam = br?.id ? `?b=${encodeURIComponent(br.id)}` : "";
+  const base = `${origin}/menu/${ownerId}${branchParam}`;
 
   const CARDS = [
     {
@@ -1151,8 +1154,8 @@ export function BranchQR({ br, ownerId }) {
       Icon: ClipboardList,
       color: "#4f46e5",
       light: "#ede9fe",
-      url: `${base}&mode=menu`,
-      desc: "El cliente escanea y ve la carta para comer en el restaurante",
+      url: base,
+      desc: "El cliente escanea en la mesa y ve la carta para comer en el local",
     },
     {
       key: "domicilio",
@@ -1160,8 +1163,8 @@ export function BranchQR({ br, ownerId }) {
       Icon: Bike,
       color: "#059669",
       light: "#d1fae5",
-      url: `${base}&mode=domicilio`,
-      desc: "El cliente escanea y hace su pedido a domicilio",
+      url: base,
+      desc: "El cliente escanea y hace su pedido a domicilio o para recoger",
     },
     {
       key: "publicidad",
@@ -1170,7 +1173,7 @@ export function BranchQR({ br, ownerId }) {
       color: "#d97706",
       light: "#fef3c7",
       url: base,
-      desc: "QR general, el cliente elige el modo al ingresar",
+      desc: "QR general: el cliente elige el modo de servicio al ingresar",
     },
   ];
 
@@ -1245,7 +1248,7 @@ export function BranchQR({ br, ownerId }) {
       </div>
 
       <div style={{ fontSize: 12, color: T.mid, marginBottom: 16 }}>
-        Escanea con cualquier celular para abrir el menú directamente. Descarga o
+        Escanea con cualquier celular para abrir el catálogo directamente. Descarga o
         imprime cada QR.
       </div>
 
@@ -1325,8 +1328,8 @@ export function SecSucursales({
     {
       id: "menuDigital",
       Icon: ClipboardList,
-      label: "Menú Digital",
-      desc: "Menú QR para tus mesas",
+      label: "Catálogo Digital",
+      desc: "Catálogo QR para tus mesas",
       color: T.coral,
     },
     {
@@ -2487,7 +2490,7 @@ export function SecSucursales({
               </label>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
-                  { id: "menuDigital", Icon: ClipboardList, label: "Menú Digital", color: T.coral },
+                  { id: "menuDigital", Icon: ClipboardList, label: "Catálogo Digital", color: T.coral },
                   { id: "domicilios",  Icon: Bike,          label: "Domicilios",   color: T.blue  },
                   { id: "pickup",      Icon: Store,         label: "Pickup / Llevar", color: T.pink },
                 ].map((s) => (

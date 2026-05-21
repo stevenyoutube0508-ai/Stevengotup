@@ -856,7 +856,7 @@ export function Login({ onLogin }) {
                   }}
                 >
                   <Eye size={15} strokeWidth={2.4} />
-                  Ver menú del cliente demo
+                  Ver catálogo del cliente demo
                 </button>
               </div>
             </div>

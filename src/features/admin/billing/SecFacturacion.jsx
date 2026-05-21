@@ -11,8 +11,10 @@ import {
   CreditCard,
   FileCheck2,
   FileText,
+  Headphones,
   Landmark,
   Loader2,
+  MessageSquare,
   ReceiptText,
   Send,
   ShieldCheck,
@@ -27,8 +29,9 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { T } from "../../../constants/theme";
 import { BANK_INFO, PLANS_CATALOG } from "../../../constants/seed";
-import { fmtCOP } from "../../../utils/format";
-import { Card, Btn, Tag, Modal } from "../../../shared/components";
+import { fmtCOP, newId } from "../../../utils/format";
+import { Card, Btn, Tag, Modal, Field } from "../../../shared/components";
+import { submitSupportTicket, loadMyTickets } from "../../../services/admin.service";
 
 function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
   return (
@@ -199,6 +202,13 @@ export function SecFacturacion({
   const [copied, setCopied] = useState("");
   const fileRef = useRef(null);
 
+  // ── Soporte ────────────────────────────────────────────────────────────────
+  const [myTickets,     setMyTickets]    = useState([]);
+  const [ticketModal,   setTicketModal]  = useState(false);
+  const [ticketForm,    setTicketForm]   = useState({ subject:"", priority:"medium", message:"" });
+  const [sendingTicket, setSendingTicket] = useState(false);
+  const [expandTicket,  setExpandTicket]  = useState(null);
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -207,9 +217,9 @@ export function SecFacturacion({
       .select("id,plan,amount,status,created_at,ceo_notes,reviewed_at")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (data) setPayReqs(data);
-      });
+      .then(({ data }) => { if (data) setPayReqs(data); });
+
+    loadMyTickets(user.id).then(({ data }) => { if (data) setMyTickets(data); });
   }, [user]);
 
   const plan = billing.plan;
@@ -235,6 +245,32 @@ export function SecFacturacion({
     setReceipt(null);
     setNotes("");
     setSelBank(0);
+  };
+
+  const handleSubmitTicket = async () => {
+    if (!ticketForm.subject.trim() || !ticketForm.message.trim()) return;
+    setSendingTicket(true);
+    const ticket = {
+      id:       newId(),
+      subject:  ticketForm.subject.trim(),
+      priority: ticketForm.priority,
+      message:  ticketForm.message.trim(),
+      userName: user?.name || "Admin",
+    };
+    const { error } = await submitSupportTicket(user.id, configName, ticket);
+    setSendingTicket(false);
+    if (error) { showToast?.("❌ Error enviando ticket", "err"); return; }
+    setMyTickets(p => [{
+      id: ticket.id,
+      subject: ticket.subject,
+      status: "open",
+      priority: ticket.priority,
+      messages: [{ from: ticket.userName, text: ticket.message, time: new Date().toISOString() }],
+      created_at: new Date().toISOString(),
+    }, ...p]);
+    setTicketForm({ subject:"", priority:"medium", message:"" });
+    setTicketModal(false);
+    showToast?.("✓ Ticket enviado — te responderemos pronto");
   };
 
   const handleFile = (e) => {
@@ -847,6 +883,121 @@ export function SecFacturacion({
           </div>
         )}
       </Card>
+
+      {/* ── Soporte ──────────────────────────────────────────────────────── */}
+      <Card style={{ marginTop: 24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: myTickets.length ? 16 : 0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap: 8 }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:T.indigoL, display:"grid", placeItems:"center" }}>
+              <Headphones size={16} color={T.indigo}/>
+            </div>
+            <div>
+              <div style={{ fontSize:13, fontWeight:800, color:T.text }}>Soporte</div>
+              <div style={{ fontSize:11, color:T.mid }}>¿Tienes un problema o pregunta?</div>
+            </div>
+          </div>
+          <Btn sm onClick={() => setTicketModal(true)} icon={MessageSquare}>Nuevo ticket</Btn>
+        </div>
+
+        {myTickets.length > 0 && (
+          <div style={{ borderTop:`1px solid ${T.border}`, paddingTop:14 }}>
+            {myTickets.map(t => {
+              const isOpen = t.status === "open";
+              const lastMsg = t.messages?.[t.messages.length - 1];
+              const hasReply = t.messages?.some(m => m.from === "Soporte Picku");
+              return (
+                <div key={t.id}
+                  onClick={() => setExpandTicket(expandTicket === t.id ? null : t.id)}
+                  style={{ cursor:"pointer", padding:"10px 0", borderBottom:`1px solid ${T.border}` }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:T.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                        {t.subject}
+                      </div>
+                      {lastMsg && (
+                        <div style={{ fontSize:11, color:T.mid, marginTop:2 }}>
+                          {lastMsg.from}: {lastMsg.text?.slice(0,60)}{lastMsg.text?.length > 60 ? "…" : ""}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display:"flex", gap:5, flexShrink:0, marginLeft:8 }}>
+                      {hasReply && <span style={{ fontSize:9, fontWeight:800, background:T.indigoL, color:T.indigo, borderRadius:20, padding:"2px 7px" }}>💬 Respondido</span>}
+                      <span style={{ fontSize:9, fontWeight:800, background: isOpen ? T.amberL : T.greenL, color: isOpen ? T.amber : T.green, borderRadius:20, padding:"2px 7px" }}>
+                        {isOpen ? "Abierto" : "Resuelto"}
+                      </span>
+                    </div>
+                  </div>
+                  {expandTicket === t.id && (
+                    <div style={{ marginTop:10, background:T.bg, borderRadius:10, padding:12 }}>
+                      {t.messages?.map((m, i) => (
+                        <div key={i} style={{ marginBottom:8 }}>
+                          <div style={{ fontSize:10, fontWeight:700, color: m.from==="Soporte Picku" ? T.indigo : T.mid, marginBottom:3 }}>
+                            {m.from} · {typeof m.time === "string" ? m.time.slice(0,10) : ""}
+                          </div>
+                          <div style={{ background: m.from==="Soporte Picku" ? T.indigoL : T.white, border:`1px solid ${m.from==="Soporte Picku" ? T.indigo+"30" : T.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:T.text, lineHeight:1.6 }}>
+                            {m.text}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {myTickets.length === 0 && (
+          <div style={{ marginTop:12, fontSize:12, color:T.light, display:"flex", alignItems:"center", gap:6 }}>
+            <CheckCircle2 size={13} color={T.green}/> No tienes tickets abiertos
+          </div>
+        )}
+      </Card>
+
+      {/* ── Modal nuevo ticket ─────────────────────────────────────────────── */}
+      {ticketModal && (
+        <Modal title="Contactar soporte" icon={<Headphones size={16}/>} onClose={() => setTicketModal(false)}>
+          <Field
+            label="Asunto *"
+            value={ticketForm.subject}
+            onChange={v => setTicketForm(p => ({...p, subject:v}))}
+            placeholder="Ej: No puedo subir mi logo"
+          />
+
+          <div style={{ marginBottom:14 }}>
+            <label style={{ fontSize:11, fontWeight:700, color:T.mid, display:"block", marginBottom:6 }}>Prioridad</label>
+            <div style={{ display:"flex", gap:8 }}>
+              {[["low","Baja",T.green],["medium","Media",T.amber],["high","Alta",T.red]].map(([val,lbl,col]) => (
+                <button key={val} onClick={() => setTicketForm(p=>({...p,priority:val}))}
+                  style={{ flex:1, padding:"8px 0", borderRadius:10, fontSize:12, fontWeight:700, cursor:"pointer",
+                    border:`1.5px solid ${ticketForm.priority===val ? col : T.border}`,
+                    background: ticketForm.priority===val ? col+"18" : "transparent",
+                    color: ticketForm.priority===val ? col : T.mid }}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Field
+            label="Descripción *"
+            value={ticketForm.message}
+            onChange={v => setTicketForm(p => ({...p, message:v}))}
+            textarea
+            rows={4}
+            placeholder="Describe el problema con el mayor detalle posible…"
+          />
+
+          <div style={{ display:"flex", gap:10, marginTop:4 }}>
+            <Btn v="ghost" onClick={() => setTicketModal(false)}>Cancelar</Btn>
+            <Btn full
+              disabled={!ticketForm.subject.trim() || !ticketForm.message.trim() || sendingTicket}
+              onClick={handleSubmitTicket}>
+              {sendingTicket ? "Enviando…" : "Enviar ticket"}
+            </Btn>
+          </div>
+        </Modal>
+      )}
 
       {modal && (
         <Modal

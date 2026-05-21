@@ -18,7 +18,7 @@ export const SEED_RESTAURANTS = [
 ];
 
 export const SEED_TICKETS = [
-  {id:"t1",restaurant:"La Leña",user:"Carlos Mejía",subject:"Menú no carga en iOS",priority:"high",status:"open",date:"2026-04-22",messages:[{from:"Carlos Mejía",text:"El menú no abre bien en iPhone.",time:"10:30"}]},
+  {id:"t1",restaurant:"La Leña",user:"Carlos Mejía",subject:"Catálogo no carga en iOS",priority:"high",status:"open",date:"2026-04-22",messages:[{from:"Carlos Mejía",text:"El catálogo no abre bien en iPhone.",time:"10:30"}]},
   {id:"t2",restaurant:"Sushi Nakama",user:"Diego Park",subject:"Cómo activar domicilios",priority:"medium",status:"open",date:"2026-04-21",messages:[{from:"Diego Park",text:"¿Cómo activo domicilios?",time:"14:15"}]},
   {id:"t3",restaurant:"Bufalo Ribs Co",user:"Ana Torres",subject:"Factura de marzo incorrecta",priority:"high",status:"resolved",date:"2026-04-20",messages:[{from:"Ana Torres",text:"Me cobraron dos veces.",time:"09:00"},{from:"Soporte Picku",text:"Aplicamos el crédito. Disculpa.",time:"11:30"}]},
 ];
@@ -90,7 +90,7 @@ export const BANK_INFO = {
 };
 
 export const PLANS_CATALOG = [
-  {id:"starter",name:"Starter",price:49900,color:"#2563eb",features:["Menú digital QR","Hasta 30 productos","1 sucursal","Soporte email"]},
+  {id:"starter",name:"Starter",price:49900,color:"#2563eb",features:["Catálogo digital QR","Hasta 30 productos","1 sucursal","Soporte email"]},
   {id:"pro",name:"Pro",price:99900,color:"#6d28d9",features:["Productos ilimitados","Delivery","Reservas","Asistente IA","Soporte 24/7"],popular:true},
   {id:"business",name:"Business",price:189900,color:"#db2777",features:["Todo Pro","Multi-sucursal","API acceso","Manager dedicado"]},
 ];

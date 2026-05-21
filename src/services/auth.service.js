@@ -10,8 +10,9 @@ export function mapProfileUser(authUser, profile){
     avatar: profile.avatar,
     subscriptionExpiresAt: profile.subscription_expires_at || null,
     businessType: profile.business_type || "restaurant",
-    ownerId: profile.owner_id || null,       // staff: ID del admin dueño del negocio
+    ownerId:   profile.owner_id   || null,   // staff: ID del admin dueño del negocio
     staffRole: profile.staff_role || null,   // staff: 'delivery' | 'full'
+    branchId:  profile.branch_id  || null,   // staff: sucursal asignada
   };
 }
 

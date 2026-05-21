@@ -13,17 +13,19 @@ export default function StaffLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const config = useAdminStore((s) => s.config);
-  const toast = useAdminStore((s) => s.toast);
-  const dbLoaded = useAdminStore((s) => s.dbLoaded);
-  const loadAdminData = useAdminStore((s) => s.loadAdminData);
+  const config      = useAdminStore((s) => s.config);
+  const toast       = useAdminStore((s) => s.toast);
+  const dbLoaded    = useAdminStore((s) => s.dbLoaded);
+  const loadStaffData = useAdminStore((s) => s.loadStaffData);
 
-  // Load the owner's data using owner_id from the staff profile
+  // Carga los datos del negocio usando el owner_id del perfil del operador.
+  // Usa supabaseAdmin internamente para saltar RLS (el JWT del staff no tiene
+  // permiso para leer filas del dueño con auth.uid() = user_id).
   useEffect(() => {
     if (user?.role === "staff" && user?.ownerId) {
-      loadAdminData({ id: user.ownerId });
+      loadStaffData(user.ownerId);
     }
-  }, [user?.id, user?.role, user?.ownerId, loadAdminData]);
+  }, [user?.id, user?.role, user?.ownerId, loadStaffData]);
 
   const vertical = getVertical("restaurant");
 

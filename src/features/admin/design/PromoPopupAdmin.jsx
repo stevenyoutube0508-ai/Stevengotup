@@ -402,7 +402,7 @@ export function PromoPopupAdmin({ popup, onChange, cats = [] }) {
               paddingLeft: 43,
             }}
           >
-            Aparece al entrar al menú. Es ideal para promos flash, combos o
+            Aparece al entrar al catálogo. Es ideal para promos flash, combos o
             campañas especiales.
           </div>
         </div>
@@ -673,7 +673,7 @@ export function PromoPopupAdmin({ popup, onChange, cats = [] }) {
                   Sin popup configurado
                 </div>
                 Agrega una imagen o título para activar una promoción emergente
-                en el menú del cliente.
+                en el catálogo del cliente.
               </div>
             </div>
           )}
@@ -934,7 +934,7 @@ export function PromoPopupAdmin({ popup, onChange, cats = [] }) {
                     active={(draft.frequency || "session") === "always"}
                     icon={RefreshCw}
                     title="Siempre"
-                    subtitle="Cada vez que abre el menú"
+                    subtitle="Cada vez que abre el catálogo"
                     onClick={() => dset("frequency")("always")}
                   />
 

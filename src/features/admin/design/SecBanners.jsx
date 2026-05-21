@@ -256,7 +256,7 @@ export function SecBanners({ config, onUpdate, vertical, cats }) {
               maxWidth: 560,
             }}
           >
-            Administra promociones visibles en el menú del cliente: carrusel de
+            Administra promociones visibles en el catálogo del cliente: carrusel de
             banners, popup principal, acciones y enlaces.
           </p>
         </div>

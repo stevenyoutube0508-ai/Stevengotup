@@ -372,7 +372,7 @@ export function SecProductos({
     const deliveryName = vl.delivery || "Domicilio";
 
     const priceLabelA = isRestaurant
-      ? `Precio ${vl.catalog || "menú"}`
+      ? `Precio ${vl.catalog || "catálogo"}`
       : "Precio de venta";
 
     const priceLabelB = isRestaurant
@@ -790,7 +790,7 @@ export function SecProductos({
             <Toggle
               value={d.active}
               onChange={set("active")}
-              label={isRestaurant ? "Visible en el menú" : "Activo en el catálogo"}
+              label={isRestaurant ? "Visible en el catálogo" : "Activo en el catálogo"}
             />
             <Toggle
               value={d.stock}
@@ -806,7 +806,7 @@ export function SecProductos({
               <Toggle
                 value={d.forMenu !== false}
                 onChange={set("forMenu")}
-                label="Aparece en menú digital"
+                label="Aparece en catálogo digital"
               />
             )}
             {isRestaurant && (
@@ -1465,7 +1465,7 @@ export function SecProductos({
                           }}
                         >
                           <InlineIcon icon={ClipboardList} size={11} />
-                          Menú
+                          Catálogo
                         </span>
                       </Tag>
                     )}
@@ -1808,7 +1808,7 @@ export function SecProductos({
                   borderBottom: `1px solid ${T.border}`,
                 }}
               >
-                {["Producto", "Categoría", "Precio menú", "Precio dom."].map(
+                {["Producto", "Categoría", "Precio catálogo", "Precio dom."].map(
                   (h) => (
                     <div
                       key={h}
@@ -1928,8 +1928,8 @@ export function SecProductos({
             >
               <InlineIcon icon={CheckCircle2} size={16} color={T.green} />
               <span>
-                Canal asignado automáticamente: <strong>precio menú</strong> →
-                menú digital · <strong>precio domicilio</strong> → domicilio. Si
+                Canal asignado automáticamente: <strong>precio catálogo</strong> →
+                catálogo digital · <strong>precio domicilio</strong> → domicilio. Si
                 tiene ambos, aparece en los dos.
               </span>
             </div>

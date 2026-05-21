@@ -204,7 +204,7 @@ export function SecInformes({ products = [], orders = [] }) {
       text:
         weekOrders.length > 0
           ? `${bestDayEntry.d} fue tu día con más pedidos esta semana (${bestDayEntry.o}). Considera reforzar el equipo esos días para mejorar tiempos de entrega.`
-          : "Aún no hay suficientes pedidos para detectar patrones. Comparte tu menú digital para empezar a recibir datos.",
+          : "Aún no hay suficientes pedidos para detectar patrones. Comparte tu catálogo digital para empezar a recibir datos.",
     },
     {
       icon: PackageCheck,
@@ -212,7 +212,7 @@ export function SecInformes({ products = [], orders = [] }) {
       tag: "Producto",
       text: topProduct
         ? `${topProduct.name} tiene ${topProduct.clicks} vistas y es tu producto más popular. Asegúrate de que esté activo en todos tus canales para capturar más ventas.`
-        : "Aún no hay vistas registradas en tus productos. Comparte tu menú para empezar a recopilar datos.",
+        : "Aún no hay vistas registradas en tus productos. Comparte tu catálogo para empezar a recopilar datos.",
     },
     {
       icon: ChartNoAxesCombined,
@@ -381,7 +381,7 @@ export function SecInformes({ products = [], orders = [] }) {
           <ChartHeader
             icon={TrendingUp}
             title="Vistas por día"
-            subtitle="Evolución de visitas al menú durante la semana"
+            subtitle="Evolución de visitas al catálogo durante la semana"
             color={T.coral}
           />
 

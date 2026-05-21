@@ -7,7 +7,7 @@ import { supabaseAdmin } from "../lib/supabaseAdmin";
  * @param {{ name, email }}  form
  * @param {string} tempPassword - contraseña temporal generada antes de llamar
  */
-export async function createStaffUser(ownerUserId, form, tempPassword) {
+export async function createStaffUser(ownerUserId, form, tempPassword, branchId = null) {
   // 1. Crear usuario en Auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: form.email,
@@ -27,6 +27,7 @@ export async function createStaffUser(ownerUserId, form, tempPassword) {
     owner_id: ownerUserId,
     name: form.name,
     email: form.email,
+    branch_id: branchId || null,
   };
 
   const { data: updRows, error: updError } = await supabaseAdmin
@@ -59,7 +60,7 @@ export async function createStaffUser(ownerUserId, form, tempPassword) {
 export async function loadStaffMembers(ownerUserId) {
   const { data, error } = await supabaseAdmin
     .from("profiles")
-    .select("id,name,email,staff_role")
+    .select("id,name,email,staff_role,branch_id")
     .eq("owner_id", ownerUserId)
     .eq("role", "staff");
   return { data: data || [], error };

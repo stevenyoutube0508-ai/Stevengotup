@@ -8,6 +8,12 @@ import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import relojArenaGif from "../../assets/reloj-arena.gif";
+import enPreparacionGif from "../../assets/enpreparacion.gif";
+import deliveryGif from "../../assets/delivery.gif";
+import entregadoGif from "../../assets/entregado.gif";
+import pedidolistoGif from "../../assets/pedidolisto.gif";
+
 
 export function MenuPreview({config,products,cats}){
   const [selCat,setSelCat]=useState(cats[0]?.id||"");
@@ -159,28 +165,39 @@ export const CAT_GRADIENTS=[
 export function CategoryCard({c,pc,isDark,onClick,idx,prodCount}){
   const [g0,g1]=CAT_GRADIENTS[idx%CAT_GRADIENTS.length];
   const hasBg=!!c.bgImg;
-  const iconType=c.iconType||"emoji";
   const txColor=c.textColor||"#ffffff";
   const fs=c.fontStyle||"modern";
-  const fontMap={modern:["'Plus Jakarta Sans',sans-serif","900","-.3px","none","normal"],classic:["Georgia,serif","700","0","none","italic"],bold:["Impact,sans-serif","900","1px","uppercase","normal"],elegant:["'Plus Jakarta Sans',sans-serif","300","3px","uppercase","normal"]};
-  const [ff,fw,lsp,ttu,fst]=fontMap[fs]||fontMap.modern;
+  const fontMap={modern:["'Plus Jakarta Sans',sans-serif","900","-.3px","none"],classic:["Georgia,serif","700","0","none"],bold:["Impact,sans-serif","900","1px","uppercase"],elegant:["'Plus Jakarta Sans',sans-serif","300","3px","uppercase"]};
+  const [ff,fw,lsp,ttu]=fontMap[fs]||fontMap.modern;
   const bgFinal=hasBg?"#111":(c.bgColor||`linear-gradient(135deg,${g0},${g1})`);
-  const shadowColor=c.bgColor||g0;
   return <div onClick={onClick}
-    style={{width:"100%",height:130,borderRadius:18,overflow:"hidden",position:"relative",cursor:"pointer",
-      marginBottom:12,background:bgFinal,
-      boxShadow:`0 6px 20px ${hasBg?"rgba(0,0,0,.35)":shadowColor+"44"}`,transition:"transform .18s,box-shadow .18s"}}
-    onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.015)";e.currentTarget.style.boxShadow=hasBg?"0 10px 28px rgba(0,0,0,.5)":`0 10px 28px ${shadowColor}66`;}}
-    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=`0 6px 20px ${hasBg?"rgba(0,0,0,.35)":shadowColor+"44"}`;}}>
+    style={{width:"100%",height:122,borderRadius:16,overflow:"hidden",position:"relative",cursor:"pointer",
+      marginBottom:10,background:bgFinal,boxShadow:`0 4px 16px rgba(0,0,0,.22)`,
+      transition:"transform .18s,opacity .18s"}}
+    onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.012)";e.currentTarget.style.opacity=".92";}}
+    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.opacity="1";}}>
     {hasBg&&<img src={c.bgImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} alt=""/>}
-    <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 60%,rgba(0,0,0,0) 100%)"}}/>
-    {iconType==="emoji"&&<div style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",fontSize:62,opacity:.85,filter:"drop-shadow(0 4px 12px rgba(0,0,0,.4))",userSelect:"none",flexShrink:0}}>{c.icon}</div>}
-    {iconType==="photo"&&c.iconImg&&<div style={{position:"absolute",right:16,top:"50%",transform:"translateY(-50%)",width:70,height:70,borderRadius:14,overflow:"hidden",border:"2px solid rgba(255,255,255,.25)",boxShadow:"0 4px 16px rgba(0,0,0,.5)",flexShrink:0}}><img src={c.iconImg} style={{width:"100%",height:"100%",objectFit:"cover"}} alt=""/></div>}
-    <div style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",maxWidth:"calc(100% - 104px)",overflow:"hidden"}}>
-      <div style={{color:txColor,fontWeight:fw,fontFamily:ff,fontSize:20,letterSpacing:lsp,textTransform:ttu,fontStyle:fst,textShadow:"0 2px 12px rgba(0,0,0,.7)",lineHeight:1.25,wordBreak:"break-word"}}>{c.name}</div>
-      {prodCount>0&&<div style={{color:txColor,opacity:.7,fontSize:11,marginTop:5,fontWeight:600}}>{prodCount} producto{prodCount!==1?"s":""}</div>}
+    {/* Gradient overlay — heavier on left for text legibility */}
+    <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,rgba(0,0,0,.68) 0%,rgba(0,0,0,.3) 55%,rgba(0,0,0,.1) 100%)"}}/>
+    {/* Content row */}
+    <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",padding:"0 16px 0 22px",justifyContent:"space-between",gap:12}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{color:txColor,fontWeight:fw,fontFamily:ff,fontSize:22,letterSpacing:lsp,textTransform:ttu,
+          textShadow:"0 2px 10px rgba(0,0,0,.65)",lineHeight:1.2,
+          overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{c.name}</div>
+        {prodCount>0&&<div style={{marginTop:7,display:"inline-flex",alignItems:"center",
+          background:"rgba(255,255,255,.18)",backdropFilter:"blur(6px)",
+          borderRadius:20,padding:"3px 10px"}}>
+          <span style={{color:txColor,opacity:.95,fontSize:11,fontWeight:700}}>{prodCount} {prodCount===1?"producto":"productos"}</span>
+        </div>}
+      </div>
+      {/* Arrow circle */}
+      <div style={{width:38,height:38,borderRadius:"50%",background:"rgba(255,255,255,.18)",
+        backdropFilter:"blur(8px)",border:"1.5px solid rgba(255,255,255,.28)",
+        display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+        <span style={{color:txColor,fontSize:18,fontWeight:900,lineHeight:1,marginLeft:2}}>›</span>
+      </div>
     </div>
-    <div style={{position:"absolute",right:16,bottom:12,color:txColor,opacity:.6,fontSize:22,fontWeight:900}}>›</div>
   </div>;
 }
 
@@ -212,13 +229,50 @@ export function SocialLinksRow({config,isDark}){
   </div>;
 }
 
+function StatusVisualIcon({ icon, label, size = 86 }) {
+  const isImage =
+    typeof icon === "string" &&
+    /\.(gif|png|jpe?g|webp|svg)(\?.*)?$/i.test(icon);
+
+  if (isImage) {
+    return (
+      <img
+        src={icon}
+        alt={label || "Estado del pedido"}
+        draggable={false}
+        style={{
+          width: size,
+          height: size,
+          objectFit: "contain",
+          display: "block",
+          margin: "0 auto",
+          filter: "drop-shadow(0 12px 22px rgba(0,0,0,.22))",
+          pointerEvents: "none",
+        }}
+      />
+    );
+  }
+
+  return (
+    <span
+      style={{
+        fontSize: size * 0.68,
+        lineHeight: 1,
+        display: "block",
+      }}
+    >
+      {icon}
+    </span>
+  );
+}
+
 /* ─── POINT-IN-POLYGON (ray casting) ────────────────────── */
 
-export function CustomerView({config,products,cats,onBack,onAddOrder,branches,banners=[],businessType="restaurant"}){
+export function CustomerView({config,products,cats,onBack,onAddOrder,branches,banners=[],businessType="restaurant",initialBranchId=null}){
   const vl=(VERTICALS[businessType]||VERTICALS.restaurant).labels;
   const isRestaurant=businessType==="restaurant";
   const vertIcon=(VERTICALS[businessType]||VERTICALS.restaurant).icon;
-  const [screen,setScreen]=useState("landing"); // landing | menu
+  const [screen,setScreen]=useState("splash"); // splash | city | branch | menu
   const [activeCat,setActiveCat]=useState("");
   const [cart,setCart]=useState([]);
   const [cartOpen,setCartOpen]=useState(false);
@@ -230,6 +284,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const popupTimerRef=useRef(null);
   const popup=config.promoPopup;
   const [selBranchId,setSelBranchId]=useState(null);
+  const [selCity,setSelCity]=useState(null);
   const [branchPickerMode,setBranchPickerMode]=useState(null);
   const [selectedZone,setSelectedZone]=useState(null);
   const [zoneStatus,setZoneStatus]=useState(null); // null|"checking"|"found"|"none"
@@ -248,6 +303,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const bdr=isDark?CM.border:"rgba(0,0,0,.08)";
   const inp={width:"100%",boxSizing:"border-box",padding:"11px 13px",background:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.05)",border:`1.5px solid ${bdr}`,borderRadius:11,color:txt,fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif",outline:"none",marginBottom:12};
   const selBranch=branches?.find(b=>b.id===selBranchId)||branches?.[0];
+  const cities=[...new Set((branches||[]).map(b=>b.city).filter(Boolean))];
   const hasDomicilios=branches?.some(b=>b.services?.domicilios);
   const hasReservas=selBranch?.services?.reservas;
   const hasPickup=branches?.some(b=>b.services?.pickup);
@@ -291,21 +347,66 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const add=p=>setCart(c=>[...c,{uid:Date.now()+Math.random(),product:p,qty:1,total:getEffPrice(p)}]);
   const rem=uid=>setCart(c=>c.filter(x=>x.uid!==uid));
   const ff=v=>setForm(f=>({...f,...v}));
-  const STATUS_INFO={
-    pendiente:{icon:"⏳",label:"Recibido — confirmando",color:"#f59e0b",desc:"Tu pedido fue recibido. Estamos confirmando."},
-    en_cocina:{icon:vl.status_processing_icon,label:vl.status_processing,color:"#3b82f6",desc:vl.status_processing_desc},
-    listo:{icon:"✅",label:vl.status_ready,color:"#059669",desc:vl.status_ready_desc},
-    en_camino:{icon:vl.status_shipping_icon,label:vl.status_shipping,color:"#8b5cf6",desc:vl.status_shipping_desc},
-    entregado:{icon:"🎉",label:vl.status_done,color:"#059669",desc:vl.status_done_desc},
-  };
+  const STATUS_INFO = {
+  pendiente: {
+    icon: relojArenaGif,
+    label: "Recibido — confirmando",
+    color: "#f59e0b",
+    desc: "Tu pedido fue recibido. Estamos confirmando.",
+  },
+  en_cocina: {
+    icon: enPreparacionGif,
+    label: vl.status_processing,
+    color: "#3b82f6",
+    desc: vl.status_processing_desc,
+  },
+  listo: {
+    icon: pedidolistoGif,
+    label: vl.status_ready,
+    color: "#059669",
+    desc: vl.status_ready_desc,
+  },
+  en_camino: {
+    icon: deliveryGif,
+    label: vl.status_shipping,
+    color: "#8b5cf6",
+    desc: vl.status_shipping_desc,
+  },
+  entregado: {
+    icon: entregadoGif,
+    label: vl.status_done,
+    color: "#059669",
+    desc: vl.status_done_desc,
+  },
+};
   useEffect(()=>{
     if(!trackedOrder||trackedOrder.status==="entregado")return;
-    const t=setInterval(async()=>{
+
+    // ① Canal Broadcast — el admin/operador emite 'order_update' en el canal
+    //   específico del pedido. No requiere Realtime configurado, funciona con anon key.
+    const channel = supabase
+      .channel(`order:${trackedOrder.id}`)
+      .on("broadcast",{ event:"order_update" }, payload=>{
+        const {status:newStatus}=payload.payload||{};
+        if(newStatus) setTrackedOrder(p=>({...p,status:newStatus}));
+      })
+      // ② postgres_changes — bonus si la tabla tiene Realtime activado
+      .on("postgres_changes",
+        {event:"UPDATE",schema:"public",table:"orders",filter:`id=eq.${trackedOrder.id}`},
+        payload=>{ if(payload.new?.status) setTrackedOrder(p=>({...p,status:payload.new.status})); }
+      )
+      .subscribe();
+
+    // ③ Polling cada 8 s — fallback si WebSockets fallan o si la política RLS
+    //   permite SELECT público por id (UUID no adivinable → seguro).
+    const poll=setInterval(async()=>{
       const {data}=await supabase.from("orders").select("status").eq("id",trackedOrder.id).single();
-      if(data&&data.status!==trackedOrder.status)setTrackedOrder(p=>({...p,status:data.status}));
-    },4000);
-    return()=>clearInterval(t);
-  },[trackedOrder?.id,trackedOrder?.status]);
+      if(data?.status&&data.status!==trackedOrder.status)
+        setTrackedOrder(p=>({...p,status:data.status}));
+    },8000);
+
+    return()=>{ supabase.removeChannel(channel); clearInterval(poll); };
+  },[trackedOrder?.id]);
   // Popup trigger — fires when user enters the menu screen
   useEffect(()=>{
     if(screen!=="menu")return;
@@ -322,6 +423,31 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     },delaySec);
     return()=>clearTimeout(popupTimerRef.current);
   },[screen]);
+  // Splash auto-advance
+  useEffect(()=>{
+    if(screen!=="splash")return;
+    const t=setTimeout(()=>{
+      const cs=[...new Set((branches||[]).map(b=>b.city).filter(Boolean))];
+      if(!branches||branches.length===0){setScreen("menu");return;}
+      // QR con sucursal específica → saltar el selector de ciudad/sucursal
+      if(initialBranchId){
+        const b=branches.find(br=>br.id===initialBranchId)||branches[0];
+        setSelBranchId(b.id);
+        if(b.services?.domicilios||b.services?.pickup) setScreen("service");
+        else setScreen("menu");
+        return;
+      }
+      if(branches.length===1){
+        const b=branches[0];setSelBranchId(b.id);
+        if(b.services?.domicilios||b.services?.pickup) setScreen("service");
+        else setScreen("menu");
+        return;
+      }
+      if(cs.length>1){setScreen("city");return;}
+      setScreen("branch");
+    },1600);
+    return()=>clearTimeout(t);
+  },[screen,branches,initialBranchId]);
   const closePopup=()=>setShowPopup(false);
   const handlePopupCTA=()=>{
     if(popup?.linkType==="category"&&popup.linkCatId){setActiveCat(popup.linkCatId);closePopup();return;}
@@ -332,10 +458,203 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     if(!form.name||!form.phone)return;
     if(orderMode==="domicilio"&&!form.address)return;
     setSubmitting(true);
-    const o={id:newId(),createdAt:Date.now(),status:"pendiente",mode:effectiveMode,time:timeNow(),date:todayStr(),customerName:form.name,customerPhone:form.phone,customerEmail:form.email,address:form.address,addressRef:selectedZone?.name||"",table:form.table,notes:form.notes,payment:form.payment,items:cart.map(c=>({id:c.product.id,name:c.product.name,price:c.product.price,qty:c.qty,total:c.total,emoji:c.product.emoji})),subtotal:cartSubtotal,delivery:effectiveMode==="domicilio"?deliveryFee:0,total:cartFinal};
+    const o={id:newId(),createdAt:Date.now(),status:"pendiente",mode:effectiveMode,time:timeNow(),date:todayStr(),branchId:selBranchId||null,customerName:form.name,customerPhone:form.phone,customerEmail:form.email,address:form.address,addressRef:selectedZone?.name||"",table:form.table,notes:form.notes,payment:form.payment,items:cart.map(c=>({id:c.product.id,name:c.product.name,price:c.product.price,qty:c.qty,total:c.total,emoji:c.product.emoji})),subtotal:cartSubtotal,delivery:effectiveMode==="domicilio"?deliveryFee:0,total:cartFinal};
     if(onAddOrder)await onAddOrder(o);
     setTrackedOrder(o);setCart([]);setCheckout(false);setStep(1);setSubmitting(false);
   };
+  /* ── SPLASH ───────────────────────────────────────────────── */
+  if(screen==="splash"){
+    const isImg=config.logo&&(config.logo.startsWith("http")||config.logo.startsWith("data:"));
+    return <div style={{position:"fixed",inset:0,background:pc,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:9999}}>
+      <style>{STYLES}</style>
+      {config.logo&&<div style={{width:isImg?112:92,height:isImg?112:92,borderRadius:28,
+        background:isImg?"transparent":"rgba(255,255,255,.2)",
+        border:isImg?"none":"3px solid rgba(255,255,255,.38)",
+        display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",
+        marginBottom:20,animation:"scaleIn .55s ease",
+        boxShadow:isImg?"0 10px 48px rgba(0,0,0,.28)":"none"}}>
+        {isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:48}}>{config.logo}</span>}
+      </div>}
+      {config.name&&<div style={{color:"#fff",fontWeight:900,fontSize:26,letterSpacing:"-.5px",
+        textShadow:"0 2px 16px rgba(0,0,0,.2)",textAlign:"center",padding:"0 28px",marginBottom:4}}>{config.name}</div>}
+      <div style={{marginTop:38,display:"flex",gap:9}}>
+        {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",
+          background:"rgba(255,255,255,.55)",animation:`pulse2 1.4s ease ${i*.22}s infinite`}}/>)}
+      </div>
+    </div>;
+  }
+
+  /* ── CITY PICKER ──────────────────────────────────────────── */
+  if(screen==="city"){
+    return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
+      <style>{STYLES}</style>
+      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.28}} alt=""/>}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.9) 100%)"}}/>
+      <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"52px 24px 80px"}}>
+        {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");
+          return <div style={{width:isImg?90:76,height:isImg?90:76,borderRadius:24,
+            background:isImg?"transparent":pc+"44",border:isImg?"none":`3px solid ${pc}77`,
+            display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",
+            marginBottom:18,boxShadow:`0 8px 36px rgba(0,0,0,.55)`}}>
+            {isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:36}}>{config.logo}</span>}
+          </div>;
+        })()}
+        {config.name&&<div style={{color:"#fff",fontWeight:900,fontSize:24,letterSpacing:"-.4px",
+          textAlign:"center",marginBottom:config.tagline?5:28,textShadow:"0 2px 8px rgba(0,0,0,.5)"}}>{config.name}</div>}
+        {config.tagline&&<div style={{color:"rgba(255,255,255,.5)",fontSize:13,textAlign:"center",marginBottom:30}}>{config.tagline}</div>}
+        <div style={{color:"rgba(255,255,255,.38)",fontSize:10,fontWeight:800,textTransform:"uppercase",
+          letterSpacing:"2.5px",marginBottom:14}}>Selecciona tu ciudad</div>
+        <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:320}}>
+          {cities.map(city=><button key={city} onClick={()=>{
+            setSelCity(city);
+            const cb=(branches||[]).filter(b=>b.city===city);
+            if(cb.length===1){setSelBranchId(cb[0].id);setScreen("menu");}
+            else setScreen("branch");
+          }} style={{padding:"15px 20px",background:"rgba(255,255,255,.1)",backdropFilter:"blur(14px)",
+            border:"1.5px solid rgba(255,255,255,.16)",borderRadius:14,color:"#fff",fontSize:15,
+            fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",
+            fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"background .18s"}}
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.19)"}
+            onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.1)"}>
+            <span>📍 {city}</span>
+            <span style={{opacity:.4,fontSize:18}}>›</span>
+          </button>)}
+          {cities.length===0&&<button onClick={()=>setScreen("menu")} style={{padding:"15px 20px",
+            background:pc,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,
+            cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Ver catálogo →</button>}
+        </div>
+      </div>
+      <div style={{position:"relative",paddingBottom:44}}><SocialLinksRow config={config} isDark={true}/></div>
+    </div>;
+  }
+
+  /* ── BRANCH PICKER ────────────────────────────────────────── */
+  if(screen==="branch"){
+    const cityBranches=selCity?(branches||[]).filter(b=>b.city===selCity):(branches||[]);
+    return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
+      <style>{STYLES}</style>
+      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.22}} alt=""/>}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.6) 0%,rgba(0,0,0,.92) 100%)"}}/>
+      <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column"}}>
+        {/* Topbar */}
+        <div style={{padding:"14px 18px 10px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={()=>setScreen(cities.length>1?"city":"splash")} style={{width:38,height:38,
+            borderRadius:12,background:"rgba(255,255,255,.1)",border:"1.5px solid rgba(255,255,255,.18)",
+            color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>←</button>
+          {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");
+            return <div style={{width:30,height:30,borderRadius:8,background:isImg?"transparent":pc+"44",
+              display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+              {isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:15}}>{config.logo}</span>}
+            </div>;
+          })()}
+          <span style={{color:"#fff",fontWeight:800,fontSize:14,flex:1}}>{config.name}</span>
+        </div>
+        {/* Content */}
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"22px 20px 48px"}}>
+          <div style={{color:"rgba(255,255,255,.38)",fontSize:10,fontWeight:800,textTransform:"uppercase",
+            letterSpacing:"2.5px",marginBottom:selCity?4:16}}>Elige tu sucursal</div>
+          {selCity&&<div style={{color:"rgba(255,255,255,.55)",fontSize:13,marginBottom:20}}>📍 {selCity}</div>}
+          <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:400}}>
+            {cityBranches.map(b=><button key={b.id} onClick={()=>{setSelBranchId(b.id);const hasSvc=b.services?.domicilios||b.services?.pickup;if(hasSvc)setScreen("service");else setScreen("menu");}}
+              style={{padding:"16px 18px",background:"rgba(255,255,255,.09)",backdropFilter:"blur(14px)",
+                border:"1.5px solid rgba(255,255,255,.15)",borderRadius:16,cursor:"pointer",
+                display:"flex",alignItems:"center",gap:14,fontFamily:"'Plus Jakarta Sans',sans-serif",
+                textAlign:"left",transition:"background .18s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.16)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.09)"}>
+              <div style={{width:44,height:44,borderRadius:12,background:pc+"33",
+                border:`1.5px solid ${pc}44`,display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:20,flexShrink:0}}>📍</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{color:"#fff",fontWeight:800,fontSize:15}}>{b.name}</div>
+                {b.address&&<div style={{color:"rgba(255,255,255,.42)",fontSize:12,marginTop:2,
+                  overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.address}</div>}
+              </div>
+              <span style={{color:"rgba(255,255,255,.32)",fontSize:22,fontWeight:900,lineHeight:1}}>›</span>
+            </button>)}
+          </div>
+        </div>
+      </div>
+    </div>;
+  }
+
+  /* ── SERVICE PICKER ──────────────────────────────────────── */
+  if(screen==="service"){
+    const svcBranch=branches?.find(b=>b.id===selBranchId)||selBranch;
+    const hasDomSvc=svcBranch?.services?.domicilios;
+    const hasPickupSvc=svcBranch?.services?.pickup;
+    const btnBase={padding:"18px 20px",background:"rgba(255,255,255,.1)",backdropFilter:"blur(14px)",
+      border:"1.5px solid rgba(255,255,255,.16)",borderRadius:16,cursor:"pointer",
+      display:"flex",alignItems:"center",gap:14,fontFamily:"'Plus Jakarta Sans',sans-serif",
+      textAlign:"left",transition:"background .18s",width:"100%"};
+    return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
+      <style>{STYLES}</style>
+      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.2}} alt=""/>}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.6) 0%,rgba(0,0,0,.92) 100%)"}}/>
+      <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column"}}>
+        {/* Topbar */}
+        <div style={{padding:"14px 18px 10px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={()=>setScreen(branches?.length>1?"branch":"splash")} style={{width:38,height:38,
+            borderRadius:12,background:"rgba(255,255,255,.1)",border:"1.5px solid rgba(255,255,255,.18)",
+            color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>←</button>
+          {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");
+            return <div style={{width:30,height:30,borderRadius:8,background:isImg?"transparent":pc+"44",
+              display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+              {isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:15}}>{config.logo}</span>}
+            </div>;
+          })()}
+          <span style={{color:"#fff",fontWeight:800,fontSize:14,flex:1}}>{config.name}</span>
+        </div>
+        {/* Content */}
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px 52px"}}>
+          {/* Branch badge */}
+          <div style={{textAlign:"center",marginBottom:30}}>
+            <div style={{color:"rgba(255,255,255,.38)",fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"2px",marginBottom:8}}>Sucursal seleccionada</div>
+            <div style={{color:"#fff",fontWeight:900,fontSize:19}}>{svcBranch?.name}</div>
+            {svcBranch?.address&&<div style={{color:"rgba(255,255,255,.44)",fontSize:12,marginTop:5}}>📍 {svcBranch.address}</div>}
+          </div>
+          <div style={{color:"rgba(255,255,255,.38)",fontSize:10,fontWeight:800,textTransform:"uppercase",letterSpacing:"2.5px",marginBottom:14}}>¿Cómo quieres tu pedido?</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:360}}>
+            {hasDomSvc&&<button style={btnBase}
+              onClick={()=>{setOrderMode("domicilio");setScreen("menu");}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.18)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.1)"}>
+              <span style={{fontSize:28,flexShrink:0}}>{vl.delivery_icon}</span>
+              <div style={{flex:1}}>
+                <div style={{color:"#fff",fontWeight:800,fontSize:15}}>{vl.delivery_title}</div>
+                <div style={{color:"rgba(255,255,255,.44)",fontSize:12,marginTop:2}}>{vl.delivery_desc}</div>
+              </div>
+              <span style={{color:"rgba(255,255,255,.3)",fontSize:20,fontWeight:900,lineHeight:1}}>›</span>
+            </button>}
+            {hasPickupSvc&&<button style={btnBase}
+              onClick={()=>{setOrderMode("pickup");setScreen("menu");}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.18)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.1)"}>
+              <span style={{fontSize:28,flexShrink:0}}>🏪</span>
+              <div style={{flex:1}}>
+                <div style={{color:"#fff",fontWeight:800,fontSize:15}}>{vl.pickup_title}</div>
+                <div style={{color:"rgba(255,255,255,.44)",fontSize:12,marginTop:2}}>{vl.pickup_desc}</div>
+              </div>
+              <span style={{color:"rgba(255,255,255,.3)",fontSize:20,fontWeight:900,lineHeight:1}}>›</span>
+            </button>}
+            {/* Always show "solo ver carta" */}
+            <button style={{...btnBase,background:"rgba(255,255,255,.055)",border:"1.5px solid rgba(255,255,255,.09)"}}
+              onClick={()=>{setOrderMode(null);setScreen("menu");}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.12)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.055)"}>
+              <span style={{fontSize:26,flexShrink:0}}>📖</span>
+              <div style={{flex:1}}>
+                <div style={{color:"rgba(255,255,255,.7)",fontWeight:700,fontSize:14}}>Ver carta</div>
+                <div style={{color:"rgba(255,255,255,.32)",fontSize:12,marginTop:2}}>Solo explorar el catálogo</div>
+              </div>
+              <span style={{color:"rgba(255,255,255,.2)",fontSize:20,fontWeight:900,lineHeight:1}}>›</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>;
+  }
+
   if(screen==="landing"){
     const mostOrdered=products.filter(p=>p.active&&p.stock&&channelOk(p)&&branchOk(p)&&(p.clicks||0)>0).sort((a,b)=>(b.clicks||0)-(a.clicks||0)).slice(0,8);
     const btnBase={width:"100%",padding:"14px 18px",borderRadius:14,cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,border:"none",textAlign:"left"};
@@ -462,10 +781,29 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       <div style={{width:"100%",maxWidth:400}}>
         <div style={{background:surf,borderRadius:24,padding:28,border:`1px solid ${bdr}`,animation:"scaleIn .4s ease",marginBottom:12}}>
           <div style={{textAlign:"center",marginBottom:20}}>
-            <div style={{fontSize:52,marginBottom:8}}>{si.icon}</div>
-            <div style={{color:txt,fontSize:20,fontWeight:900}}>{si.label}</div>
-            <div style={{color:mid,fontSize:13,marginTop:4}}>{si.desc}</div>
-          </div>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 10,
+    }}
+  >
+    <StatusVisualIcon
+      icon={si.icon}
+      label={si.label}
+      size={86}
+    />
+  </div>
+
+  <div style={{color:txt,fontSize:20,fontWeight:900}}>
+    {si.label}
+  </div>
+
+  <div style={{color:mid,fontSize:13,marginTop:4}}>
+    {si.desc}
+  </div>
+</div>
           <div style={{display:"flex",gap:4,marginBottom:20}}>
             {steps.map((s,i)=><div key={s} style={{flex:1,height:5,borderRadius:10,background:i<=idx?si.color:isDark?"rgba(255,255,255,.1)":"#e5e7eb",transition:"background .5s"}}/>)}
           </div>
@@ -484,7 +822,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
           <div style={{width:7,height:7,borderRadius:"50%",background:si.color,animation:"pulse2 1.5s infinite"}}/>
           Actualizando en tiempo real…
         </div>}
-        {trackedOrder.status==="entregado"&&<button onClick={()=>setTrackedOrder(null)} style={{width:"100%",padding:14,background:pc,border:"none",borderRadius:16,color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>← Volver al menú</button>}
+        {trackedOrder.status==="entregado"&&<button onClick={()=>setTrackedOrder(null)} style={{width:"100%",padding:14,background:pc,border:"none",borderRadius:16,color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>← Volver al catálogo</button>}
       </div>
     </div>;
   }
@@ -517,24 +855,37 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
         <button onClick={closePopup} style={{position:"absolute",top:-14,right:-14,width:38,height:38,borderRadius:"50%",background:"rgba(255,255,255,.15)",backdropFilter:"blur(8px)",border:"2px solid rgba(255,255,255,.3)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1,zIndex:10}}>×</button>
       </div>
     </div>}
-    {/* HERO — logo centrado */}
-    <div style={{position:"relative",height:230,overflow:"hidden"}}>
-      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 25%"}} alt=""/>}
-      <div style={{position:"absolute",inset:0,background:isDark?"linear-gradient(to bottom,rgba(0,0,0,.35),rgba(17,16,9,.95))":"linear-gradient(to bottom,rgba(0,0,0,.3),rgba(248,247,244,1))"}}/>
-      {/* Logo centrado */}
-      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,paddingTop:10}}>
-        {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");return<div style={{width:isImg?80:64,height:isImg?80:64,borderRadius:20,background:isImg?"transparent":pc+"35",border:isImg?"none":`2.5px solid ${pc}66`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",backdropFilter:"blur(8px)",boxShadow:`0 4px 24px rgba(0,0,0,.5)`}}>{isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:30}}>{config.logo}</span>}</div>})()}
-        <div style={{textAlign:"center"}}>
-          {config.name&&<h1 style={{color:"#fff",fontSize:24,fontWeight:900,letterSpacing:"-.5px",lineHeight:1,textShadow:"0 2px 14px rgba(0,0,0,.6)",margin:0}}>{config.name}</h1>}
-          {config.tagline&&<div style={{color:pc,fontSize:12,marginTop:4,fontWeight:600,textShadow:"0 1px 8px rgba(0,0,0,.4)"}}>{config.tagline}</div>}
-        </div>
-        <div style={{display:"flex",gap:12,alignItems:"center"}}>
-          <span style={{color:config.openStatus?"#4ade80":T.red,fontWeight:700,fontSize:11,display:"flex",alignItems:"center",gap:4}}>
-            <span style={{width:6,height:6,borderRadius:"50%",background:config.openStatus?"#4ade80":T.red,display:"inline-block",boxShadow:config.openStatus?"0 0 7px #4ade80":"none"}}/>
-            {config.openStatus?"Abierto":"Cerrado"}
-          </span>
+    {/* TOPBAR — pequeño, sticky, estilo Archies */}
+    <div style={{position:"sticky",top:0,zIndex:25,
+      background:isDark?"rgba(17,16,9,.97)":"rgba(255,255,255,.97)",
+      backdropFilter:"blur(20px)",borderBottom:`1px solid ${bdr}`,
+      padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,minWidth:0,flex:1}}>
+        {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");
+          return <div style={{width:isImg?36:32,height:isImg?36:32,borderRadius:10,
+            background:isImg?"transparent":pc+"22",display:"flex",alignItems:"center",justifyContent:"center",
+            overflow:"hidden",flexShrink:0}}>
+            {isImg?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:16}}>{config.logo}</span>}
+          </div>;
+        })()}
+        <div style={{minWidth:0}}>
+          <div style={{color:txt,fontWeight:800,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{config.name}</div>
+          <div style={{display:"flex",alignItems:"center",gap:4,marginTop:1}}>
+            <span style={{width:5,height:5,borderRadius:"50%",display:"inline-block",
+              background:config.openStatus?"#22c55e":"#ef4444",
+              boxShadow:config.openStatus?"0 0 6px #22c55e":"none"}}/>
+            <span style={{color:config.openStatus?"#22c55e":"#ef4444",fontSize:10,fontWeight:700}}>
+              {config.openStatus?"Abierto":"Cerrado"}
+            </span>
+          </div>
         </div>
       </div>
+      {branches?.length>1&&<button onClick={()=>setScreen(cities.length>1?"city":"branch")}
+        style={{flexShrink:0,background:isDark?"rgba(255,255,255,.08)":"rgba(0,0,0,.05)",
+          border:`1px solid ${bdr}`,borderRadius:20,padding:"5px 11px",color:mid,
+          fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,whiteSpace:"nowrap"}}>
+        <span>📍</span>{selBranch?.name||"Sucursal"}<span style={{opacity:.4}}>‹</span>
+      </button>}
     </div>
     {/* BANNERS INICIO */}
     {banners.filter(b=>b.active&&(b.position==="inicio"||b.position==="ambos"||!b.position)).length>0&&
@@ -549,7 +900,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       </div>
     </div>}
     {/* BARRA DE BÚSQUEDA + NAVEGACIÓN */}
-    <div style={{position:"sticky",top:0,zIndex:20,background:isDark?"rgba(17,16,9,.97)":bg,backdropFilter:"blur(16px)",borderBottom:`1px solid ${bdr}`}}>
+    <div style={{position:"sticky",top:56,zIndex:20,background:isDark?"rgba(17,16,9,.97)":bg,backdropFilter:"blur(16px)",borderBottom:`1px solid ${bdr}`}}>
       <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px"}}>
         {activeCat&&!q&&<button onClick={()=>setActiveCat("")} style={{flexShrink:0,width:34,height:34,borderRadius:10,background:isDark?"rgba(255,255,255,.08)":"rgba(0,0,0,.06)",border:"none",color:mid,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>←</button>}
         <input value={q} onChange={e=>setQ(e.target.value)} placeholder={`🔍 Buscar en ${vl.catalog.toLowerCase()}…`} style={{flex:1,padding:"8px 12px",background:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.06)",border:`1px solid ${bdr}`,borderRadius:10,color:txt,fontSize:12,fontFamily:"'Plus Jakarta Sans',sans-serif",outline:"none"}}/>
@@ -561,8 +912,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     </div>
     {/* GRID DE CATEGORÍAS (vista inicial) */}
     {!activeCat&&!q&&<div style={{padding:"14px 14px 0"}}>
-      <style>{`@media(min-width:600px){.cat-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:12px}.cat-grid>div{margin-bottom:0!important}}`}</style>
-      <div className="cat-grid">
+      <div>
         {activeCats.map((c,i)=><CategoryCard key={c.id} c={c} pc={pc} isDark={isDark}
           onClick={()=>setActiveCat(c.id)} idx={i}
           prodCount={products.filter(p=>p.catId===c.id&&p.active&&channelOk(p)&&branchOk(p)).length}/>)}
@@ -610,7 +960,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     </div>}
     {/* BOTTOM NAV — Menú */}
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:30,background:isDark?"rgba(17,16,9,.97)":"rgba(255,255,255,.97)",backdropFilter:"blur(20px)",borderTop:`1px solid ${isDark?"rgba(255,255,255,.08)":"rgba(0,0,0,.08)"}`,display:"flex",height:56}}>
-      <button onClick={()=>setScreen("landing")} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:mid}}>
+      <button onClick={()=>setScreen(cities.length>1?"city":branches?.length>1?"branch":"splash")} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:mid}}>
         <span style={{fontSize:17}}>🏠</span><span style={{fontSize:9,fontWeight:600}}>Inicio</span>
       </button>
       <button style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:pc}}>
@@ -770,7 +1120,7 @@ export function SuspendedScreen({onLogout,configName}){
       <h1 style={{fontSize:26,fontWeight:900,color:"#fff",marginBottom:10}}>Servicio Suspendido</h1>
       <p style={{color:"rgba(255,255,255,.55)",fontSize:14,lineHeight:1.7,marginBottom:28}}>
         La suscripción de <strong style={{color:"#fff"}}>{configName||"tu restaurante"}</strong> ha vencido.<br/>
-        Para reactivar el menú y todos los servicios, realiza el pago de tu plan y súbelo desde la sección <strong style={{color:"#c084fc"}}>Facturación</strong>.
+        Para reactivar el catálogo y todos los servicios, realiza el pago de tu plan y súbelo desde la sección <strong style={{color:"#c084fc"}}>Facturación</strong>.
       </p>
       <div style={{background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.25)",borderRadius:14,padding:"16px 20px",marginBottom:28,textAlign:"left"}}>
         <div style={{fontSize:12,fontWeight:700,color:"#f87171",marginBottom:10}}>⚠️ Servicios desactivados</div>
@@ -789,7 +1139,7 @@ export function SuspendedScreen({onLogout,configName}){
 
 /* ─── MENÚ PÚBLICO (sin login) ───────────────────────────── */
 
-export function PublicMenu({onBack}){
+export function PublicMenu({onBack, userId, branchId}){
   const [config,setConfig]=useState(INIT_CONFIG);
   const [products,setProducts]=useState([]);
   const [cats,setCats]=useState([]);
@@ -797,44 +1147,158 @@ export function PublicMenu({onBack}){
   const [loading,setLoading]=useState(true);
   const [ownerId,setOwnerId]=useState(null);
   const [suspended,setSuspended]=useState(false);
+  const [notFound,setNotFound]=useState(false);
   const [businessType,setBusinessType]=useState("restaurant");
+
   useEffect(()=>{
     (async()=>{
-      const {data:cfg}=await supabase.from("restaurant_config").select("*").limit(1).single();
-      if(cfg){
-        setOwnerId(cfg.user_id);
-        // Verificar suscripción del dueño
-        const {data:prof}=await supabase.from("profiles").select("subscription_expires_at,business_type").eq("id",cfg.user_id).single();
-        if(prof?.subscription_expires_at && new Date(prof.subscription_expires_at)<new Date()){
-          setSuspended(true);setLoading(false);return;
-        }
-        if(prof?.business_type) setBusinessType(prof.business_type);
-        setConfig({name:cfg.name,tagline:cfg.tagline,logo:cfg.logo,primaryColor:cfg.primary_color,menuStyle:cfg.menu_style,menuFont:cfg.menu_font,city:cfg.city,address:cfg.address,phone:cfg.phone,whatsapp:cfg.whatsapp,schedule:cfg.schedule,coverImg:cfg.cover_img,bgImg:"",openStatus:cfg.open_status,deliveryFee:cfg.delivery_fee,showAllergens:cfg.show_allergens,banners:cfg.banners||[],promoPopup:cfg.promo_popup||null,socialLinks:cfg.social_links||{}});
-        setBranches(cfg.branches||[]);
-        const [cr,pr]=await Promise.all([
-          supabase.from("categories").select("*").eq("user_id",cfg.user_id).order("sort_order"),
-          supabase.from("products").select("*").eq("user_id",cfg.user_id),
-        ]);
-        if(cr.data?.length) setCats(cr.data.map(c=>({id:c.id,name:c.name,icon:c.icon||"🍽️",iconType:c.icon_type||"emoji",iconImg:c.icon_img||"",active:c.active!==false,order:c.sort_order||0,bgImg:c.bg_img||"",bgColor:c.bg_color||"",textColor:c.text_color||"#ffffff",fontStyle:c.font_style||"modern",branchIds:c.branch_ids||["all"]})));
-        if(pr.data?.length) setProducts(pr.data.map(p=>({id:p.id,catId:p.cat_id,name:p.name,price:p.price,deliveryPrice:p.delivery_price||null,forMenu:p.for_menu!==false,forDelivery:p.for_delivery!==false,desc:p.description,emoji:p.emoji,img:p.img,active:p.active,featured:p.featured,stock:p.in_stock,label:p.label,labelColor:p.label_color,allergens:p.allergens||[],clicks:p.clicks||0,branchIds:p.branch_ids||["all"]})));
+      setLoading(true);
+      setSuspended(false);
+      setNotFound(false);
+
+      // ── Buscar configuración del negocio ──────────────────────
+      // Si llega userId (desde QR /menu/:userId o ?r=) buscar ese negocio.
+      // Sin userId: cargar el primero (modo demo/dev).
+      let cfgQuery = supabase.from("restaurant_config").select("*");
+      if(userId){
+        cfgQuery = cfgQuery.eq("user_id", userId).single();
+      } else {
+        cfgQuery = cfgQuery.limit(1).single();
       }
+
+      const {data:cfg, error:cfgErr} = await cfgQuery;
+
+      if(cfgErr || !cfg){
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      setOwnerId(cfg.user_id);
+
+      // ── Verificar suscripción ─────────────────────────────────
+      const {data:prof}=await supabase
+        .from("profiles")
+        .select("subscription_expires_at,business_type")
+        .eq("id",cfg.user_id)
+        .single();
+
+      if(prof?.subscription_expires_at && new Date(prof.subscription_expires_at)<new Date()){
+        setSuspended(true);
+        setLoading(false);
+        return;
+      }
+
+      if(prof?.business_type) setBusinessType(prof.business_type);
+
+      setConfig({
+        name:cfg.name, tagline:cfg.tagline, logo:cfg.logo,
+        primaryColor:cfg.primary_color, menuStyle:cfg.menu_style,
+        menuFont:cfg.menu_font, city:cfg.city, address:cfg.address,
+        phone:cfg.phone, whatsapp:cfg.whatsapp, schedule:cfg.schedule,
+        coverImg:cfg.cover_img, bgImg:"", openStatus:cfg.open_status,
+        deliveryFee:cfg.delivery_fee, showAllergens:cfg.show_allergens,
+        banners:cfg.banners||[], promoPopup:cfg.promo_popup||null,
+        socialLinks:cfg.social_links||{},
+      });
+      setBranches(cfg.branches||[]);
+
+      // ── Cargar categorías y productos ─────────────────────────
+      const [cr,pr]=await Promise.all([
+        supabase.from("categories").select("*").eq("user_id",cfg.user_id).order("sort_order"),
+        supabase.from("products").select("*").eq("user_id",cfg.user_id),
+      ]);
+      if(cr.data?.length) setCats(cr.data.map(c=>({
+        id:c.id, name:c.name, icon:c.icon||"🍽️", iconType:c.icon_type||"emoji",
+        iconImg:c.icon_img||"", active:c.active!==false, order:c.sort_order||0,
+        bgImg:c.bg_img||"", bgColor:c.bg_color||"", textColor:c.text_color||"#ffffff",
+        fontStyle:c.font_style||"modern", branchIds:c.branch_ids||["all"],
+      })));
+      if(pr.data?.length) setProducts(pr.data.map(p=>({
+        id:p.id, catId:p.cat_id, name:p.name, price:p.price,
+        deliveryPrice:p.delivery_price||null, forMenu:p.for_menu!==false,
+        forDelivery:p.for_delivery!==false, desc:p.description, emoji:p.emoji,
+        img:p.img, active:p.active, featured:p.featured, stock:p.in_stock,
+        label:p.label, labelColor:p.label_color, allergens:p.allergens||[],
+        clicks:p.clicks||0, branchIds:p.branch_ids||["all"],
+      })));
+
       setLoading(false);
     })();
-  },[]);
+  },[userId]);
+
   const addOrder=async o=>{
     if(!ownerId) return;
-    await supabase.from("orders").insert({id:o.id,user_id:ownerId,status:o.status,mode:o.mode,created_at:o.createdAt,time:o.time,date:o.date,customer_name:o.customerName,customer_phone:o.customerPhone,customer_email:o.customerEmail,address:o.address,address_ref:o.addressRef,table_num:o.table,notes:o.notes,payment:o.payment,items:o.items,subtotal:o.subtotal,delivery:o.delivery,total:o.total});
+    await supabase.from("orders").insert({
+      id:o.id, user_id:ownerId, branch_id:o.branchId||null,
+      status:o.status, mode:o.mode,
+      created_at:o.createdAt, time:o.time, date:o.date,
+      customer_name:o.customerName, customer_phone:o.customerPhone,
+      customer_email:o.customerEmail, address:o.address,
+      address_ref:o.addressRef, table_num:o.table, notes:o.notes,
+      payment:o.payment, items:o.items, subtotal:o.subtotal,
+      delivery:o.delivery, total:o.total,
+    });
+    // Notificar al admin en tiempo real — canal Broadcast (no requiere config de Realtime)
+    const bc = supabase.channel(`biz:${ownerId}`);
+    bc.subscribe(status => {
+      if(status !== "SUBSCRIBED") return;
+      bc.send({ type:"broadcast", event:"new_order",
+        payload:{ orderId:o.id, customerName:o.customerName||"cliente" }
+      }).finally(()=>{ setTimeout(()=>supabase.removeChannel(bc), 1500); });
+    });
   };
-  if(loading) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#111009"}}><style>{STYLES}</style><div style={{textAlign:"center"}}><div style={{width:40,height:40,borderRadius:"50%",border:"3px solid rgba(255,255,255,.1)",borderTopColor:"#c084fc",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/><div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>Cargando menú…</div></div></div>;
-  if(suspended) return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#111009",padding:24}}>
-    <style>{STYLES}</style>
-    <div style={{textAlign:"center",maxWidth:420,animation:"fadeUp .4s ease"}}>
-      <div style={{fontSize:64,marginBottom:20}}>🔒</div>
-      <h2 style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:12}}>Menú no disponible</h2>
-      <p style={{color:"rgba(255,255,255,.5)",fontSize:14,lineHeight:1.7}}>Este restaurante ha suspendido temporalmente su servicio digital. Contáctanos directamente para hacer tu pedido.</p>
+
+  const spinnerScreen = (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#111009"}}>
+      <style>{STYLES}</style>
+      <div style={{textAlign:"center"}}>
+        <div style={{width:40,height:40,borderRadius:"50%",border:"3px solid rgba(255,255,255,.1)",borderTopColor:"#c084fc",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
+        <div style={{color:"rgba(255,255,255,.4)",fontSize:13}}>Cargando catálogo…</div>
+      </div>
     </div>
-  </div>;
-  return <><style>{STYLES}</style><CustomerView config={config} products={products} cats={cats} onBack={onBack} onAddOrder={addOrder} branches={branches} banners={config.banners||[]} businessType={businessType}/></>;
+  );
+
+  if(loading) return spinnerScreen;
+
+  if(notFound) return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#111009",padding:24}}>
+      <style>{STYLES}</style>
+      <div style={{textAlign:"center",maxWidth:420,animation:"fadeUp .4s ease"}}>
+        <div style={{fontSize:64,marginBottom:20}}>🔍</div>
+        <h2 style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:12}}>Catálogo no encontrado</h2>
+        <p style={{color:"rgba(255,255,255,.5)",fontSize:14,lineHeight:1.7}}>El enlace del QR no corresponde a ningún negocio activo. Verifica que el código sea correcto.</p>
+      </div>
+    </div>
+  );
+
+  if(suspended) return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#111009",padding:24}}>
+      <style>{STYLES}</style>
+      <div style={{textAlign:"center",maxWidth:420,animation:"fadeUp .4s ease"}}>
+        <div style={{fontSize:64,marginBottom:20}}>🔒</div>
+        <h2 style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:12}}>Catálogo no disponible</h2>
+        <p style={{color:"rgba(255,255,255,.5)",fontSize:14,lineHeight:1.7}}>Este negocio ha suspendido temporalmente su servicio digital. Contáctanos directamente para hacer tu pedido.</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <style>{STYLES}</style>
+      <CustomerView
+        config={config}
+        products={products}
+        cats={cats}
+        onBack={onBack}
+        onAddOrder={addOrder}
+        branches={branches}
+        banners={config.banners||[]}
+        businessType={businessType}
+        initialBranchId={branchId||null}
+      />
+    </>
+  );
 }
 
 /* ─── APP ROOT ────────────────────────────────────────────── */

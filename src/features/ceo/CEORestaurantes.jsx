@@ -210,7 +210,7 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
                       {b.phone&&<span style={{display:"flex",alignItems:"center",gap:3}}><Phone size={9}/>{b.phone}</span>}
                     </div>
                     {b.services&&<div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
-                      {Object.entries({menuDigital:"Menú",domicilios:"Domicilios",pickup:"Pickup",reservas:"Reservas",pedidoMesa:"Mesa"})
+                      {Object.entries({menuDigital:"Catálogo",domicilios:"Domicilios",pickup:"Pickup",reservas:"Reservas",pedidoMesa:"Mesa"})
                         .filter(([k])=>b.services[k])
                         .map(([k,lbl])=>(
                           <span key={k} style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:20,background:T.greenL,color:T.green}}>
@@ -243,7 +243,7 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
             <div style={{marginBottom:12}}>
               <div style={{fontSize:11,fontWeight:700,color:T.mid,marginBottom:7}}>SERVICIOS DISPONIBLES</div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {[["menuDigital","Menú Digital"],["domicilios","Domicilios"],["pickup","Pickup"],["reservas","Reservas"],["pedidoMesa","Pedido en Mesa"]].map(([k,lbl])=>(
+                {[["menuDigital","Catálogo Digital"],["domicilios","Domicilios"],["pickup","Pickup"],["reservas","Reservas"],["pedidoMesa","Pedido en Mesa"]].map(([k,lbl])=>(
                   <button
                     key={k}
                     onClick={()=>setSvc(k)}

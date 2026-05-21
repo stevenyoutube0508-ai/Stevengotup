@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 
 export function mapCategoryFromDb(c){
   return {
@@ -85,6 +86,7 @@ export function mapOrderFromDb(o){
     subtotal: o.subtotal,
     delivery: o.delivery,
     total: o.total,
+    branchId: o.branch_id || null,   // ← sucursal donde se originó el pedido
   };
 }
 
@@ -225,9 +227,12 @@ export async function deleteCategory(id){
 }
 
 export async function insertOrder(userId, o){
-  return supabase.from("orders").insert({
+  // supabaseAdmin: el staff necesita insertar pedidos con user_id = ownerId,
+  // pero la RLS exige auth.uid() = user_id → usar admin client para bypass.
+  return supabaseAdmin.from("orders").insert({
     id: o.id,
     user_id: userId,
+    branch_id: o.branchId || null,
     status: o.status,
     mode: o.mode,
     created_at: o.createdAt,
@@ -248,8 +253,33 @@ export async function insertOrder(userId, o){
   });
 }
 
+/**
+ * Igual que loadAdminData pero usa supabaseAdmin para saltarse RLS.
+ * Necesario cuando el operador (staff) carga datos del dueño del negocio.
+ */
+export async function loadAdminDataBypass(ownerId){
+  const [cr, pr, cfr, or, profR] = await Promise.all([
+    supabaseAdmin.from("categories").select("*").eq("user_id", ownerId).order("sort_order"),
+    supabaseAdmin.from("products").select("*").eq("user_id", ownerId),
+    supabaseAdmin.from("restaurant_config").select("*").eq("user_id", ownerId).single(),
+    supabaseAdmin.from("orders").select("*").eq("user_id", ownerId).order("created_at", { ascending: false }),
+    supabaseAdmin.from("profiles").select("billing_plan,subscription_expires_at").eq("id", ownerId).single(),
+  ]);
+
+  return {
+    cats:     cr.data?.length ? cr.data.map(mapCategoryFromDb) : [],
+    products: pr.data?.length ? pr.data.map(mapProductFromDb)  : [],
+    config:   cfr.data ? mapConfigFromDb(cfr.data) : null,
+    orders:   or.data?.length ? or.data.map(mapOrderFromDb)    : [],
+    billing:  null,  // staff no necesita info de facturación
+    errors:   [cr.error, pr.error, cfr.error, or.error, profR.error].filter(Boolean),
+  };
+}
+
 export async function updateOrderStatus(id, status){
-  return supabase.from("orders").update({ status }).eq("id", id);
+  // Usar supabaseAdmin para saltar RLS: el staff tiene auth.uid() ≠ user_id del pedido,
+  // así que supabase normal devuelve 0 filas sin error → el cambio nunca se persiste.
+  return supabaseAdmin.from("orders").update({ status }).eq("id", id);
 }
 
 export async function updateRestaurantConfig(userId, c){
@@ -285,4 +315,31 @@ export async function saveBranches(userId, branches){
   return supabase.from("restaurant_config").update({
     branches: branches || [],
   }).eq("user_id", userId);
+}
+
+// ── Soporte: tickets que el admin envía ─────────────────────────────────────
+
+export async function submitSupportTicket(userId, restaurantName, form) {
+  const now = new Date().toISOString();
+  return supabase.from("support_tickets").insert({
+    id:         form.id,
+    owner_id:   userId,
+    restaurant: restaurantName || "Mi negocio",
+    user_name:  form.userName || "",
+    subject:    form.subject,
+    priority:   form.priority || "medium",
+    status:     "open",
+    messages:   [{ from: form.userName || "Admin", text: form.message, time: now }],
+    created_at: now,
+  });
+}
+
+export async function loadMyTickets(userId) {
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .select("id,subject,status,priority,messages,created_at")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  return { data: data || [], error };
 }

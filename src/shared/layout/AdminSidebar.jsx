@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Home, Store, Utensils, FolderOpen, Package, Paintbrush, Target,
-  Bike, BarChart3, Bot, CreditCard, LogOut, Users,
+  Bike, BarChart3, Bot, CreditCard, LogOut, Users, CalendarDays,
   Shirt, Wrench, Gamepad2, Sparkles, Smartphone, ShoppingCart, PawPrint, Briefcase,
 } from "lucide-react";
 
@@ -39,6 +39,7 @@ export const getAdminNav = (vl, verticalId = "restaurant") => {
     {id:"diseno",      label:strip(vl.nav_design)||"Diseño",                icon:Paintbrush},
     {id:"banners",     label:"Banners",                                     icon:Target},
     {id:"delivery",    label:strip(vl.nav_delivery)||"Pedidos",             icon:Bike},
+    {id:"reservas",    label:"Reservas",                                    icon:CalendarDays},
     {id:"informes",    label:"Informes",                                    icon:BarChart3},
     {id:"ai",          label:"Asistente IA",                                icon:Bot},
     {id:"facturacion", label:"Facturación",                                 icon:CreditCard},

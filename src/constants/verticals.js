@@ -2,12 +2,12 @@ export const VERTICALS = {
   restaurant:{
     id:"restaurant",name:"Restaurante / Cafetería",icon:"🍽️",color:"#f97316",
     desc:"Restaurantes, cafeterías, bares, food trucks, dark kitchens",
-    labels:{catalog:"Menú",item:"Plato",itemPlural:"Platos",category:"Categoría",categoryPlural:"Categorías",
+    labels:{catalog:"Catálogo",item:"Plato",itemPlural:"Platos",category:"Categoría",categoryPlural:"Categorías",
       order:"Pedido",delivery:"Domicilio",branch:"Sucursal",stock:"Disponibilidad",
-      design:"Diseño del menú",nav_products:"🍽️ Productos",nav_delivery:"🛵 Delivery / Pedidos",
-      nav_design:"🎨 Diseño del menú",nav_stock:"📦 Fuera de stock",
+      design:"Diseño del catálogo",nav_products:"🍽️ Productos",nav_delivery:"🛵 Delivery / Pedidos",
+      nav_design:"🎨 Diseño del catálogo",nav_stock:"📦 Fuera de stock",
       nav_branches:"🏪 Sucursales",home_products:"Platos activos",home_orders:"Pedidos hoy",
-      public_title:"Menú Digital",btn_view:"Ver menú",cta:"¡Haz tu pedido!",
+      public_title:"Catálogo Digital",btn_view:"Ver catálogo",cta:"¡Haz tu pedido!",
       cat_example:"Platos fuertes",item_example:"Bandeja paisa",item_photo:"Foto del plato",
       banner_tip:"con el plato protagonista centrado y texto corto en la imagen",
       // Customer UX labels

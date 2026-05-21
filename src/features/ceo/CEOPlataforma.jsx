@@ -1,34 +1,61 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { supabase } from "../../lib/supabase";
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { T, CM, STYLES } from "../../constants/theme";
-import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
-import { VERTICALS, getVertical } from "../../constants/verticals";
-import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
-import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
-import { pointInPoly } from "../../utils/geo";
+import { useState, useEffect } from "react";
+import { T } from "../../constants/theme";
 import { Package, Settings, BarChart3, Globe, HardDrive, Mail, CreditCard, AlertTriangle } from "lucide-react";
-import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import { Card, Btn, Field, Toggle } from "../../shared/components";
+import { useCEOStore } from "../../stores/useCEOStore";
+
+const DEFAULTS = {
+  trialDays:"14", graceDays:"7",
+  starterPrice:"49900", proPrice:"99900", businessPrice:"189900",
+  supportEmail:"soporte@picku.co",
+  maintenanceMode:false, newRegistrations:true,
+};
+
+function dbToForm(d) {
+  if (!d) return DEFAULTS;
+  return {
+    trialDays:       String(d.trial_days     ?? 14),
+    graceDays:       String(d.grace_days     ?? 7),
+    starterPrice:    String(d.starter_price  ?? 49900),
+    proPrice:        String(d.pro_price      ?? 99900),
+    businessPrice:   String(d.business_price ?? 189900),
+    supportEmail:    d.support_email         ?? "soporte@picku.co",
+    maintenanceMode: d.maintenance_mode      ?? false,
+    newRegistrations:d.new_registrations     ?? true,
+  };
+}
 
 export function CEOPlataforma(){
-  const [cfg,setCfg]=useState({trialDays:"14",graceDays:"7",starterPrice:"49900",proPrice:"99900",businessPrice:"189900",supportEmail:"soporte@picku.co",maintenanceMode:false,newRegistrations:true});
-  const [saved,setSaved]=useState(false);
-  const set=k=>v=>setCfg(p=>({...p,[k]:v}));
-  const save=()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);};
+  const platformConfig  = useCEOStore(s => s.platformConfig);
+  const saveCfgAction   = useCEOStore(s => s.savePlatformConfig);
+  const [cfg, setCfg]   = useState(() => dbToForm(platformConfig));
+  const [saving, setSaving] = useState(false);
+
+  // Sync when store loads from DB
+  useEffect(() => { if (platformConfig) setCfg(dbToForm(platformConfig)); }, [platformConfig]);
+
+  const set = k => v => setCfg(p => ({...p, [k]: v}));
+
+  const save = async () => {
+    setSaving(true);
+    await saveCfgAction(cfg);
+    setSaving(false);
+  };
+
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
       <div><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Configuración de la plataforma</h2><p style={{color:T.mid,fontSize:13,marginTop:3}}>Ajustes globales de Picku</p></div>
-      <Btn onClick={save}>{saved?"✓ ¡Guardado!":"Guardar cambios"}</Btn>
+      <Btn onClick={save} disabled={saving}>{saving?"Guardando…":"Guardar cambios"}</Btn>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
       <Card>
         <div style={{fontSize:13,fontWeight:800,color:T.text,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><Package size={14}/> Precios de planes (COP/mes)</div>
-        <Field label="Plan Starter" value={cfg.starterPrice} onChange={set("starterPrice")} type="number" prefix="$"/>
-        <Field label="Plan Pro" value={cfg.proPrice} onChange={set("proPrice")} type="number" prefix="$"/>
+        <Field label="Plan Starter"  value={cfg.starterPrice}  onChange={set("starterPrice")}  type="number" prefix="$"/>
+        <Field label="Plan Pro"      value={cfg.proPrice}       onChange={set("proPrice")}       type="number" prefix="$"/>
         <Field label="Plan Business" value={cfg.businessPrice} onChange={set("businessPrice")} type="number" prefix="$"/>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          <Field label="Días de trial" value={cfg.trialDays} onChange={set("trialDays")} type="number" suffix="días"/>
-          <Field label="Días de gracia" value={cfg.graceDays} onChange={set("graceDays")} type="number" suffix="días" hint="Antes de suspender"/>
+          <Field label="Días de trial"  value={cfg.trialDays}  onChange={set("trialDays")}  type="number" suffix="días"/>
+          <Field label="Días de gracia" value={cfg.graceDays}  onChange={set("graceDays")}  type="number" suffix="días" hint="Antes de suspender"/>
         </div>
       </Card>
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -54,7 +81,7 @@ export function CEOPlataforma(){
         </Card>
       </div>
     </div>
-    <div style={{marginTop:16}}><Btn full onClick={save} style={{padding:"14px"}}>{saved?"✓ Cambios guardados":"Guardar configuración"}</Btn></div>
+    <div style={{marginTop:16}}><Btn full onClick={save} disabled={saving} style={{padding:"14px"}}>{saving?"Guardando…":"Guardar configuración"}</Btn></div>
   </div>;
 }
 
