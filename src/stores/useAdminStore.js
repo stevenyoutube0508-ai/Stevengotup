@@ -23,7 +23,6 @@ import {
   mapReservationFromDb,
   insertReservation,
   updateReservationStatus as updateReservationStatusService,
-  deleteReservation as deleteReservationService,
 } from "../services/reservations.service";
 
 let toastTimer = null;
@@ -60,20 +59,21 @@ function broadcastSend(channelName, event, payload) {
 }
 
 export const useAdminStore = create((set, get) => ({
-  ownerId:        null,
-  products:       [],
-  cats:           [],
-  config:         INIT_CONFIG,
-  billing:        INIT_BILLING,
-  orders:         [],
-  branches:       [],
-  reservations:   [],
-  dbLoaded:       false,
-  adminLoading:   false,
-  toast:          null,
-  sidebarOpen:    false,
-  _ordersChannel: null,
-  _pollInterval:  null,   // polling fallback si Realtime no está configurado
+  ownerId:         null,
+  products:        [],
+  cats:            [],
+  config:          INIT_CONFIG,
+  billing:         INIT_BILLING,
+  orders:          [],
+  branches:        [],
+  reservations:    [],
+  dbLoaded:        false,
+  adminLoading:    false,
+  toast:           null,
+  sidebarOpen:     false,
+  _ordersChannel:  null,
+  _pollInterval:   null,   // polling fallback si Realtime no está configurado
+  _paymentChannel: null,
 
   setSidebarOpen: value => set({ sidebarOpen: typeof value === "function" ? value(get().sidebarOpen) : value }),
   setBilling: value => set(state => ({ billing: typeof value === "function" ? value(state.billing) : value })),
@@ -187,18 +187,86 @@ export const useAdminStore = create((set, get) => ({
     set({ _ordersChannel: null, _pollInterval: null });
   },
 
+  // ─── Realtime: notificaciones de pago + cambios de plan ────────────────
+  // Se activa cuando el CEO aprueba / rechaza la solicitud de pago del admin,
+  // o cuando el CEO modifica directamente el plan/suscripción en la tabla profiles.
+  // Requiere que las tablas payment_requests y profiles estén en la publicación Realtime.
+  subscribePaymentNotifications: () => {
+    const ownerId = get().ownerId;
+    if (!ownerId) return;
+    const existing = get()._paymentChannel;
+    if (existing) supabase.removeChannel(existing);
+    const channel = supabase
+      .channel(`payments:${ownerId}`)
+      // ① Cambios en solicitudes de pago
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "payment_requests",
+        filter: `owner_id=eq.${ownerId}`,
+      }, ({ new: rec }) => {
+        if (rec.status === "approved") {
+          get().showToast(`🎉 ¡Tu pago fue aprobado! Plan ${rec.plan} activo hasta ${rec.plan_expires_at?.slice(0, 10) || "—"}`);
+          set(state => ({
+            billing: { ...state.billing, nextPayment: rec.plan_expires_at, plan: rec.plan, status: "active" },
+          }));
+        } else if (rec.status === "rejected") {
+          get().showToast("⚠️ Tu solicitud de pago fue rechazada. Contacta soporte.", "error");
+        }
+      })
+      // ② I-3: Cambios directos en profiles (plan, suscripción) hechos por CEO
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "profiles",
+        filter: `id=eq.${ownerId}`,
+      }, ({ new: prof }) => {
+        if (!prof) return;
+        // Manejar suspensión codificada como "suspended_<plan>"
+        const rawPlan = prof.billing_plan || get().billing?.plan || "pro";
+        const isManuallySuspended = typeof rawPlan === "string" && rawPlan.startsWith("suspended_");
+        const plan = isManuallySuspended ? (rawPlan.replace("suspended_", "") || "pro") : rawPlan;
+        const expiry = prof.subscription_expires_at
+          ? new Date(prof.subscription_expires_at)
+          : null;
+        const now = new Date();
+        const daysLeft = expiry ? Math.max(0, Math.round((expiry - now) / (1000 * 60 * 60 * 24))) : null;
+        const status = isManuallySuspended
+          ? "suspended"
+          : (!expiry ? "trial" : daysLeft <= 0 ? "suspended" : "active");
+        set(state => ({
+          billing: {
+            ...state.billing,
+            plan,
+            status,
+            daysLeft,
+            nextPayment: expiry ? expiry.toISOString().slice(0, 10) : null,
+          },
+        }));
+        if (isManuallySuspended) {
+          get().showToast("⚠️ Tu cuenta ha sido suspendida. Contacta a soporte.", "error");
+        }
+      })
+      .subscribe();
+    set({ _paymentChannel: channel });
+  },
+
   // ─── Carga para operadores (staff) — usa supabaseAdmin para saltar RLS ──
   loadStaffData: async (ownerId) => {
     if (!ownerId) return;
     set({ ownerId, dbLoaded: false, adminLoading: true });
     try {
-      const data = await loadAdminDataBypass(ownerId);
+      const [data, rvResult] = await Promise.all([
+        loadAdminDataBypass(ownerId),
+        loadReservations(ownerId).catch(() => ({ data: [], error: null })),
+      ]);
       set(state => ({
         cats:         data.cats,
         products:     data.products,
         config:       data.config || state.config,
         branches:     data.config?.branches || [],
         orders:       data.orders,
+        reservations: (rvResult.data || []).map(mapReservationFromDb),
         dbLoaded:     true,
         adminLoading: false,
       }));
@@ -233,6 +301,7 @@ export const useAdminStore = create((set, get) => ({
       }));
       if (data.errors?.length) console.warn("loadAdminData partial errors:", data.errors);
       get().subscribeOrders();
+      get().subscribePaymentNotifications();
     } catch (error) {
       console.error("loadAdminData error:", error);
       set({ dbLoaded: true, adminLoading: false });
@@ -383,21 +452,25 @@ export const useAdminStore = create((set, get) => ({
   // ─── Reset (logout) ──────────────────────────────────────────────────────
   resetAdminStore: () => {
     get().unsubscribeOrders();
+    // I-5: también limpiar el canal de notificaciones de pago
+    const paymentCh = get()._paymentChannel;
+    if (paymentCh) supabase.removeChannel(paymentCh);
     set({
-      ownerId:        null,
-      products:       [],
-      cats:           [],
-      config:         INIT_CONFIG,
-      billing:        INIT_BILLING,
-      orders:         [],
-      branches:       [],
-      reservations:   [],
-      dbLoaded:       false,
-      adminLoading:   false,
-      toast:          null,
-      sidebarOpen:    false,
-      _ordersChannel: null,
-      _pollInterval:  null,
+      ownerId:         null,
+      products:        [],
+      cats:            [],
+      config:          INIT_CONFIG,
+      billing:         INIT_BILLING,
+      orders:          [],
+      branches:        [],
+      reservations:    [],
+      dbLoaded:        false,
+      adminLoading:    false,
+      toast:           null,
+      sidebarOpen:     false,
+      _ordersChannel:  null,
+      _pollInterval:   null,
+      _paymentChannel: null,
     });
   },
 }));

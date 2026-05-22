@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import orderPendingIcon from "../../../assets/order_pending.svg";
 import orderPreparingIcon from "../../../assets/order_preparing.svg";
@@ -220,6 +220,7 @@ export function SecDelivery({
 
   const [selId, setSelId] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [paidOrders, setPaidOrders] = useState(() => new Set());
   const [newModal, setNewModal] = useState(false);
   const [delivWaModal, setDelivWaModal] = useState(false);
   const [delivWaPhone, setDelivWaPhone] = useState("");
@@ -1548,8 +1549,16 @@ ${mapsUrl}`;
                         Pago: {PAYMENT_LABEL[sel.payment] || sel.payment}
                       </span>
 
-                      <Btn sm v="success">
-                        Recibir pago
+                      <Btn
+                        sm
+                        v={paidOrders.has(sel?.id) ? "ghost" : "success"}
+                        disabled={paidOrders.has(sel?.id)}
+                        onClick={() => {
+                          if (!sel) return;
+                          setPaidOrders(prev => new Set([...prev, sel.id]));
+                        }}
+                      >
+                        {paidOrders.has(sel?.id) ? "✓ Pago recibido" : "Recibir pago"}
                       </Btn>
                     </div>
                   )}

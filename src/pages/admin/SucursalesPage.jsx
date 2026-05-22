@@ -7,5 +7,5 @@ export default function SucursalesPage(){
   const branches = useAdminStore(s => s.branches);
   const updateBranch = useAdminStore(s => s.updateBranch);
   const addBranch = useAdminStore(s => s.addBranch);
-  return <SecSucursales branches={branches} onUpdateBranch={updateBranch} onAddBranch={addBranch} ownerId={user?.id}/>;
+  return <SecSucursales branches={branches} onUpdateBranch={updateBranch} onAddBranch={addBranch} ownerId={user?.id} noCreate={true}/>;
 }

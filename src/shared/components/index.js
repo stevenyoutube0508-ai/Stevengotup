@@ -9,3 +9,4 @@ export { StatCard } from "./StatCard.jsx";
 export { PhotoInput } from "./PhotoInput.jsx";
 export { PageLoader } from "./PageLoader";
 export { ErrorBoundary } from "./ErrorBoundary";
+export { ChangePasswordModal } from "./ChangePasswordModal";

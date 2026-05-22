@@ -31,7 +31,7 @@ import { T } from "../../../constants/theme";
 import { BANK_INFO, PLANS_CATALOG } from "../../../constants/seed";
 import { fmtCOP, newId } from "../../../utils/format";
 import { Card, Btn, Tag, Modal, Field } from "../../../shared/components";
-import { submitSupportTicket, loadMyTickets } from "../../../services/admin.service";
+import { submitSupportTicket, loadMyTickets, loadPlatformPrices } from "../../../services/admin.service";
 
 function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
   return (
@@ -202,6 +202,9 @@ export function SecFacturacion({
   const [copied, setCopied] = useState("");
   const fileRef = useRef(null);
 
+  // I-2: precios dinámicos desde platform_config
+  const [plansCatalog, setPlansCatalog] = useState(PLANS_CATALOG);
+
   // ── Soporte ────────────────────────────────────────────────────────────────
   const [myTickets,     setMyTickets]    = useState([]);
   const [ticketModal,   setTicketModal]  = useState(false);
@@ -220,6 +223,17 @@ export function SecFacturacion({
       .then(({ data }) => { if (data) setPayReqs(data); });
 
     loadMyTickets(user.id).then(({ data }) => { if (data) setMyTickets(data); });
+
+    // I-2: cargar precios actuales desde platform_config (usa supabaseAdmin para bypassar RLS)
+    loadPlatformPrices().then(data => {
+      if (!data || !Object.keys(data).length) return;
+      setPlansCatalog(prev => prev.map(p => {
+        if (p.id === "starter" && data.starter_price) return { ...p, price: data.starter_price };
+        if (p.id === "pro"     && data.pro_price)     return { ...p, price: data.pro_price };
+        if (p.id === "business"&& data.business_price)return { ...p, price: data.business_price };
+        return p;
+      }));
+    });
   }, [user]);
 
   const plan = billing.plan;
@@ -282,14 +296,9 @@ export function SecFacturacion({
       return;
     }
 
-    const rd = new FileReader();
-    rd.onload = (ev) =>
-      setReceipt({
-        data: ev.target.result,
-        name: f.name,
-      });
-
-    rd.readAsDataURL(f);
+    // I-7: guardar el File object (no base64) para subir a Storage
+    const previewUrl = URL.createObjectURL(f);
+    setReceipt({ file: f, data: previewUrl, name: f.name });
   };
 
   const submitPayment = async () => {
@@ -300,6 +309,28 @@ export function SecFacturacion({
 
     setUploading(true);
 
+    // I-7: subir a Supabase Storage en lugar de almacenar base64
+    let receiptUrl = null;
+    if (receipt.file) {
+      const ext = receipt.name.split(".").pop() || "jpg";
+      const path = `receipts/${user.id}/${Date.now()}.${ext}`;
+      const { data: upData, error: upErr } = await supabase.storage
+        .from("payment-receipts")
+        .upload(path, receipt.file, { upsert: true, contentType: receipt.file.type });
+      if (upErr) {
+        // Si el bucket no existe, caer en base64 como fallback
+        console.warn("Storage upload failed, falling back to base64:", upErr.message);
+        const reader = new FileReader();
+        receiptUrl = await new Promise(res => {
+          reader.onload = ev => res(ev.target.result);
+          reader.readAsDataURL(receipt.file);
+        });
+      } else {
+        const { data: urlData } = supabase.storage.from("payment-receipts").getPublicUrl(upData.path);
+        receiptUrl = urlData?.publicUrl || null;
+      }
+    }
+
     const { error } = await supabase.from("payment_requests").insert({
       owner_id: user.id,
       restaurant_name: configName || "Restaurante",
@@ -307,7 +338,7 @@ export function SecFacturacion({
       amount: modal.price,
       method: "transfer",
       status: "pending",
-      receipt_data: receipt.data,
+      receipt_url:  receiptUrl,
       receipt_name: receipt.name,
       notes,
     });
@@ -584,7 +615,7 @@ export function SecFacturacion({
           marginBottom: 22,
         }}
       >
-        {PLANS_CATALOG.map((p) => {
+        {plansCatalog.map((p) => {
           const isCurrent = p.id === plan;
 
           return (

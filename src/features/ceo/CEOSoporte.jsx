@@ -2,15 +2,18 @@ import { useState } from "react";
 import { T } from "../../constants/theme";
 import { Ticket, AlertCircle, CheckCircle2, Store, User, Calendar, Circle } from "lucide-react";
 import { Card, Btn, Field, Tag, Modal, StatCard } from "../../shared/components";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 export function CEOSoporte({tickets,onUpdateTicket}){
   const [sel,setSel]=useState(null);
   const [reply,setReply]=useState("");
+  const ceoUser = useAuthStore(s => s.user);
+  const ceoName = ceoUser?.name || "Soporte Picku";
   const open=tickets.filter(t=>t.status==="open");
   const PR={high:T.red,medium:T.amber,low:T.green};
   const sendReply=()=>{
     if(!reply.trim()||!sel)return;
-    const updated={...sel,messages:[...(sel.messages||[]),{from:"Soporte Picku",text:reply,time:new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}]};
+    const updated={...sel,messages:[...(sel.messages||[]),{from:ceoName,text:reply,time:new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}]};
     onUpdateTicket(sel.id,updated);setSel(updated);setReply("");
   };
   return <div style={{animation:"fadeUp .35s ease"}}>
@@ -41,8 +44,8 @@ export function CEOSoporte({tickets,onUpdateTicket}){
       <div style={{background:T.bg,borderRadius:12,padding:14,marginBottom:14,maxHeight:260,overflowY:"auto"}}>
         {sel.messages?.map((m,i)=>(
           <div key={i} style={{marginBottom:12}}>
-            <div style={{fontSize:10,fontWeight:700,color:m.from==="Soporte Picku"?T.indigo:T.mid,marginBottom:3}}>{m.from} · {m.time}</div>
-            <div style={{background:m.from==="Soporte Picku"?T.indigoL:T.white,border:`1px solid ${m.from==="Soporte Picku"?T.indigo+"30":T.border}`,borderRadius:10,padding:"10px 13px",fontSize:13,color:T.text,lineHeight:1.6}}>{m.text}</div>
+            <div style={{fontSize:10,fontWeight:700,color:m.from===ceoName||m.from==="Soporte Picku"?T.indigo:T.mid,marginBottom:3}}>{m.from} · {m.time}</div>
+            <div style={{background:m.from===ceoName||m.from==="Soporte Picku"?T.indigoL:T.white,border:`1px solid ${m.from===ceoName||m.from==="Soporte Picku"?T.indigo+"30":T.border}`,borderRadius:10,padding:"10px 13px",fontSize:13,color:T.text,lineHeight:1.6}}>{m.text}</div>
           </div>
         ))}
       </div>

@@ -13,7 +13,7 @@ export function RootRedirect(){
 
   if(location.search.includes("menu")) return <Navigate to={`/menu${location.search}`} replace />;
   if(!authChecked) return <PageLoader label="Cargando Picku…" />;
-  if(!user) return <Navigate to="/login" replace />;
+  if(!user) return <Navigate to="/landing" replace />;
   if(user.role === "ceo")   return <Navigate to="/ceo/dashboard" replace />;
   if(user.role === "admin") return <Navigate to="/admin/home" replace />;
   if(user.role === "staff") return <Navigate to="/staff/delivery" replace />;

@@ -1,5 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { supabaseAdmin } from "../lib/supabaseAdmin";
+// supabase eliminado — las políticas RLS de staff permiten operar
+// directamente con el cliente normal (ver SQL migration en el README).
 
 export function mapCategoryFromDb(c){
   return {
@@ -54,8 +56,8 @@ export function mapConfigFromDb(d){
     phone: d.phone,
     whatsapp: d.whatsapp,
     schedule: d.schedule,
-    coverImg: d.cover_img,
-    bgImg: "",
+    coverImg: d.cover_img || "",
+    bgImg: d.bg_img || "",
     openStatus: d.open_status,
     deliveryFee: d.delivery_fee,
     showAllergens: d.show_allergens,
@@ -94,11 +96,16 @@ const MRR_MAP = { pro: 99900, business: 189900, starter: 49900, enterprise: 2999
 
 function buildBillingFromProfile(prof) {
   if (!prof) return null;
-  const plan = prof.billing_plan || "pro";
+  // CEO suspende via billing_plan="suspended_<plan>" para no tocar subscription_expires_at
+  const rawPlan = prof.billing_plan || "pro";
+  const isManuallySuspended = rawPlan.startsWith("suspended_");
+  const plan = isManuallySuspended ? (rawPlan.replace("suspended_", "") || "pro") : rawPlan;
   const expiry = prof.subscription_expires_at ? new Date(prof.subscription_expires_at) : null;
   const now = new Date();
   const daysLeft = expiry ? Math.max(0, Math.round((expiry - now) / (1000 * 60 * 60 * 24))) : null;
-  const status = !expiry ? "trial" : (daysLeft <= 0 ? "suspended" : "active");
+  const status = isManuallySuspended
+    ? "suspended"
+    : (!expiry ? "trial" : (daysLeft <= 0 ? "suspended" : "active"));
   return {
     plan,
     status,
@@ -227,15 +234,13 @@ export async function deleteCategory(id){
 }
 
 export async function insertOrder(userId, o){
-  // supabaseAdmin: el staff necesita insertar pedidos con user_id = ownerId,
-  // pero la RLS exige auth.uid() = user_id → usar admin client para bypass.
-  return supabaseAdmin.from("orders").insert({
+  return supabase.from("orders").insert({
     id: o.id,
     user_id: userId,
     branch_id: o.branchId || null,
     status: o.status,
     mode: o.mode,
-    created_at: o.createdAt,
+    created_at: typeof o.createdAt === "number" ? new Date(o.createdAt).toISOString() : (o.createdAt || new Date().toISOString()),
     time: o.time,
     date: o.date,
     customer_name: o.customerName,
@@ -254,16 +259,16 @@ export async function insertOrder(userId, o){
 }
 
 /**
- * Igual que loadAdminData pero usa supabaseAdmin para saltarse RLS.
- * Necesario cuando el operador (staff) carga datos del dueño del negocio.
+ * Carga datos del negocio con el JWT del staff.
+ * Funciona gracias a las políticas RLS "owner_or_staff" (ver SQL migration).
  */
 export async function loadAdminDataBypass(ownerId){
   const [cr, pr, cfr, or, profR] = await Promise.all([
-    supabaseAdmin.from("categories").select("*").eq("user_id", ownerId).order("sort_order"),
-    supabaseAdmin.from("products").select("*").eq("user_id", ownerId),
-    supabaseAdmin.from("restaurant_config").select("*").eq("user_id", ownerId).single(),
-    supabaseAdmin.from("orders").select("*").eq("user_id", ownerId).order("created_at", { ascending: false }),
-    supabaseAdmin.from("profiles").select("billing_plan,subscription_expires_at").eq("id", ownerId).single(),
+    supabase.from("categories").select("*").eq("user_id", ownerId).order("sort_order"),
+    supabase.from("products").select("*").eq("user_id", ownerId),
+    supabase.from("restaurant_config").select("*").eq("user_id", ownerId).single(),
+    supabase.from("orders").select("*").eq("user_id", ownerId).order("created_at", { ascending: false }),
+    supabase.from("profiles").select("billing_plan,subscription_expires_at").eq("id", ownerId).single(),
   ]);
 
   return {
@@ -277,9 +282,7 @@ export async function loadAdminDataBypass(ownerId){
 }
 
 export async function updateOrderStatus(id, status){
-  // Usar supabaseAdmin para saltar RLS: el staff tiene auth.uid() ≠ user_id del pedido,
-  // así que supabase normal devuelve 0 filas sin error → el cambio nunca se persiste.
-  return supabaseAdmin.from("orders").update({ status }).eq("id", id);
+  return supabase.from("orders").update({ status }).eq("id", id);
 }
 
 export async function updateRestaurantConfig(userId, c){
@@ -300,6 +303,7 @@ export async function updateRestaurantConfig(userId, c){
     delivery_fee: c.deliveryFee,
     show_allergens: c.showAllergens,
     banners: c.banners || [],
+    promo_popup: c.promoPopup ?? null,
     social_links: c.socialLinks || {},
   }).eq("user_id", userId);
 }
@@ -332,6 +336,23 @@ export async function submitSupportTicket(userId, restaurantName, form) {
     messages:   [{ from: form.userName || "Admin", text: form.message, time: now }],
     created_at: now,
   });
+}
+
+/**
+ * Carga los precios actuales de planes desde platform_config.
+ * Usa supabaseAdmin porque el usuario admin no tiene acceso RLS a esta tabla.
+ */
+export async function loadPlatformPrices() {
+  try {
+    const { data } = await supabaseAdmin
+      .from("platform_config")
+      .select("starter_price,pro_price,business_price")
+      .eq("id", 1)
+      .single();
+    return data || {};
+  } catch {
+    return {};
+  }
 }
 
 export async function loadMyTickets(userId) {

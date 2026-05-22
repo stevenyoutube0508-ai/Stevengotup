@@ -1,13 +1,8 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { BarChart3, Store, Plus, DollarSign, Ticket, Settings, AlertTriangle, LogOut } from "lucide-react";
+import { useState } from "react";
+import { BarChart3, Store, Plus, DollarSign, Ticket, Settings, AlertTriangle, LogOut, KeyRound } from "lucide-react";
 import { LogoFull } from "../components/Logo";
-import { T, CM, STYLES } from "../../constants/theme";
-import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
-import { VERTICALS, getVertical } from "../../constants/verticals";
-import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
-import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
-import { pointInPoly } from "../../utils/geo";
-import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import { T } from "../../constants/theme";
+import { ChangePasswordModal } from "../../shared/components";
 
 export const CEO_NAV = [
   {id:"ceo_dash",label:"Dashboard",icon:BarChart3},
@@ -19,9 +14,10 @@ export const CEO_NAV = [
 ];
 
 export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pendingPayments}){
+  const [showPwModal, setShowPwModal] = useState(false);
   const suspended=restaurants.filter(r=>r.status==="suspended").length;
   const openT=tickets.filter(t=>t.status==="open").length;
-  return <nav style={{width:230,background:T.white,borderRight:`1px solid ${T.border}`,minHeight:"100vh",display:"flex",flexDirection:"column",flexShrink:0,position:"sticky",top:0}}>
+  return <><nav style={{width:230,background:T.white,borderRight:`1px solid ${T.border}`,height:"100vh",display:"flex",flexDirection:"column",flexShrink:0,position:"sticky",top:0,overflow:"hidden"}}>
     <div style={{padding:"20px 16px 14px",borderBottom:`1px solid ${T.border}`}}>
       <div style={{marginBottom:3}}>
         <LogoFull height={32}/>
@@ -51,9 +47,12 @@ export function CEOSidebar({active,onSelect,restaurants,tickets,onLogout,user,pe
         <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
         <div style={{color:T.light,fontSize:9}}>CEO & Fundador</div>
       </div>
+      <button onClick={()=>setShowPwModal(true)} title="Cambiar contraseña" style={{background:T.bg,border:`1px solid ${T.border}`,borderRadius:7,color:T.mid,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><KeyRound size={13}/></button>
       <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><LogOut size={13}/></button>
     </div>
-  </nav>;
+  </nav>
+  {showPwModal&&<ChangePasswordModal onClose={()=>setShowPwModal(false)}/>}
+  </>;
 }
 
 /* ─── CEO: DASHBOARD ──────────────────────────────────────── */

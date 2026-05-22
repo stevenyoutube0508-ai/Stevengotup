@@ -1,8 +1,9 @@
 import { T } from "./theme";
 
+// ⚠️ NUNCA incluir contraseñas reales aquí — solo datos de referencia UI
 export const USERS = [
-  { email:"ceo@gotup.co",    password:"gotup2026", role:"ceo",   name:"Steven Giraldo", title:"CEO & Fundador",         avatar:"👑" },
-  { email:"admin@lalena.co",  password:"lalena2026", role:"admin", name:"Carlos Mejía",   title:"Admin · La Leña",        avatar:"👨‍💼" },
+  { email:"ceo@gotup.co",   role:"ceo",   name:"Steven Giraldo", title:"CEO & Fundador",  avatar:"👑" },
+  { email:"admin@lalena.co", role:"admin", name:"Carlos Mejía",   title:"Admin · La Leña", avatar:"👨‍💼" },
 ];
 
 /* ─── DATOS SEED ──────────────────────────────────────────── */
@@ -56,11 +57,11 @@ export const INIT_PRODUCTS = [
 ];
 
 export const INIT_CONFIG = {
-  name:"La Leña", tagline:"Cocina de fuego lento · Desde 1998", logo:"🔥",
+  name:"", tagline:"", logo:"🏪",
   primaryColor:"#f97316", menuStyle:"dark", menuFont:"modern",
-  city:"Cali", address:"Cra 5 #15-32, El Peñón", phone:"+57 300 123 4567",
-  whatsapp:"573001234567", schedule:"Lun–Vie 11am–10pm · Sáb–Dom 11am–11pm",
-  coverImg:"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&q=85",
+  city:"", address:"", phone:"",
+  whatsapp:"", schedule:"",
+  coverImg:"",
   bgImg:"", openStatus:true, deliveryFee:5000, showAllergens:true,
   banners:[],
   promoPopup:{active:false,img:"",bgColor:"#7c3aed",title:"",subtitle:"",ctaText:"Ver promoción",linkType:"none",linkCatId:"",linkUrl:"",frequency:"session",delay:20},
@@ -78,13 +79,14 @@ export const INIT_BILLING = {
 };
 // ─── DATOS BANCARIOS (personaliza con los tuyos) ──────────────
 
+// ⚠️ PERSONALIZAR antes de producción — reemplazar con datos bancarios reales
 export const BANK_INFO = {
-  titular:"Steven Muñoz",
-  cedula:"1.234.567.890",
+  titular:"[NOMBRE_TITULAR]",          // ← reemplazar
+  cedula:"[CÉDULA_O_NIT]",             // ← reemplazar
   banks:[
-    {name:"Nequi",icon:"💜",number:"310-XXX-XXXX",type:"Nequi"},
-    {name:"Bancolombia",icon:"🟡",number:"123-456789-01",type:"Cuenta Ahorros"},
-    {name:"Daviplata",icon:"🔴",number:"311-XXX-XXXX",type:"Daviplata"},
+    {name:"Nequi",     icon:"💜", number:"[NÚMERO_NEQUI]",       type:"Nequi"},
+    {name:"Bancolombia",icon:"🟡", number:"[NÚMERO_BANCOLOMBIA]", type:"Cuenta Ahorros"},
+    {name:"Daviplata",  icon:"🔴", number:"[NÚMERO_DAVIPLATA]",   type:"Daviplata"},
   ],
   instructions:"1. Realiza la transferencia al número/cuenta de tu preferencia.\n2. En la referencia escribe el nombre de tu restaurante.\n3. Toma captura del comprobante y súbela aquí.\n4. El equipo Picku verificará y activará tu plan en máximo 24 horas hábiles.",
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { T } from "../../constants/theme";
-import { Package, Settings, BarChart3, Globe, HardDrive, Mail, CreditCard, AlertTriangle } from "lucide-react";
+import { Package, Settings, BarChart3, Globe, HardDrive, Mail, CreditCard, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card, Btn, Field, Toggle } from "../../shared/components";
 import { useCEOStore } from "../../stores/useCEOStore";
 
@@ -30,6 +30,7 @@ export function CEOPlataforma(){
   const saveCfgAction   = useCEOStore(s => s.savePlatformConfig);
   const [cfg, setCfg]   = useState(() => dbToForm(platformConfig));
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // null | "ok" | "error"
 
   // Sync when store loads from DB
   useEffect(() => { if (platformConfig) setCfg(dbToForm(platformConfig)); }, [platformConfig]);
@@ -38,14 +39,22 @@ export function CEOPlataforma(){
 
   const save = async () => {
     setSaving(true);
-    await saveCfgAction(cfg);
+    setSaveStatus(null);
+    const showToast = (msg, type) => setSaveStatus(type === "error" ? "error" : "ok");
+    await saveCfgAction(cfg, showToast);
     setSaving(false);
+    // Limpiar el indicador de éxito tras 3s
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   return <div style={{animation:"fadeUp .35s ease"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
       <div><h2 style={{fontSize:22,fontWeight:800,color:T.text}}>Configuración de la plataforma</h2><p style={{color:T.mid,fontSize:13,marginTop:3}}>Ajustes globales de Picku</p></div>
-      <Btn onClick={save} disabled={saving}>{saving?"Guardando…":"Guardar cambios"}</Btn>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        {saveStatus==="ok"&&<span style={{fontSize:12,fontWeight:700,color:T.green,display:"flex",alignItems:"center",gap:5}}><CheckCircle2 size={14}/>Guardado</span>}
+        {saveStatus==="error"&&<span style={{fontSize:12,fontWeight:700,color:T.red,display:"flex",alignItems:"center",gap:5}}><AlertTriangle size={14}/>Error al guardar</span>}
+        <Btn onClick={save} disabled={saving}>{saving?"Guardando…":"Guardar cambios"}</Btn>
+      </div>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
       <Card>

@@ -46,6 +46,23 @@ export async function logoutUser(){
   if(error) throw error;
 }
 
+export async function updateProfile({ name, title, avatar }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: new Error("No hay sesión activa") };
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ name, title, avatar })
+    .eq("id", user.id)
+    .select()
+    .single();
+  // Si RLS bloquea la actualización, Supabase no retorna error pero sí 0 filas.
+  // .select().single() eleva eso a un error PGRST116 que podemos detectar.
+  if (!error && !data) {
+    return { error: new Error("No se pudo guardar el perfil. Verifica los permisos de la tabla profiles.") };
+  }
+  return { error };
+}
+
 export function onAuthChanged(callback){
   let lastUserId = null;
 

@@ -5,6 +5,9 @@ import {
   loadCEOStats,
   approvePaymentRequest,
   rejectPaymentRequest,
+  updateRestaurantPlan,
+  suspendRestaurant,
+  activateRestaurant,
   loadTickets,
   updateTicketInDB,
   loadPlatformConfig,
@@ -43,8 +46,40 @@ export const useCEOStore = create((set, get) => ({
     }
   },
 
-  updateRestaurant: (id, patch) => {
+  updateRestaurant: async (id, patch) => {
+    // Capturar datos originales ANTES del update optimista
+    const current = get().restaurants.find(r => r.id === id);
+    const originalStatus      = current?.status;
+    const originalPlan        = current?.plan || "pro";
+    const originalRawBilling  = current?.rawBillingPlan || originalPlan;
+
+    // Actualizar local inmediatamente para UX fluida
     set(state => ({ restaurants: state.restaurants.map(r => r.id === id ? { ...r, ...patch } : r) }));
+
+    // Persistir cambios de plan en DB
+    if (patch.plan && patch.status !== "suspended") {
+      const { error } = await updateRestaurantPlan(id, patch.plan);
+      if (error) console.error("updateRestaurantPlan DB error:", error);
+    }
+    // Persistir suspensión: usa billing_plan="suspended_<plan>" (evita trigger en subscription_expires_at)
+    if (patch.status === "suspended") {
+      const { error } = await suspendRestaurant(id, originalPlan);
+      if (error) console.error("suspendRestaurant DB error:", error);
+    }
+    // Persistir reactivación: restaura el plan original
+    else if (patch.status === "active" && originalStatus === "suspended") {
+      const { error, originalPlan: restoredPlan } = await activateRestaurant(id, originalRawBilling);
+      if (error) {
+        console.error("activateRestaurant DB error:", error);
+      } else {
+        // Actualizar local con el plan restaurado
+        set(state => ({
+          restaurants: state.restaurants.map(r =>
+            r.id === id ? { ...r, plan: restoredPlan, rawBillingPlan: restoredPlan } : r
+          ),
+        }));
+      }
+    }
   },
 
   addRestaurant: restaurant => {
@@ -62,10 +97,23 @@ export const useCEOStore = create((set, get) => ({
   savePlatformConfig: async (cfg, showToast) => {
     const { error } = await savePlatformConfig(cfg);
     if (error) {
+      console.error("savePlatformConfig error:", error);
       showToast?.("❌ Error guardando configuración", "error");
       return false;
     }
-    set({ platformConfig: cfg });
+    // Guardar en formato DB para que dbToForm pueda leerlo en el próximo render
+    set({
+      platformConfig: {
+        trial_days:        parseInt(cfg.trialDays)     || 14,
+        grace_days:        parseInt(cfg.graceDays)     || 7,
+        starter_price:     parseInt(cfg.starterPrice)  || 49900,
+        pro_price:         parseInt(cfg.proPrice)      || 99900,
+        business_price:    parseInt(cfg.businessPrice) || 189900,
+        support_email:     cfg.supportEmail            || "soporte@picku.co",
+        maintenance_mode:  cfg.maintenanceMode         || false,
+        new_registrations: cfg.newRegistrations !== false,
+      },
+    });
     showToast?.("✓ Configuración guardada");
     return true;
   },

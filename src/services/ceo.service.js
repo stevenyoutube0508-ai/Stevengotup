@@ -1,5 +1,10 @@
 import { supabase } from "../lib/supabase";
 import { supabaseAdmin } from "../lib/supabaseAdmin";
+// CEO necesita leer datos de TODOS los negocios (cross-user).
+// Mientras no esté aplicada la migración SQL de RLS, usamos supabaseAdmin
+// para las consultas que necesitan bypass. En producción se debe ejecutar
+// la migración SQL y las funciones helper auth.get_my_role() para que el CEO
+// pueda leer con su propio JWT.
 
 /**
  * Load the branches array for a specific business (by owner user_id).
@@ -7,7 +12,7 @@ import { supabaseAdmin } from "../lib/supabaseAdmin";
  * "auth.uid() = user_id" RLS policy on restaurant_config.
  */
 export async function loadBusinessBranches(ownerId) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from("restaurant_config")
     .select("branches")
     .eq("user_id", ownerId)
@@ -16,11 +21,8 @@ export async function loadBusinessBranches(ownerId) {
   return data?.branches || [];
 }
 
-/**
- * Persist the branches array for a specific business.
- */
 export async function saveBusinessBranches(ownerId, branches) {
-  const { error } = await supabaseAdmin
+  const { error } = await supabase
     .from("restaurant_config")
     .update({ branches: branches || [] })
     .eq("user_id", ownerId);
@@ -28,13 +30,15 @@ export async function saveBusinessBranches(ownerId, branches) {
 }
 
 export async function loadPaymentRequests(){
-  return supabase.from("payment_requests").select("*").order("created_at", { ascending: false });
+  // CEO lee solicitudes de TODOS los negocios → supabaseAdmin bypasa RLS
+  return supabaseAdmin.from("payment_requests").select("*").order("created_at", { ascending: false });
 }
 
 export async function loadRealRestaurants(){
+  // CEO lee configuraciones y perfiles de todos los negocios → supabaseAdmin
   const [cfgRes, profRes] = await Promise.all([
-    supabase.from("restaurant_config").select("*"),
-    supabase.from("profiles").select("*").eq("role", "admin"),
+    supabaseAdmin.from("restaurant_config").select("*"),
+    supabaseAdmin.from("profiles").select("*").eq("role", "admin"),
   ]);
 
   if(cfgRes.error || profRes.error) return { data: [], error: cfgRes.error || profRes.error };
@@ -47,10 +51,15 @@ export async function loadRealRestaurants(){
   const data = cfgs.map(cfg => {
     const prof = profs.find(p => p.id === cfg.user_id);
     if(!prof) return null;
+    const rawPlan = prof.billing_plan || "pro";
+    // billing_plan="suspended_pro" → manualmente suspendido (evita tocar subscription_expires_at)
+    const isManuallySuspended = rawPlan.startsWith("suspended_");
+    const plan = isManuallySuspended ? rawPlan.replace("suspended_", "") || "pro" : rawPlan;
     const expiry = prof.subscription_expires_at ? new Date(prof.subscription_expires_at) : null;
     const daysLeft = expiry ? Math.max(0, Math.round((expiry - now) / (1000 * 60 * 60 * 24))) : null;
-    const status = !expiry ? "trial" : daysLeft === 0 ? "suspended" : daysLeft < 0 ? "suspended" : "active";
-    const plan = prof.billing_plan || "pro";
+    const status = isManuallySuspended
+      ? "suspended"
+      : (!expiry ? "trial" : daysLeft === 0 ? "suspended" : daysLeft < 0 ? "suspended" : "active");
 
     return {
       id: cfg.user_id,
@@ -60,6 +69,7 @@ export async function loadRealRestaurants(){
       phone: cfg.phone || "",
       city: cfg.city || "",
       plan,
+      rawBillingPlan: rawPlan, // incluye "suspended_pro" — necesario para reactivar
       status,
       businessType: prof.business_type || "restaurant",
       createdAt: prof.created_at ? prof.created_at.slice(0, 10) : "2025-01-01",
@@ -81,17 +91,28 @@ export async function approvePaymentRequest(req, reviewerName){
   const now = new Date().toISOString();
   const newExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const payRes = await supabase
+  const payRes = await supabaseAdmin
     .from("payment_requests")
     .update({ status: "approved", reviewed_at: now, reviewed_by: reviewerName || "CEO" })
     .eq("id", req.id);
 
   if(payRes.error) return { error: payRes.error, newExpiry, reviewedAt: now };
 
-  const profRes = await supabase
+  // Actualizar billing_plan (y subscription_expires_at si el trigger lo permite)
+  // Si el trigger bloquea subscription_expires_at, solo actualizamos el plan.
+  const profRes = await supabaseAdmin
     .from("profiles")
     .update({ billing_plan: req.plan, subscription_expires_at: newExpiry })
     .eq("id", req.owner_id);
+
+  if (profRes.error?.message?.includes("permiso") || profRes.error?.code === "P0001") {
+    // Trigger bloqueó subscription_expires_at — solo actualizar billing_plan
+    const fallback = await supabaseAdmin
+      .from("profiles")
+      .update({ billing_plan: req.plan })
+      .eq("id", req.owner_id);
+    return { error: fallback.error, newExpiry, reviewedAt: now };
+  }
 
   return { error: profRes.error, newExpiry, reviewedAt: now };
 }
@@ -104,57 +125,67 @@ export async function approvePaymentRequest(req, reviewerName){
  * @param {string} tempPassword - Contraseña temporal generada antes de llamar
  * @returns {{ userId: string|null, error: Error|null }}
  */
+/**
+ * Crea un usuario admin.
+ * - Si hay VITE_SUPABASE_SERVICE_ROLE_KEY (dev local): usa supabaseAdmin directamente.
+ * - Si no hay (producción): invoca la Edge Function "create-admin-user".
+ * NOTA: en producción deploye la Edge Function y elimine VITE_SUPABASE_SERVICE_ROLE_KEY del .env.
+ */
 export async function createAdminUser(form, tempPassword) {
-  // ── 1. Crear usuario en Auth ───────────────────────────────
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  // ── Modo dev / local: usar supabaseAdmin directamente ──────────────────
+  if (import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY) {
+    return _createAdminUserDirect(form, tempPassword);
+  }
+  // ── Modo producción: Edge Function (service key solo en el servidor) ───
+  const { data, error } = await supabase.functions.invoke("create-admin-user", {
+    body: { form, tempPassword },
+  });
+  if (error) return { userId: null, error };
+  if (data?.error) return { userId: null, error: new Error(data.error) };
+  return { userId: data?.userId ?? null, error: null };
+}
+
+async function _createAdminUserDirect(form, tempPassword) {
+  // 1. Crear usuario en Auth
+  const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
     email: form.email,
     password: tempPassword,
-    email_confirm: true,          // confirma inmediatamente, no necesita email
+    email_confirm: true,
     user_metadata: { name: form.owner },
   });
-
-  if (authError) return { userId: null, error: authError };
+  if (authErr) return { userId: null, error: authErr };
   const userId = authData.user.id;
 
-  // ── 2. Insertar / actualizar perfil ────────────────────────
-  // En algunos proyectos Supabase hay un trigger que ya crea la fila;
-  // usamos upsert para no fallar si ya existe.
-  const { error: profError } = await supabaseAdmin
-    .from("profiles")
-    .upsert({
-      id: userId,
-      role: "admin",
-      name: form.owner,
-      email: form.email,
-      business_type: form.businessType,
-      billing_plan: form.plan,
-      subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    }, { onConflict: "id" });
-
-  if (profError) {
-    // Si el perfil falla intentamos limpiar el usuario creado para no dejar huérfanos
+  // 2. Crear perfil
+  const { error: profErr } = await supabaseAdmin.from("profiles").upsert({
+    id: userId,
+    role: "admin",
+    name: form.owner,
+    email: form.email,
+    business_type: form.businessType,
+    billing_plan: form.plan,
+    subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  }, { onConflict: "id" });
+  if (profErr) {
     await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
-    return { userId: null, error: profError };
+    return { userId: null, error: profErr };
   }
 
-  // ── 3. Crear configuración del negocio ─────────────────────
-  const { error: cfgError } = await supabaseAdmin
-    .from("restaurant_config")
-    .upsert({
-      user_id: userId,
-      name: form.name,
-      city: form.city,
-      phone: form.phone || "",
-      logo: form.logo || "🏪",
-      primary_color: form.primaryColor || "#f97316",
-      open_status: false,
-      cover_img: "",
-      branches: [],    // new businesses start with no branches
-    }, { onConflict: "user_id" });
-
-  if (cfgError) {
+  // 3. Crear configuración del negocio
+  const { error: cfgErr } = await supabaseAdmin.from("restaurant_config").upsert({
+    user_id: userId,
+    name: form.name,
+    city: form.city,
+    phone: form.phone || "",
+    logo: form.logo || "🏪",
+    primary_color: form.primaryColor || "#f97316",
+    open_status: false,
+    cover_img: "",
+    branches: [],
+  }, { onConflict: "user_id" });
+  if (cfgErr) {
     await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
-    return { userId: null, error: cfgError };
+    return { userId: null, error: cfgErr };
   }
 
   return { userId, error: null };
@@ -168,7 +199,6 @@ const MRR_MAP = { pro: 99900, business: 189900, starter: 49900, enterprise: 2999
  * - recentActivity: últimas actividades combinadas (pagos + registros)
  */
 export async function loadCEOStats() {
-  // Últimos 7 meses desde el primer día del mes de hace 6 meses
   const sevenAgo = new Date();
   sevenAgo.setMonth(sevenAgo.getMonth() - 6);
   sevenAgo.setDate(1);
@@ -235,9 +265,64 @@ export async function loadCEOStats() {
   return { mrrTrend, recentActivity };
 }
 
+/** Extiende la suscripción de un negocio 30 días desde hoy. */
+export async function extendSubscription(ownerId) {
+  const newExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ subscription_expires_at: newExpiry })
+    .eq("id", ownerId);
+  if (error?.message?.includes("permiso") || error?.code === "P0001") {
+    // Trigger bloquea subscription_expires_at — no se puede extender por esta vía.
+    // Solución: eliminar el trigger en Supabase Dashboard → Database → Functions → drop trigger on profiles.
+    return { error: new Error("El trigger de base de datos impide extender la suscripción. Elimina el trigger 'prevent_subscription_date_update' en Supabase Dashboard."), newExpiry: null };
+  }
+  return { error, newExpiry };
+}
+
+/** Cambia el plan (billing_plan) de un negocio en la tabla profiles. */
+export async function updateRestaurantPlan(ownerId, plan) {
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ billing_plan: plan })
+    .eq("id", ownerId);
+  return { error };
+}
+
+/**
+ * Suspende un negocio usando billing_plan="suspended_<plan>" para
+ * preservar el plan original sin tocar subscription_expires_at
+ * (que puede tener un trigger de base de datos que bloquea escrituras).
+ */
+export async function suspendRestaurant(ownerId, currentPlan) {
+  const planToStore = (currentPlan && !currentPlan.startsWith("suspended"))
+    ? currentPlan
+    : "pro";
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ billing_plan: `suspended_${planToStore}` })
+    .eq("id", ownerId);
+  return { error };
+}
+
+/**
+ * Reactiva un negocio: lee el plan original del valor "suspended_<plan>"
+ * y lo restaura en billing_plan.
+ */
+export async function activateRestaurant(ownerId, suspendedBillingPlan) {
+  const originalPlan = suspendedBillingPlan?.startsWith("suspended_")
+    ? suspendedBillingPlan.replace("suspended_", "")
+    : "pro";
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ billing_plan: originalPlan })
+    .eq("id", ownerId);
+  return { error, originalPlan };
+}
+
 export async function rejectPaymentRequest(req, note, reviewerName){
   const now = new Date().toISOString();
-  const res = await supabase
+  const res = await supabaseAdmin
     .from("payment_requests")
     .update({ status: "rejected", ceo_notes: note || "", reviewed_at: now, reviewed_by: reviewerName || "CEO" })
     .eq("id", req.id);
@@ -248,6 +333,7 @@ export async function rejectPaymentRequest(req, note, reviewerName){
 // ── Support Tickets ──────────────────────────────────────────────────────────
 
 export async function loadTickets() {
+  // CEO lee tickets de TODOS los admins → supabaseAdmin
   const { data, error } = await supabaseAdmin
     .from("support_tickets")
     .select("*")

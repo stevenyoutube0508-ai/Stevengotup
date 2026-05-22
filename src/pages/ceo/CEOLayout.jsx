@@ -60,7 +60,7 @@ export default function CEOLayout(){
       />
       <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
         <div style={{background:T.white,borderBottom:`1px solid ${T.border}`,padding:"11px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:40,boxShadow:T.sh}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10, flexDirection:"column"}}>
             <LogoFull height={26}/>
             <div style={{display:"flex",alignItems:"center",gap:5,background:T.greenL,borderRadius:20,padding:"3px 10px"}}>
               <span style={{width:5,height:5,borderRadius:"50%",background:T.green,display:"inline-block",animation:"pulse2 2s infinite"}}/>

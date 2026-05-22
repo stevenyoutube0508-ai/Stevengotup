@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { supabase } from "../../lib/supabase";
+// supabase client eliminado — usar servicio ceo.service para operaciones cross-user
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { T, CM, STYLES } from "../../constants/theme";
 import { USERS, SEED_RESTAURANTS, SEED_TICKETS, PAYMENTS_HISTORY, MRR_TREND, PLAN_DIST, INIT_CATS, INIT_PRODUCTS, INIT_CONFIG, INIT_BILLING, BANK_INFO, PLANS_CATALOG, INIT_BRANCHES, ALLERGENS_LIST, LABEL_PRESETS, PLAN_MAP, STATUS_MAP } from "../../constants/seed";
@@ -9,7 +9,7 @@ import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
 import { Eye, CheckCircle2, Mail, AlertCircle, Calendar, User, Package, ClipboardList, DollarSign, Store, FileText, AlertTriangle, MapPin, Phone, Plus, Trash2, Building2 } from "lucide-react";
 import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
-import { loadBusinessBranches, saveBusinessBranches } from "../../services/ceo.service";
+import { loadBusinessBranches, saveBusinessBranches, extendSubscription } from "../../services/ceo.service";
 
 const DEFAULT_SCHEDULE = {
   mon: { active: true,  open: "09:00", close: "22:00" },
@@ -54,17 +54,11 @@ export function CEORestaurantes({restaurants,onUpdate,showToast}){
   const changeStatus=(res,status)=>{onUpdate(res.id,{status});showToast(`${res.name} → ${STATUS_MAP[status]?.label}`);if(r?.id===res.id)setSel(p=>p);};
   // Extender suscripción 30 días por email del owner
   const extendSub=async(res)=>{
-    const newExpiry=new Date(Date.now()+30*24*60*60*1000).toISOString();
-    // Buscar profile por email
-    const {data:prof}=await supabase.from("profiles").select("id").eq("email",res.email).single();
-    if(prof){
-      await supabase.from("profiles").update({subscription_expires_at:newExpiry}).eq("id",prof.id);
-      onUpdate(res.id,{status:"active",nextPayment:newExpiry.slice(0,10),daysLeft:30});
-      showToast(`✅ Suscripción de ${res.name} extendida hasta ${newExpiry.slice(0,10)}`);
-      setSel(null);
-    } else {
-      showToast(`⚠ No se encontró el perfil de ${res.email}`,"warn");
-    }
+    const { error, newExpiry } = await extendSubscription(res.id);
+    if(error){ showToast(`⚠ Error extendiendo suscripción`,"warn"); return; }
+    onUpdate(res.id,{status:"active",nextPayment:newExpiry.slice(0,10),daysLeft:30});
+    showToast(`✅ Suscripción de ${res.name} extendida hasta ${newExpiry.slice(0,10)}`);
+    setSel(null);
   };
   const changePlan=(res,plan)=>{onUpdate(res.id,{plan,mrr:PLAN_MAP[plan]?.price||0});showToast(`Plan de ${res.name} → ${PLAN_MAP[plan]?.label}`);};
 

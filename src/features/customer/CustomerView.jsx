@@ -268,18 +268,27 @@ function StatusVisualIcon({ icon, label, size = 86 }) {
 
 /* ─── POINT-IN-POLYGON (ray casting) ────────────────────── */
 
-export function CustomerView({config,products,cats,onBack,onAddOrder,branches,banners=[],businessType="restaurant",initialBranchId=null}){
+export function CustomerView({config,products,cats,onBack,onAddOrder,branches,banners=[],businessType="restaurant",initialBranchId=null,initialMode=null,storeKey=null}){
   const vl=(VERTICALS[businessType]||VERTICALS.restaurant).labels;
   const isRestaurant=businessType==="restaurant";
   const vertIcon=(VERTICALS[businessType]||VERTICALS.restaurant).icon;
   const [screen,setScreen]=useState("splash"); // splash | city | branch | menu
   const [activeCat,setActiveCat]=useState("");
-  const [cart,setCart]=useState([]);
+  // I-12: persistir carrito en sessionStorage para sobrevivir F5
+  const cartKey = `cart_${storeKey||"demo"}`;
+  const [cart,setCart]=useState(()=>{
+    try{const s=sessionStorage.getItem(cartKey);return s?JSON.parse(s):[];}catch{return [];}
+  });
+  const setCartPersist = cb => setCart(prev => {
+    const next = typeof cb === "function" ? cb(prev) : cb;
+    try{sessionStorage.setItem(cartKey,JSON.stringify(next));}catch{}
+    return next;
+  });
   const [cartOpen,setCartOpen]=useState(false);
   const [q,setQ]=useState("");
   const [checkout,setCheckout]=useState(false);
   const [step,setStep]=useState(1);
-  const [orderMode,setOrderMode]=useState(null);
+  const [orderMode,setOrderMode]=useState(initialMode||null);
   const [showPopup,setShowPopup]=useState(false);
   const popupTimerRef=useRef(null);
   const popup=config.promoPopup;
@@ -344,8 +353,8 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const activeCats=cats.filter(c=>c.active&&products.some(p=>p.catId===c.id&&p.active&&channelOk(p)&&branchOk(p)));
   const catProds=q?products.filter(p=>p.active&&channelOk(p)&&branchOk(p)&&(p.name.toLowerCase().includes(q.toLowerCase())||(p.desc||"").toLowerCase().includes(q.toLowerCase()))):products.filter(p=>p.catId===activeCat&&p.active&&channelOk(p)&&branchOk(p));
   const featured=products.filter(p=>p.featured&&p.active&&p.stock&&channelOk(p)&&branchOk(p));
-  const add=p=>setCart(c=>[...c,{uid:Date.now()+Math.random(),product:p,qty:1,total:getEffPrice(p)}]);
-  const rem=uid=>setCart(c=>c.filter(x=>x.uid!==uid));
+  const add=p=>setCartPersist(c=>[...c,{uid:Date.now()+Math.random(),product:p,qty:1,total:getEffPrice(p)}]);
+  const rem=uid=>setCartPersist(c=>c.filter(x=>x.uid!==uid));
   const ff=v=>setForm(f=>({...f,...v}));
   const STATUS_INFO = {
   pendiente: {
@@ -381,6 +390,10 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
 };
   useEffect(()=>{
     if(!trackedOrder||trackedOrder.status==="entregado")return;
+
+    // I-8: fetch inmediato del estado real en DB (la suscripción puede llegar tarde)
+    supabase.from("orders").select("status").eq("id",trackedOrder.id).single()
+      .then(({data})=>{ if(data?.status&&data.status!==trackedOrder.status) setTrackedOrder(p=>({...p,status:data.status})); });
 
     // ① Canal Broadcast — el admin/operador emite 'order_update' en el canal
     //   específico del pedido. No requiere Realtime configurado, funciona con anon key.
@@ -460,7 +473,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     setSubmitting(true);
     const o={id:newId(),createdAt:Date.now(),status:"pendiente",mode:effectiveMode,time:timeNow(),date:todayStr(),branchId:selBranchId||null,customerName:form.name,customerPhone:form.phone,customerEmail:form.email,address:form.address,addressRef:selectedZone?.name||"",table:form.table,notes:form.notes,payment:form.payment,items:cart.map(c=>({id:c.product.id,name:c.product.name,price:c.product.price,qty:c.qty,total:c.total,emoji:c.product.emoji})),subtotal:cartSubtotal,delivery:effectiveMode==="domicilio"?deliveryFee:0,total:cartFinal};
     if(onAddOrder)await onAddOrder(o);
-    setTrackedOrder(o);setCart([]);setCheckout(false);setStep(1);setSubmitting(false);
+    setTrackedOrder(o);setCartPersist([]);setCheckout(false);setStep(1);setSubmitting(false);
   };
   /* ── SPLASH ───────────────────────────────────────────────── */
   if(screen==="splash"){
@@ -1112,7 +1125,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
 
 /* ─── CEO SIDEBAR ─────────────────────────────────────────── */
 
-export function SuspendedScreen({onLogout,configName}){
+export function SuspendedScreen({onLogout,onGoToBilling,configName}){
   return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#0a0f1e 0%,#1a0a0a 100%)",padding:24}}>
     <style>{STYLES}</style>
     <div style={{textAlign:"center",maxWidth:480,animation:"fadeUp .4s ease"}}>
@@ -1129,7 +1142,7 @@ export function SuspendedScreen({onLogout,configName}){
         ))}
       </div>
       <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-        <Btn v="primary" onClick={onLogout}>Ir a pagar →</Btn>
+        <Btn v="primary" onClick={onGoToBilling||onLogout}>Ir a Facturación →</Btn>
         <button onClick={onLogout} style={{background:"transparent",border:"1px solid rgba(255,255,255,.2)",color:"rgba(255,255,255,.5)",borderRadius:10,padding:"10px 20px",fontSize:13,cursor:"pointer"}}>Cerrar sesión</button>
       </div>
       <p style={{marginTop:20,fontSize:11,color:"rgba(255,255,255,.3)"}}>¿Pagaste y aún ves esta pantalla? Escríbenos a <span style={{color:T.coral}}>soporte@picku.co</span></p>
@@ -1139,7 +1152,7 @@ export function SuspendedScreen({onLogout,configName}){
 
 /* ─── MENÚ PÚBLICO (sin login) ───────────────────────────── */
 
-export function PublicMenu({onBack, userId, branchId}){
+export function PublicMenu({onBack, userId, branchId, initialMode=null}){
   const [config,setConfig]=useState(INIT_CONFIG);
   const [products,setProducts]=useState([]);
   const [cats,setCats]=useState([]);
@@ -1196,7 +1209,7 @@ export function PublicMenu({onBack, userId, branchId}){
         primaryColor:cfg.primary_color, menuStyle:cfg.menu_style,
         menuFont:cfg.menu_font, city:cfg.city, address:cfg.address,
         phone:cfg.phone, whatsapp:cfg.whatsapp, schedule:cfg.schedule,
-        coverImg:cfg.cover_img, bgImg:"", openStatus:cfg.open_status,
+        coverImg:cfg.cover_img||"", bgImg:cfg.bg_img||"", openStatus:cfg.open_status,
         deliveryFee:cfg.delivery_fee, showAllergens:cfg.show_allergens,
         banners:cfg.banners||[], promoPopup:cfg.promo_popup||null,
         socialLinks:cfg.social_links||{},
@@ -1296,6 +1309,8 @@ export function PublicMenu({onBack, userId, branchId}){
         banners={config.banners||[]}
         businessType={businessType}
         initialBranchId={branchId||null}
+        initialMode={initialMode}
+        storeKey={userId||null}
       />
     </>
   );

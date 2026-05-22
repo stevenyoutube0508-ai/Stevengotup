@@ -8,6 +8,8 @@ import { ErrorBoundary } from "../shared/components/ErrorBoundary";
 
 const LoginRoute = React.lazy(() => import("../pages/LoginRoute"));
 const MenuPage = React.lazy(() => import("../pages/public/MenuPage"));
+const ResetPasswordPage = React.lazy(() => import("../pages/public/ResetPasswordPage"));
+const LandingPage = React.lazy(() => import("../pages/public/LandingPage"));
 
 const AdminLayout = React.lazy(() => import("../pages/admin/AdminLayout"));
 const HomePage = React.lazy(() => import("../pages/admin/HomePage"));
@@ -24,6 +26,7 @@ const FacturacionPage = React.lazy(() => import("../pages/admin/FacturacionPage"
 const MenuPreviewPage = React.lazy(() => import("../pages/admin/MenuPreviewPage"));
 const EquipoPage      = React.lazy(() => import("../pages/admin/EquipoPage"));
 const ReservasPage    = React.lazy(() => import("../pages/admin/ReservasPage"));
+const PerfilPage      = React.lazy(() => import("../pages/admin/PerfilPage"));
 
 const StaffLayout       = React.lazy(() => import("../pages/staff/StaffLayout"));
 const StaffDeliveryPage = React.lazy(() => import("../pages/staff/StaffDeliveryPage"));
@@ -50,12 +53,20 @@ export const router = createBrowserRouter([
     element: <RootRedirect />,
   },
   {
+    path: "/landing",
+    element: lazyPage(LandingPage),
+  },
+  {
     path: "/login",
     element: lazyPage(LoginRoute),
   },
   {
     path: "/menu",
     element: lazyPage(MenuPage),
+  },
+  {
+    path: "/reset-password",
+    element: lazyPage(ResetPasswordPage),
   },
   {
     // URL que se imprime en el QR: /menu/<userId>
@@ -88,6 +99,7 @@ export const router = createBrowserRouter([
               { path: "preview",    element: lazyPage(MenuPreviewPage) },
               { path: "equipo",     element: lazyPage(EquipoPage) },
               { path: "reservas",   element: lazyPage(ReservasPage) },
+              { path: "perfil",     element: lazyPage(PerfilPage) },
             ],
           },
         ],

@@ -144,11 +144,29 @@ function MiniDashboardRow({ icon: Icon, title, value, color, width = "70%" }) {
 }
 
 export function Login({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
-  const [err, setErr] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPass, setShowPass] = useState(false);
+  const [email,        setEmail]        = useState("");
+  const [pass,         setPass]         = useState("");
+  const [err,          setErr]          = useState("");
+  const [loading,      setLoading]      = useState(false);
+  const [showPass,     setShowPass]     = useState(false);
+
+  // ── Olvidé mi contraseña ──────────────────────────────────────────────────
+  const [forgotMode,    setForgotMode]   = useState(false);
+  const [forgotEmail,   setForgotEmail]  = useState("");
+  const [forgotSent,    setForgotSent]   = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const sendReset = async () => {
+    if (!forgotEmail.trim()) { setErr("Ingresa tu correo"); return; }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) { setErr("No pudimos enviar el correo. Verifica la dirección."); return; }
+    setForgotSent(true);
+    setErr("");
+  };
 
   const loginBackgroundUrl = "";
 
@@ -563,50 +581,90 @@ export function Login({ onLogin }) {
                 WebkitBackdropFilter: "blur(18px)",
               }}
             >
+              {/* ── Encabezado dinámico ────────────────────────────────── */}
               <div style={{ marginBottom: 22 }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 7,
-                    background: T.coralL,
-                    color: T.coral,
-                    borderRadius: 999,
-                    padding: "5px 10px",
-                    fontSize: 11,
-                    fontWeight: 900,
-                    marginBottom: 12,
-                  }}
-                >
+                <div style={{ display:"inline-flex", alignItems:"center", gap:7,
+                  background: forgotMode ? T.amberL : T.coralL,
+                  color: forgotMode ? T.amber : T.coral,
+                  borderRadius:999, padding:"5px 10px", fontSize:11,
+                  fontWeight:900, marginBottom:12 }}>
                   <InlineIcon icon={ShieldCheck} size={13} />
-                  Acceso seguro
+                  {forgotMode ? "Recuperar acceso" : "Acceso seguro"}
                 </div>
-
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: 24,
-                    fontWeight: 950,
-                    color: T.text,
-                    letterSpacing: "-.45px",
-                  }}
-                >
-                  Bienvenido de nuevo
+                <h2 style={{ margin:0, fontSize:24, fontWeight:950,
+                  color:T.text, letterSpacing:"-.45px" }}>
+                  {forgotMode ? "¿Olvidaste tu contraseña?" : "Bienvenido de nuevo"}
                 </h2>
-
-                <p
-                  style={{
-                    margin: "7px 0 0",
-                    color: T.mid,
-                    fontSize: 13,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Ingresa para administrar tu catálogo, pedidos, sucursales y
-                  operación.
+                <p style={{ margin:"7px 0 0", color:T.mid, fontSize:13, lineHeight:1.55 }}>
+                  {forgotMode
+                    ? "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña."
+                    : "Ingresa para administrar tu catálogo, pedidos, sucursales y operación."}
                 </p>
               </div>
 
+              {/* ── Modo "olvidé contraseña" ──────────────────────────── */}
+              {forgotMode && (
+                <>
+                  {forgotSent ? (
+                    <div style={{ background:T.greenL, border:`1px solid ${T.green}30`,
+                      borderRadius:14, padding:"16px", fontSize:13, color:T.green,
+                      fontWeight:700, lineHeight:1.6, marginBottom:16,
+                      display:"flex", alignItems:"flex-start", gap:9 }}>
+                      <InlineIcon icon={ShieldCheck} size={16}/>
+                      <div>Correo enviado a <strong>{forgotEmail}</strong>.<br/>
+                      Revisa tu bandeja de entrada y haz clic en el enlace.</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom:14 }}>
+                        <label style={{ fontSize:11, fontWeight:900, color:T.mid,
+                          display:"block", marginBottom:7, letterSpacing:".5px",
+                          textTransform:"uppercase" }}>Correo</label>
+                        <div style={{ position:"relative" }}>
+                          <InlineIcon icon={ShieldCheck} size={16} style={{ position:"absolute",
+                            left:14, top:"50%", transform:"translateY(-50%)", color:T.light,
+                            pointerEvents:"none" }}/>
+                          <input type="email" value={forgotEmail}
+                            onChange={e => { setForgotEmail(e.target.value); setErr(""); }}
+                            onKeyDown={e => e.key === "Enter" && sendReset()}
+                            placeholder="tu@email.co"
+                            style={{ ...inputBase }}
+                            onFocus={e => { e.target.style.borderColor=T.coral; e.target.style.boxShadow=`0 0 0 4px ${T.coral}14`; }}
+                            onBlur={e  => { e.target.style.borderColor=T.border; e.target.style.boxShadow="none"; }}/>
+                        </div>
+                      </div>
+                      {err && (
+                        <div style={{ background:T.redL, border:`1px solid ${T.red}30`,
+                          borderRadius:12, padding:"10px 13px", fontSize:13, color:T.red,
+                          marginBottom:14, display:"flex", alignItems:"center", gap:8,
+                          fontWeight:700 }}>
+                          <InlineIcon icon={ShieldCheck} size={14}/> {err}
+                        </div>
+                      )}
+                      <button type="button" onClick={sendReset} disabled={forgotLoading}
+                        style={{ width:"100%", padding:13,
+                          background:`linear-gradient(135deg,${T.coral},${T.pink})`,
+                          border:"none", borderRadius:14, color:"#fff", fontSize:14,
+                          fontWeight:900, cursor:forgotLoading?"not-allowed":"pointer",
+                          fontFamily:"'Plus Jakarta Sans',sans-serif",
+                          boxShadow:`0 10px 24px ${T.coral}30`,
+                          opacity:forgotLoading ? 0.72 : 1, marginBottom:12 }}>
+                        {forgotLoading ? "Enviando…" : "Enviar enlace de recuperación"}
+                      </button>
+                    </>
+                  )}
+                  <button type="button" onClick={() => { setForgotMode(false); setErr(""); setForgotSent(false); }}
+                    style={{ width:"100%", padding:"10px", background:"transparent",
+                      border:`1px solid ${T.border}`, borderRadius:12, color:T.mid,
+                      fontSize:13, fontWeight:700, cursor:"pointer",
+                      fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                    ← Volver al login
+                  </button>
+                </>
+              )}
+
+              {/* ── Formulario de login normal ───────────────────────── */}
+              {!forgotMode && <>
               <div style={{ marginBottom: 15 }}>
                 <label
                   style={{
@@ -817,32 +875,31 @@ export function Login({ onLogin }) {
                 {loading ? "Verificando…" : "Ingresar"}
               </button>
 
+              {/* ¿Olvidaste tu contraseña? */}
+              <div style={{ textAlign:"center", marginTop:12 }}>
+                <button type="button"
+                  onClick={() => { setForgotMode(true); setErr(""); setForgotEmail(email); }}
+                  style={{ background:"none", border:"none", color:T.coral,
+                    fontSize:12, fontWeight:700, cursor:"pointer",
+                    fontFamily:"'Plus Jakarta Sans',sans-serif",
+                    textDecoration:"underline", textUnderlineOffset:3 }}>
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
               <div
-                style={{
-                  marginTop: 16,
-                  paddingTop: 16,
-                  borderTop: `1px solid ${T.border}`,
-                }}
+                style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}
               >
                 <button
                   type="button"
-                  onClick={() => (window.location.href = "?menu")}
+                  onClick={() => (window.location.href = "/menu")}
                   style={{
-                    width: "100%",
-                    padding: "12px",
-                    background: T.bg,
-                    border: `1px solid ${T.border}`,
-                    borderRadius: 14,
-                    color: T.mid,
-                    fontSize: 13,
-                    fontWeight: 800,
-                    cursor: "pointer",
+                    width: "100%", padding: "12px", background: T.bg,
+                    border: `1px solid ${T.border}`, borderRadius: 14, color: T.mid,
+                    fontSize: 13, fontWeight: 800, cursor: "pointer",
                     fontFamily: "'Plus Jakarta Sans',sans-serif",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    transition: "all .15s",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: 8, transition: "all .15s",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "#fff";
@@ -859,6 +916,7 @@ export function Login({ onLogin }) {
                   Ver catálogo del cliente demo
                 </button>
               </div>
+            </>}
             </div>
 
             <div

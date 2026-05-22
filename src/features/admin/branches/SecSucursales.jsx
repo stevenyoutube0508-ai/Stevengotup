@@ -105,6 +105,7 @@ export function PolygonMap({
   onDelete,
   branchAddress,
   branchCity,
+  readOnly = false,
 }) {
   const leafletReady = useLeaflet();
   const mapDivRef = useRef(null);
@@ -377,7 +378,7 @@ export function PolygonMap({
           flexWrap: "wrap",
         }}
       >
-        {!isDrawing && !newForm && (
+        {!readOnly && !isDrawing && !newForm && (
           <button
             onClick={startDraw}
             style={{
@@ -400,7 +401,7 @@ export function PolygonMap({
           </button>
         )}
 
-        {isDrawing && (
+        {!readOnly && isDrawing && (
           <div
             style={{
               display: "flex",
@@ -872,27 +873,32 @@ export function PolygonMap({
 
               <Toggle
                 value={z.active}
-                onChange={(v) => onUpdate(z.id, { active: v })}
+                onChange={(v) => !readOnly && onUpdate(z.id, { active: v })}
                 sm
+                disabled={readOnly}
               />
 
               <div style={{ display: "flex", gap: 6 }}>
-                <IconButton
-                  icon={Pencil}
-                  title="Editar zona"
-                  onClick={() => setEditZone({ ...z })}
-                  color={T.coral}
-                  bg={T.coralL}
-                />
-                <IconButton
-                  icon={Trash2}
-                  title="Eliminar zona"
-                  onClick={() =>
-                    window.confirm(`¿Eliminar "${z.name}"?`) && onDelete(z.id)
-                  }
-                  color={T.red}
-                  bg={T.redL}
-                />
+                {!readOnly && (
+                  <>
+                    <IconButton
+                      icon={Pencil}
+                      title="Editar zona"
+                      onClick={() => setEditZone({ ...z })}
+                      color={T.coral}
+                      bg={T.coralL}
+                    />
+                    <IconButton
+                      icon={Trash2}
+                      title="Eliminar zona"
+                      onClick={() =>
+                        window.confirm(`¿Eliminar "${z.name}"?`) && onDelete(z.id)
+                      }
+                      color={T.red}
+                      bg={T.redL}
+                    />
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -1147,6 +1153,7 @@ export function BranchQR({ br, ownerId }) {
   const branchParam = br?.id ? `?b=${encodeURIComponent(br.id)}` : "";
   const base = `${origin}/menu/${ownerId}${branchParam}`;
 
+  const sep = branchParam ? "&" : "?";
   const CARDS = [
     {
       key: "mesa",
@@ -1154,7 +1161,7 @@ export function BranchQR({ br, ownerId }) {
       Icon: ClipboardList,
       color: "#4f46e5",
       light: "#ede9fe",
-      url: base,
+      url: `${base}${sep}mode=mesa`,
       desc: "El cliente escanea en la mesa y ve la carta para comer en el local",
     },
     {
@@ -1163,7 +1170,7 @@ export function BranchQR({ br, ownerId }) {
       Icon: Bike,
       color: "#059669",
       light: "#d1fae5",
-      url: base,
+      url: `${base}${sep}mode=delivery`,
       desc: "El cliente escanea y hace su pedido a domicilio o para recoger",
     },
     {
@@ -1315,6 +1322,7 @@ export function SecSucursales({
   onUpdateBranch,
   onAddBranch,
   ownerId,
+  noCreate = false,   // true = el admin no puede CREAR sucursales (solo el CEO puede)
 }) {
   const [selected, setSelected] = useState(null);
   const [subTab, setSubTab] = useState("overview");
@@ -1550,7 +1558,7 @@ export function SecSucursales({
               </span>
             </Btn>
           )}
-          {!selected && (
+          {!selected && !noCreate && (
             <Btn
               sm
               onClick={() => { setForm(INIT_BRANCH_FORM); setModal(true); }}
@@ -1600,15 +1608,24 @@ export function SecSucursales({
               <div style={{ fontWeight: 900, fontSize: 14, color: T.text, marginBottom: 6 }}>
                 Sin sucursales
               </div>
-              <div style={{ fontSize: 12, marginBottom: 16 }}>
-                Crea la primera sucursal de este negocio.
-              </div>
-              <Btn sm onClick={() => { setForm(INIT_BRANCH_FORM); setModal(true); }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
-                  <InlineIcon icon={Plus} size={14} />
-                  Nueva sucursal
-                </span>
-              </Btn>
+              {noCreate ? (
+                <div style={{ fontSize: 12, color: T.mid }}>
+                  Las sucursales son creadas por el administrador de Picku.<br/>
+                  Contacta a soporte para agregar una nueva sucursal.
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 12, marginBottom: 16 }}>
+                    Crea la primera sucursal de este negocio.
+                  </div>
+                  <Btn sm onClick={() => { setForm(INIT_BRANCH_FORM); setModal(true); }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                      <InlineIcon icon={Plus} size={14} />
+                      Nueva sucursal
+                    </span>
+                  </Btn>
+                </>
+              )}
             </div>
           )}
           {branches.map((b) => (
@@ -1908,13 +1925,13 @@ export function SecSucursales({
                       setInfoForm((p) => ({ ...p, address: v }))
                     }
                     placeholder="Cra 5 #15-32, El Peñón"
-                  />
+                    />
                   <Field
                     label="Ciudad"
                     value={infoForm.city}
                     onChange={(v) => setInfoForm((p) => ({ ...p, city: v }))}
                     placeholder="Cali"
-                  />
+                    />
                 </div>
 
                 <div
@@ -1929,7 +1946,7 @@ export function SecSucursales({
                     value={infoForm.phone}
                     onChange={(v) => setInfoForm((p) => ({ ...p, phone: v }))}
                     placeholder="+57 300 123 4567"
-                  />
+                    />
                   <Field
                     label="WhatsApp"
                     value={infoForm.whatsapp}
@@ -1938,7 +1955,7 @@ export function SecSucursales({
                     }
                     placeholder="573001234567"
                     hint="Solo números, con código de país"
-                  />
+                    />
                 </div>
 
                 <Field

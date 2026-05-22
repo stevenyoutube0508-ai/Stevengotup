@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState } from "react";
 import {
   Home, Store, Utensils, FolderOpen, Package, Paintbrush, Target,
-  Bike, BarChart3, Bot, CreditCard, LogOut, Users, CalendarDays,
+  Bike, BarChart3, Bot, CreditCard, LogOut, Users, CalendarDays, KeyRound,
   Shirt, Wrench, Gamepad2, Sparkles, Smartphone, ShoppingCart, PawPrint, Briefcase,
 } from "lucide-react";
 
@@ -24,7 +24,7 @@ import { VERTICALS, getVertical } from "../../constants/verticals";
 import { KANBAN_COLS, K_NEXT, ANALYTICS_WEEK } from "../../constants/kanban";
 import { fmtCOP, newId, todayStr, timeNow, readFile } from "../../utils/format";
 import { pointInPoly } from "../../utils/geo";
-import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput } from "../../shared/components";
+import { Card, Btn, Field, Toggle, Tag, Modal, Toast, StatCard, PhotoInput, ChangePasswordModal } from "../../shared/components";
 
 const strip = s => s?.replace(/^[^\wÀ-ɏ(]+/u, "").trim() ?? s;
 
@@ -48,6 +48,7 @@ export const getAdminNav = (vl, verticalId = "restaurant") => {
 };
 
 export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,onClose,vertical}){
+  const [showPwModal, setShowPwModal] = useState(false);
   const plan=billing?.plan||"pro";
   const planColor={starter:T.blue,pro:T.violet,business:T.pink}[plan]||T.coral;
   const vl = vertical?.labels || VERTICALS.restaurant.labels;
@@ -57,7 +58,7 @@ export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,is
     {isOpen&&<div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:98,display:"none"}} className="mob-overlay"/>}
     <nav className={`admin-sidebar${isOpen?" open":""}`} style={{width:220,flexShrink:0,background:T.white,borderRight:`1px solid ${T.border}`,display:"flex",flexDirection:"column",height:"100vh",position:"sticky",top:0,overflowY:"auto"}}>
     <div style={{padding:"20px 16px 14px",borderBottom:`1px solid ${T.border}`}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{display:"flex",alignItems:"center",flexDirection:"column",justifyContent:"space-between"}}>
         <LogoFull height={48}/>
         <div style={{background:planColor+"18",color:planColor,borderRadius:20,padding:"2px 8px",fontSize:9,fontWeight:800,textTransform:"uppercase",flexShrink:0}}>Plan {plan}</div>
       </div>
@@ -84,14 +85,24 @@ export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,is
     </div>
     <div style={{padding:"14px 16px",borderTop:`1px solid ${T.border}`}}>
       <div style={{display:"flex",alignItems:"center",gap:9}}>
-        <div style={{width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${T.coral},${T.coralD})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{user.avatar}</div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
-          <div style={{color:T.light,fontSize:9}}>{user.title}</div>
+        <div
+          onClick={()=>onSelect("perfil")}
+          title="Ver mi perfil"
+          style={{display:"flex",alignItems:"center",gap:9,flex:1,minWidth:0,cursor:"pointer",borderRadius:10,padding:"4px 6px",marginLeft:-6,transition:"background .15s"}}
+          onMouseEnter={e=>e.currentTarget.style.background=T.bg}
+          onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+        >
+          <div style={{width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${T.coral},${T.coralD})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{user.avatar}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{color:T.text,fontSize:12,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
+            <div style={{color:T.light,fontSize:9}}>{user.title}</div>
+          </div>
         </div>
+        <button onClick={()=>setShowPwModal(true)} title="Cambiar contraseña" style={{background:T.bg,border:`1px solid ${T.border}`,borderRadius:7,color:T.mid,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><KeyRound size={13}/></button>
         <button onClick={onLogout} style={{background:T.redL,border:"none",borderRadius:7,color:T.red,padding:"5px 7px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}><LogOut size={13}/></button>
       </div>
     </div>
+    {showPwModal&&<ChangePasswordModal onClose={()=>setShowPwModal(false)}/>}
     <button onClick={onClose} className="mob-close-btn" style={{display:"none",position:"absolute",top:12,right:12,background:T.bg,border:`1px solid ${T.border}`,borderRadius:8,color:T.mid,fontSize:18,width:32,height:32,cursor:"pointer",alignItems:"center",justifyContent:"center"}}>×</button>
   </nav>
   </>;

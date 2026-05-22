@@ -40,7 +40,7 @@ export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading
       <td style={{padding:"12px 14px"}}><Tag color={planColor[r.plan]||T.mid} sm>{r.plan?.charAt(0).toUpperCase()+r.plan?.slice(1)}</Tag></td>
       <td style={{padding:"12px 14px",fontWeight:800,color:T.indigo}}>{fmtCOP(r.amount)}</td>
       <td style={{padding:"12px 14px"}}>
-        {r.receipt_data?<button onClick={()=>setViewReceipt(r)} style={{background:T.indigoL,color:T.indigo,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Eye size={12}/> Ver comprobante</button>:<span style={{fontSize:11,color:T.light}}>Sin comprobante</span>}
+        {(r.receipt_url||r.receipt_data)?<button onClick={()=>setViewReceipt(r)} style={{background:T.indigoL,color:T.indigo,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><Eye size={12}/> Ver comprobante</button>:<span style={{fontSize:11,color:T.light}}>Sin comprobante</span>}
       </td>
       <td style={{padding:"12px 14px"}}>
         {showActions?
@@ -122,16 +122,21 @@ export function CEOPagos({restaurants,paymentRequests,onApprove,onReject,loading
           ))}
         </div>
         {viewReceipt.notes&&<div style={{background:T.bg,borderRadius:10,padding:"10px 14px",fontSize:12,color:T.mid,marginBottom:12}}><strong>Nota del cliente:</strong> {viewReceipt.notes}</div>}
-        {viewReceipt.receipt_data?.startsWith("data:image")?
-          <img src={viewReceipt.receipt_data} alt="comprobante" style={{width:"100%",borderRadius:12,border:`1px solid ${T.border}`}}/>:
-          viewReceipt.receipt_data?.startsWith("data:application/pdf")?
-          <div style={{textAlign:"center",padding:24,background:T.bg,borderRadius:12}}>
-            <div style={{fontSize:32}}>📄</div>
-            <div style={{fontSize:13,fontWeight:700,color:T.text,marginTop:6}}>{viewReceipt.receipt_name}</div>
-            <a href={viewReceipt.receipt_data} download={viewReceipt.receipt_name} style={{display:"inline-block",marginTop:10,background:T.indigo,color:"#fff",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none"}}>Descargar PDF</a>
-          </div>:
-          <div style={{textAlign:"center",color:T.mid,padding:20}}>No se puede previsualizar</div>
-        }
+        {(()=>{
+          const src = viewReceipt.receipt_url || viewReceipt.receipt_data;
+          const name = viewReceipt.receipt_name || "comprobante";
+          if (!src) return <div style={{textAlign:"center",color:T.mid,padding:20}}>Sin comprobante adjunto</div>;
+          const isPdf = src.includes("application/pdf") || name.endsWith(".pdf");
+          const isImg = !isPdf;
+          if (isImg) return <img src={src} alt="comprobante" style={{width:"100%",borderRadius:12,border:`1px solid ${T.border}`}}/>;
+          return (
+            <div style={{textAlign:"center",padding:24,background:T.bg,borderRadius:12}}>
+              <div style={{fontSize:32}}>📄</div>
+              <div style={{fontSize:13,fontWeight:700,color:T.text,marginTop:6}}>{name}</div>
+              <a href={src} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",marginTop:10,background:T.indigo,color:"#fff",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none"}}>Abrir PDF</a>
+            </div>
+          );
+        })()}
       </div>
       {viewReceipt.status==="pending"&&<div style={{display:"flex",gap:10,marginTop:16}}>
         <Btn full onClick={()=>{setViewReceipt(null);doApprove(viewReceipt);}}>✅ Aprobar</Btn>

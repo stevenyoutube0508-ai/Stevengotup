@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { T, STYLES } from "../../constants/theme";
 import { getVertical } from "../../constants/verticals";
@@ -7,6 +7,7 @@ import { Btn, Toast } from "../../shared/components";
 import { PageLoader } from "../../shared/components/PageLoader";
 import { SuspendedScreen } from "../../features/customer/CustomerView";
 import { AdminSidebar } from "../../shared/layout/AdminSidebar";
+import { OnboardingModal, isOnboardingDismissed } from "../../features/admin/onboarding/OnboardingModal";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useAdminStore } from "../../stores/useAdminStore";
 
@@ -24,6 +25,7 @@ const ROUTE_BY_ID = {
   facturacion: "/admin/facturacion",
   equipo: "/admin/equipo",
   reservas: "/admin/reservas",
+  perfil: "/admin/perfil",
 };
 
 const ID_BY_ROUTE = Object.fromEntries(
@@ -36,6 +38,9 @@ export default function AdminLayout() {
 
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  // Onboarding checklist — se muestra si nunca fue cerrado
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const config = useAdminStore((s) => s.config);
   const billing = useAdminStore((s) => s.billing);
@@ -52,14 +57,23 @@ export default function AdminLayout() {
     }
   }, [user?.id, user?.role, loadAdminData]);
 
+  // Mostrar onboarding cuando los datos estén listos y no haya sido cerrado
+  useEffect(() => {
+    if (dbLoaded && user?.id && !isOnboardingDismissed(user.id)) {
+      setShowOnboarding(true);
+    }
+  }, [dbLoaded, user?.id]);
+
   const vertical = getVertical(user?.businessType || "restaurant");
   const active = ID_BY_ROUTE[location.pathname] || "home";
   const newOrders = orders.filter((o) => o.status === "pendiente").length;
 
+  // Suspendido: bloquear acceso al panel EXCEPTO en /admin/facturacion
+  // para que el admin pueda subir su comprobante de pago y reactivarse.
   const isAdminSuspended =
     user?.role === "admin" &&
-    user?.subscriptionExpiresAt &&
-    new Date(user.subscriptionExpiresAt) < new Date();
+    billing?.status === "suspended" &&
+    location.pathname !== "/admin/facturacion";
 
   const handleLogout = async () => {
     try {
@@ -74,6 +88,7 @@ export default function AdminLayout() {
     return (
       <SuspendedScreen
         onLogout={handleLogout}
+        onGoToBilling={() => navigate("/admin/facturacion")}
         configName={config?.name}
       />
     );
@@ -119,6 +134,7 @@ export default function AdminLayout() {
       <style>{ADMIN_RESP_CSS}</style>
 
       {toast && <Toast msg={toast.msg} type={toast.type} />}
+      {showOnboarding && <OnboardingModal onDismiss={() => setShowOnboarding(false)} />}
 
       <div style={{ display: "flex", minHeight: "100vh", background: T.bg }}>
         <AdminSidebar

@@ -1,64 +1,26 @@
 import { supabase } from "../lib/supabase";
-import { supabaseAdmin } from "../lib/supabaseAdmin";
+// supabaseAdmin eliminado — operaciones de Auth van a la Edge Function manage-staff.
+// Las lecturas de profiles usan supabase normal (RLS permite al owner ver su staff).
 
 /**
- * Crea un usuario con rol "staff" vinculado a un negocio admin.
- * @param {string} ownerUserId  - ID del admin dueño del negocio
- * @param {{ name, email }}  form
- * @param {string} tempPassword - contraseña temporal generada antes de llamar
+ * Crea un usuario staff via Edge Function.
+ * Solo puede llamar este endpoint el admin dueño del negocio.
  */
 export async function createStaffUser(ownerUserId, form, tempPassword, branchId = null) {
-  // 1. Crear usuario en Auth
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: form.email,
-    password: tempPassword,
-    email_confirm: true,
-    user_metadata: { name: form.name },
+  const { data, error } = await supabase.functions.invoke("manage-staff", {
+    body: { action: "create", form, tempPassword, branchId },
   });
-  if (authError) return { userId: null, error: authError };
-  const userId = authData.user.id;
-
-  // 2. Crear / actualizar perfil con role = staff
-  // Intentamos UPDATE primero (por si el trigger ya creó la fila),
-  // si no afecta ninguna fila hacemos INSERT.
-  const profilePayload = {
-    role: "staff",
-    staff_role: "delivery",
-    owner_id: ownerUserId,
-    name: form.name,
-    email: form.email,
-    branch_id: branchId || null,
-  };
-
-  const { data: updRows, error: updError } = await supabaseAdmin
-    .from("profiles")
-    .update(profilePayload)
-    .eq("id", userId)
-    .select("id");
-
-  let profError = updError;
-
-  if (!updError && (!updRows || updRows.length === 0)) {
-    // El trigger aún no corrió o no existe — insertar directamente
-    const { error: insError } = await supabaseAdmin
-      .from("profiles")
-      .insert({ id: userId, ...profilePayload });
-    profError = insError;
-  }
-
-  if (profError) {
-    await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
-    return { userId: null, error: profError };
-  }
-
-  return { userId, error: null };
+  if (error) return { userId: null, error };
+  if (data?.error) return { userId: null, error: new Error(data.error) };
+  return { userId: data?.userId ?? null, error: null };
 }
 
 /**
  * Carga todos los operadores de un negocio.
+ * RLS permite: owner_id = auth.uid() → el admin ve su propio staff.
  */
 export async function loadStaffMembers(ownerUserId) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from("profiles")
     .select("id,name,email,staff_role,branch_id")
     .eq("owner_id", ownerUserId)
@@ -67,21 +29,25 @@ export async function loadStaffMembers(ownerUserId) {
 }
 
 /**
- * Elimina un operador: borra de Auth y de profiles.
+ * Elimina un operador via Edge Function.
  */
 export async function deleteStaffUser(staffId) {
-  const { error: delAuthError } = await supabaseAdmin.auth.admin.deleteUser(staffId);
-  if (delAuthError) return { error: delAuthError };
-  const { error } = await supabaseAdmin.from("profiles").delete().eq("id", staffId);
-  return { error };
+  const { data, error } = await supabase.functions.invoke("manage-staff", {
+    body: { action: "delete", staffId },
+  });
+  if (error) return { error };
+  if (data?.error) return { error: new Error(data.error) };
+  return { error: null };
 }
 
 /**
- * Cambia la contraseña de un operador (para reset manual).
+ * Resetea la contraseña de un operador via Edge Function.
  */
 export async function resetStaffPassword(staffId, newPassword) {
-  const { error } = await supabaseAdmin.auth.admin.updateUserById(staffId, {
-    password: newPassword,
+  const { data, error } = await supabase.functions.invoke("manage-staff", {
+    body: { action: "reset_password", staffId, newPassword },
   });
-  return { error };
+  if (error) return { error };
+  if (data?.error) return { error: new Error(data.error) };
+  return { error: null };
 }
