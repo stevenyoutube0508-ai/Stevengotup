@@ -5,28 +5,37 @@ import {
   MapPin, QrCode, ChevronRight, Play, ShoppingBag, Truck, Palette,
   Shield, Clock, Users, Menu, X, Sparkles, TrendingUp, Store,
 } from "lucide-react";
+import { LogoFull } from "../../shared/components/Logo";
 
 /* ─── TOKENS ──────────────────────────────────────────────────── */
 const C = {
-  navy:    "#0a1628",
-  navyM:   "#0d2040",
-  navyS:   "#1a3358",
-  coral:   "#ff4d4c",
-  coralD:  "#e63c3b",
-  violet:  "#6d28d9",
-  violetL: "#ede9fe",
+  navy:    "#fff8f4",
+  navyM:   "#ffffff",
+  navyS:   "#f1f5f9",
+
+  coral:   "#ef5350",
+  coralD:  "#dc3f3f",
+  coralL:  "#fff1ef",
+
+  violet:  "#8b5cf6",
+  violetL: "#f3edff",
+
   white:   "#ffffff",
-  off:     "#f8f9fc",
-  border:  "#e8ebf4",
-  text:    "#111827",
-  mid:     "#6b7280",
-  light:   "#9ca3af",
-  green:   "#059669",
-  greenL:  "#d1fae5",
+  off:     "#f8fafc",
+  border:  "#e8edf3",
+
+  text:    "#101828",
+  mid:     "#667085",
+  light:   "#98a2b3",
+
+  green:   "#159a63",
+  greenL:  "#ecfdf3",
+
   amber:   "#d97706",
-  blue:    "#2563eb",
-  blueL:   "#dbeafe",
-  pink:    "#db2777",
+  blue:    "#377dff",
+  blueL:   "#eff6ff",
+
+  pink:    "#cc3377",
 };
 
 const fmtCOP = n => new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(n);
@@ -148,8 +157,8 @@ function PlanCard({ plan, visible, delay = 0 }){
   const navigate = useNavigate();
   return (
     <div style={{
-      background: plan.popular ? C.navy : C.white,
-      border: plan.popular ? `1px solid ${C.navyS}` : `1px solid ${C.border}`,
+      background: plan.popular ? `linear-gradient(180deg,${C.white},${C.navy})` : C.white,
+      border: plan.popular ? `1.5px solid ${C.coral}35` : `1px solid ${C.border}`,
       borderRadius:20, padding:"32px 28px", position:"relative", flex:1, minWidth:0,
       opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(24px)",
       transition:`opacity .5s ${delay}s, transform .5s ${delay}s`,
@@ -170,19 +179,19 @@ function PlanCard({ plan, visible, delay = 0 }){
         <span style={{fontSize:11,fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:plan.color}}>{plan.name}</span>
       </div>
       <div style={{marginBottom:8, display:"flex", alignItems:"baseline", gap:4}}>
-        <span style={{fontSize:36, fontWeight:800, color: plan.popular ? C.white : C.text, lineHeight:1}}>
+        <span style={{fontSize:36, fontWeight:800, color: C.text, lineHeight:1}}>
           {fmtCOP(plan.price)}
         </span>
-        <span style={{fontSize:12,color: plan.popular ? "rgba(255,255,255,0.5)" : C.light}}>/mes</span>
+        <span style={{fontSize:12,color: C.light}}>/mes</span>
       </div>
-      <div style={{fontSize:13, color: plan.popular ? "rgba(255,255,255,0.6)" : C.mid, marginBottom:24, lineHeight:1.5}}>{plan.desc}</div>
+      <div style={{fontSize:13, color: C.mid, marginBottom:24, lineHeight:1.5}}>{plan.desc}</div>
       <div style={{flex:1, display:"flex", flexDirection:"column", gap:10, marginBottom:28}}>
         {plan.features.map(f=>(
           <div key={f} style={{display:"flex", alignItems:"center", gap:10}}>
             <div style={{width:18,height:18,borderRadius:"50%",background:`${plan.color}20`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
               <Check size={10} color={plan.color} strokeWidth={3}/>
             </div>
-            <span style={{fontSize:13, color: plan.popular ? "rgba(255,255,255,0.85)" : C.mid}}>{f}</span>
+            <span style={{fontSize:13, color: C.mid}}>{f}</span>
           </div>
         ))}
       </div>
@@ -208,8 +217,8 @@ function PlanCard({ plan, visible, delay = 0 }){
 function ProductMockup(){
   return (
     <div style={{
-      background:"#0d1e35", borderRadius:20, padding:20, width:"100%", maxWidth:540,
-      boxShadow:"0 32px 80px rgba(0,0,0,0.6)", border:"1px solid rgba(255,255,255,0.08)",
+      background:C.white, borderRadius:20, padding:20, width:"100%", maxWidth:540,
+      boxShadow:"0 32px 80px rgba(15,23,42,0.10)", border:`1px solid ${C.border}`,
       fontFamily:"'Plus Jakarta Sans',sans-serif",
     }}>
       {/* Window chrome */}
@@ -217,23 +226,23 @@ function ProductMockup(){
         <div style={{width:10,height:10,borderRadius:"50%",background:"#ff5f57"}}/>
         <div style={{width:10,height:10,borderRadius:"50%",background:"#febc2e"}}/>
         <div style={{width:10,height:10,borderRadius:"50%",background:"#28c840"}}/>
-        <div style={{flex:1,height:22,borderRadius:6,background:"rgba(255,255,255,0.07)",marginLeft:8,display:"flex",alignItems:"center",padding:"0 10px"}}>
-          <span style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>app.picku.co/admin/delivery</span>
+        <div style={{flex:1,height:22,borderRadius:6,background:C.off,marginLeft:8,display:"flex",alignItems:"center",padding:"0 10px",border:`1px solid ${C.border}`}}>
+          <span style={{fontSize:10,color:C.light}}>app.picku.co/admin/delivery</span>
         </div>
       </div>
       {/* App layout */}
       <div style={{display:"flex",gap:12,height:280}}>
         {/* Sidebar */}
-        <div style={{width:44,background:"rgba(255,255,255,0.04)",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",padding:"10px 0",gap:8}}>
+        <div style={{width:44,background:C.off,borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",padding:"10px 0",gap:8,border:`1px solid ${C.border}`}}>
           {["🏠","🍽️","🛵","🎨","📊","⚙️"].map((ico,i)=>(
-            <div key={i} style={{width:28,height:28,borderRadius:7,background:i===2?"rgba(255,77,76,0.25)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>{ico}</div>
+            <div key={i} style={{width:28,height:28,borderRadius:7,background:i===2?`${C.coral}18`:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>{ico}</div>
           ))}
         </div>
         {/* Main content */}
         <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
           {/* Header */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-            <span style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.9)"}}>🛵 Pedidos del día</span>
+            <span style={{fontSize:12,fontWeight:700,color:C.text}}>🛵 Pedidos del día</span>
             <div style={{background:"rgba(255,77,76,0.2)",borderRadius:6,padding:"3px 8px",fontSize:9,fontWeight:700,color:C.coral}}>EN VIVO</div>
           </div>
           {/* Kanban columns */}
@@ -243,10 +252,10 @@ function ProductMockup(){
               {label:"En prep.", color:"#d97706", items:["🍖 Costillas","🌮 Tacos x3"]},
               {label:"Listo", color:"#059669", items:["🍣 Sushi Roll"]},
             ].map((col,ci)=>(
-              <div key={ci} style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:8,padding:8}}>
+              <div key={ci} style={{flex:1,background:C.off,borderRadius:8,padding:8,border:`1px solid ${C.border}`}}>
                 <div style={{fontSize:9,fontWeight:800,color:col.color,marginBottom:6,letterSpacing:"0.5px",textTransform:"uppercase"}}>{col.label}</div>
                 {col.items.map((item,ii)=>(
-                  <div key={ii} style={{background:"rgba(255,255,255,0.07)",borderRadius:6,padding:"6px 8px",marginBottom:5,fontSize:10,color:"rgba(255,255,255,0.8)",fontWeight:500}}>{item}</div>
+                  <div key={ii} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 8px",marginBottom:5,fontSize:10,color:C.mid,fontWeight:700}}>{item}</div>
                 ))}
               </div>
             ))}
@@ -254,9 +263,9 @@ function ProductMockup(){
           {/* Stats row */}
           <div style={{display:"flex",gap:6,marginTop:4}}>
             {[{l:"Pedidos hoy",v:"47",c:"#059669"},{l:"MRR",v:"$99.9K",c:"#6d28d9"},{l:"Productos",v:"32",c:"#ff4d4c"}].map((s,i)=>(
-              <div key={i} style={{flex:1,background:"rgba(255,255,255,0.05)",borderRadius:8,padding:"8px 8px"}}>
+              <div key={i} style={{flex:1,background:C.off,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 8px"}}>
                 <div style={{fontSize:14,fontWeight:800,color:s.c}}>{s.v}</div>
-                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",marginTop:2}}>{s.l}</div>
+                <div style={{fontSize:9,color:C.light,marginTop:2}}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -275,17 +284,17 @@ function CatalogMockup(){
       fontFamily:"'Plus Jakarta Sans',sans-serif",
     }}>
       {/* Header */}
-      <div style={{background:"linear-gradient(135deg,#0a1628,#1a3358)",padding:"16px 14px"}}>
+      <div style={{background:`linear-gradient(135deg,${C.coralL || "#fff1ef"},#ffffff)`,padding:"16px 14px",borderBottom:`1px solid ${C.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
           <div style={{width:32,height:32,borderRadius:"50%",background:"#ff4d4c",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🔥</div>
           <div>
-            <div style={{fontSize:12,fontWeight:700,color:"#fff"}}>La Leña</div>
-            <div style={{fontSize:9,color:"rgba(255,255,255,0.5)"}}>● Abierto ahora</div>
+            <div style={{fontSize:12,fontWeight:700,color:C.text}}>La Leña</div>
+            <div style={{fontSize:9,color:C.green}}>● Abierto ahora</div>
           </div>
         </div>
         <div style={{display:"flex",gap:4}}>
           {["🍽️ Carta","🛵 Delivery","📍 Local"].map((t,i)=>(
-            <div key={i} style={{padding:"3px 7px",borderRadius:12,background:i===0?"rgba(255,77,76,0.3)":"rgba(255,255,255,0.08)",fontSize:8,color:i===0?"#ff8a89":"rgba(255,255,255,0.5)",fontWeight:600}}>{t}</div>
+            <div key={i} style={{padding:"3px 7px",borderRadius:12,background:i===0?`${C.coral}18`:C.off,fontSize:8,color:i===0?C.coral:C.mid,fontWeight:700,border:`1px solid ${i===0?`${C.coral}28`:C.border}`}}>{t}</div>
           ))}
         </div>
       </div>
@@ -331,24 +340,23 @@ function Nav({ scrolled }){
   return (
     <nav style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100,
-      background: scrolled ? "rgba(10,22,40,0.92)" : "transparent",
+      background: scrolled ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.36)",
       backdropFilter: scrolled ? "blur(12px)" : "none",
-      borderBottom: scrolled ? "1px solid rgba(255,255,255,0.07)" : "none",
+      borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
       transition:"background .3s, border-color .3s",
       padding:"0 24px",
     }}>
       <div style={{maxWidth:1140,margin:"0 auto",height:64,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         {/* Logo */}
         <div style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
-          <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#ff4d4c,#6d28d9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800}}>P</div>
-          <span style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>Picku</span>
+          <LogoFull width={300} height={50} color={C.text}/>
         </div>
         {/* Desktop links */}
         <div style={{display:"flex",alignItems:"center",gap:32}} className="hide-mobile">
           {links.map(({l,h})=>(
-            <a key={h} href={h} style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.7)",textDecoration:"none",transition:"color .15s"}}
-              onMouseEnter={e=>e.target.style.color="#fff"}
-              onMouseLeave={e=>e.target.style.color="rgba(255,255,255,0.7)"}
+            <a key={h} href={h} style={{fontSize:13,fontWeight:500,color:C.mid,textDecoration:"none",transition:"color .15s"}}
+              onMouseEnter={e=>e.target.style.color=C.text}
+              onMouseLeave={e=>e.target.style.color=C.mid}
             >{l}</a>
           ))}
         </div>
@@ -356,9 +364,9 @@ function Nav({ scrolled }){
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <button
             onClick={()=>navigate("/login")}
-            style={{background:"transparent",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.8)",padding:"8px 18px",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s, color .15s"}}
-            onMouseEnter={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,0.5)"; e.currentTarget.style.color="#fff"; }}
-            onMouseLeave={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,0.2)"; e.currentTarget.style.color="rgba(255,255,255,0.8)"; }}
+            style={{background:C.white,border:`1px solid ${C.border}`,color:C.mid,padding:"8px 18px",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s, color .15s"}}
+            onMouseEnter={e=>{ e.currentTarget.style.borderColor=C.coral; e.currentTarget.style.color=C.text; }}
+            onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; e.currentTarget.style.color=C.mid; }}
           >
             Iniciar sesión
           </button>
@@ -371,16 +379,16 @@ function Nav({ scrolled }){
             Empezar gratis
           </button>
           {/* Mobile hamburger */}
-          <button onClick={()=>setOpen(o=>!o)} className="show-mobile" style={{background:"transparent",border:"none",color:"#fff",cursor:"pointer",padding:4,display:"none"}}>
+          <button onClick={()=>setOpen(o=>!o)} className="show-mobile" style={{background:"transparent",border:"none",color:C.text,cursor:"pointer",padding:4,display:"none"}}>
             {open ? <X size={20}/> : <Menu size={20}/>}
           </button>
         </div>
       </div>
       {/* Mobile menu */}
       {open && (
-        <div style={{background:"rgba(10,22,40,0.98)",borderTop:"1px solid rgba(255,255,255,0.07)",padding:"16px 24px 24px"}}>
+        <div style={{background:C.white,borderTop:`1px solid ${C.border}`,padding:"16px 24px 24px",boxShadow:"0 20px 40px rgba(15,23,42,.08)"}}>
           {links.map(({l,h})=>(
-            <a key={h} href={h} onClick={()=>setOpen(false)} style={{display:"block",padding:"12px 0",fontSize:15,fontWeight:500,color:"rgba(255,255,255,0.8)",textDecoration:"none",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{l}</a>
+            <a key={h} href={h} onClick={()=>setOpen(false)} style={{display:"block",padding:"12px 0",fontSize:15,fontWeight:500,color:C.text,textDecoration:"none",borderBottom:`1px solid ${C.border}`}}>{l}</a>
           ))}
           <button onClick={()=>navigate("/login")} style={{marginTop:16,width:"100%",padding:"13px 0",borderRadius:12,background:"linear-gradient(135deg,#ff4d4c,#6d28d9)",color:"#fff",border:"none",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
             Empezar gratis →
@@ -456,86 +464,264 @@ export default function LandingPage(){
 
       <Nav scrolled={scrolled} />
 
-      {/* ── HERO ──────────────────────────────────────────────── */}
-      <section style={{
-        background:`linear-gradient(160deg,${C.navy} 0%,#0f2847 50%,#1a1040 100%)`,
-        minHeight:"100vh", display:"flex", alignItems:"center", position:"relative",
-        overflow:"hidden", padding:"100px 24px 80px",
-      }}>
-        {/* Orbs */}
-        <div className="hero-orb" style={{width:500,height:500,background:"rgba(255,77,76,0.12)",top:-100,right:-100}}/>
-        <div className="hero-orb" style={{width:400,height:400,background:"rgba(109,40,217,0.12)",bottom:-100,left:-60}}/>
-        <div className="hero-orb" style={{width:240,height:240,background:"rgba(255,77,76,0.08)",top:"40%",left:"30%"}}/>
+     {/* ── HERO ──────────────────────────────────────────────── */}
+<section
+  style={{
+    background:
+      "radial-gradient(circle at 46% -12%, rgba(236,72,153,.26) 0%, rgba(236,72,153,.14) 22%, transparent 42%), radial-gradient(circle at 82% 16%, rgba(255,77,76,.13) 0%, transparent 34%), linear-gradient(180deg,#fff7f3 0%,#ffffff 48%,#f8fafc 100%)",
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
+    padding: "120px 24px 84px",
+  }}
+>
+  {/* Orbs claros */}
+  <div
+    className="hero-orb"
+    style={{
+      width: 480,
+      height: 480,
+      background: "rgba(255,77,76,0.12)",
+      top: -140,
+      right: -120,
+    }}
+  />
 
-        <div style={{maxWidth:1140,margin:"0 auto",width:"100%",display:"flex",alignItems:"center",gap:60,position:"relative",zIndex:1}} className="hero-cols">
-          {/* Text */}
-          <div style={{flex:1,minWidth:0,animation:"fadeUp .7s ease both"}}>
-            <div style={{marginBottom:20}}>
-              <Chip color={C.coral}>Nuevo · Potenciado con IA</Chip>
+  <div
+    className="hero-orb"
+    style={{
+      width: 420,
+      height: 420,
+      background: "rgba(139,92,246,0.10)",
+      bottom: -160,
+      left: -90,
+    }}
+  />
+
+  <div
+    className="hero-orb"
+    style={{
+      width: 260,
+      height: 260,
+      background: "rgba(236,72,153,0.10)",
+      top: "30%",
+      left: "34%",
+    }}
+  />
+
+  <div
+    style={{
+      maxWidth: 1280,
+      margin: "0 auto",
+      width: "100%",
+      display: "flex",
+      alignItems: "center",
+      gap: 64,
+      position: "relative",
+      zIndex: 1,
+    }}
+    className="hero-cols"
+  >
+    {/* Text */}
+    <div
+      style={{
+        flex: 1,
+        minWidth: 0,
+        animation: "fadeUp .7s ease both",
+      }}
+    >
+     
+
+      <h1
+        style={{
+          fontSize: "clamp(42px,6vw,76px)",
+          fontWeight: 950,
+          lineHeight: 1.04,
+          letterSpacing: "-3px",
+          marginBottom: 22,
+          color: C.text,
+        }}
+      >
+        <span style={{ color: C.text }}>Tu negocio,</span>
+        <br />
+        <span className="gradient-text">digital en minutos.</span>
+      </h1>
+
+      <p
+        style={{
+          fontSize: "clamp(16px,1.8vw,19px)",
+          color: C.mid,
+          lineHeight: 1.75,
+          marginBottom: 34,
+          maxWidth: 520,
+          fontWeight: 500,
+        }}
+      >
+        Crea tu catálogo digital, gestiona pedidos en tiempo real y crece tu
+        negocio desde un solo panel. Sin apps, sin complicaciones.
+      </p>
+
+      {/* Social proof */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 34,
+        }}
+      >
+        <div style={{ display: "flex" }}>
+          {["👨‍🍳", "👩‍💼", "👨‍🍽️", "👩‍🍳", "👨‍💻"].map((a, i) => (
+            <div
+              key={i}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: `hsl(${i * 40},60%,50%)`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                border: `2px solid ${C.white}`,
+                marginLeft: i > 0 ? -8 : 0,
+                boxShadow: "0 8px 18px rgba(15,23,42,.10)",
+              }}
+            >
+              {a}
             </div>
-            <h1 style={{fontSize:"clamp(38px,6vw,68px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-2px",marginBottom:20}}>
-              <span style={{color:C.white}}>Tu negocio,</span><br/>
-              <span className="gradient-text">digital en minutos.</span>
-            </h1>
-            <p style={{fontSize:"clamp(15px,1.8vw,18px)",color:"rgba(255,255,255,0.6)",lineHeight:1.7,marginBottom:36,maxWidth:480}}>
-              Crea tu catálogo digital, gestiona pedidos en tiempo real y crece tu negocio desde un solo panel. Sin apps, sin complicaciones.
-            </p>
-            {/* Social proof */}
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:32}}>
-              <div style={{display:"flex"}}>
-                {["👨‍🍳","👩‍💼","👨‍🍽️","👩‍🍳","👨‍💻"].map((a,i)=>(
-                  <div key={i} style={{width:30,height:30,borderRadius:"50%",background:`hsl(${i*40},60%,50%)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,border:"2px solid #0a1628",marginLeft:i>0?-8:0}}>{a}</div>
-                ))}
-              </div>
-              <div>
-                <div style={{display:"flex",gap:2}}>
-                  {[1,2,3,4,5].map(i=><Star key={i} size={11} color="#f59e0b" fill="#f59e0b"/>)}
-                </div>
-                <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginTop:2}}>+200 negocios en Colombia</div>
-              </div>
-            </div>
-            {/* CTAs */}
-            <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}} className="hero-btns">
-              <button
-                onClick={()=>navigate("/login")}
-                style={{
-                  background:`linear-gradient(135deg,${C.coral},#e0352e)`,
-                  color:C.white, border:"none", padding:"15px 30px",
-                  borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer",
-                  display:"flex", alignItems:"center", gap:8, transition:"transform .15s, box-shadow .15s",
-                }}
-                onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 10px 30px rgba(255,77,76,0.5)"; }}
-                onMouseLeave={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}
-              >
-                Empezar gratis <ArrowRight size={16}/>
-              </button>
-              <a
-                href="#features"
-                style={{
-                  display:"flex", alignItems:"center", gap:8,
-                  color:"rgba(255,255,255,0.7)", fontSize:14, fontWeight:600,
-                  padding:"15px 24px", borderRadius:12,
-                  border:"1px solid rgba(255,255,255,0.12)", transition:"color .15s, border-color .15s",
-                }}
-                onMouseEnter={e=>{ e.currentTarget.style.color="#fff"; e.currentTarget.style.borderColor="rgba(255,255,255,0.3)"; }}
-                onMouseLeave={e=>{ e.currentTarget.style.color="rgba(255,255,255,0.7)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.12)"; }}
-              >
-                <Play size={14} fill="currentColor"/> Ver demo
-              </a>
-            </div>
+          ))}
+        </div>
+
+        <div>
+          <div style={{ display: "flex", gap: 2 }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Star key={i} size={12} color="#f59e0b" fill="#f59e0b" />
+            ))}
           </div>
-          {/* Mockup */}
-          <div style={{flex:"0 0 auto",display:"flex",flexDirection:"column",alignItems:"center",gap:20,animation:"fadeUp .7s .2s ease both"}}>
-            <div style={{animation:"float 4s ease-in-out infinite",display:"flex",gap:20,alignItems:"flex-start"}}>
-              <ProductMockup/>
-              <div style={{marginTop:60,animation:"float 4s 1.5s ease-in-out infinite"}}>
-                <CatalogMockup/>
-              </div>
-            </div>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: C.mid,
+              marginTop: 3,
+              fontWeight: 600,
+            }}
+          >
+            +200 negocios en Colombia
           </div>
         </div>
-      </section>
+      </div>
 
+      {/* CTAs */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+        className="hero-btns"
+      >
+        <button
+          type="button"
+          onClick={() => navigate("/login")}
+          style={{
+            background: `linear-gradient(135deg,${C.coral},#e0352e)`,
+            color: C.white,
+            border: "none",
+            padding: "15px 30px",
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 800,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            transition: "transform .15s, box-shadow .15s",
+            boxShadow: "0 12px 28px rgba(255,77,76,0.28)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow =
+              "0 16px 34px rgba(255,77,76,0.36)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "none";
+            e.currentTarget.style.boxShadow =
+              "0 12px 28px rgba(255,77,76,0.28)";
+          }}
+        >
+          Empezar gratis <ArrowRight size={16} />
+        </button>
+
+        <a
+          href="#features"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            color: C.text,
+            fontSize: 15,
+            fontWeight: 700,
+            padding: "15px 24px",
+            borderRadius: 12,
+            background: C.white,
+            border: `1px solid ${C.border}`,
+            boxShadow: "0 10px 24px rgba(15,23,42,.05)",
+            transition: "color .15s, border-color .15s, transform .15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = C.coral;
+            e.currentTarget.style.borderColor = `${C.coral}55`;
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = C.text;
+            e.currentTarget.style.borderColor = C.border;
+            e.currentTarget.style.transform = "none";
+          }}
+        >
+          <Play size={14} fill="currentColor" /> Ver demo
+        </a>
+      </div>
+    </div>
+
+    {/* Mockup */}
+    <div
+      style={{
+        flex: "0 0 auto",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 20,
+        animation: "fadeUp .7s .2s ease both",
+      }}
+    >
+      <div
+        style={{
+          animation: "float 4s ease-in-out infinite",
+          display: "flex",
+          gap: 20,
+          alignItems: "flex-start",
+        }}
+      >
+        <ProductMockup />
+
+        <div
+          style={{
+            marginTop: 60,
+            animation: "float 4s 1.5s ease-in-out infinite",
+          }}
+        >
+          <CatalogMockup />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
       {/* ── LOGOS ─────────────────────────────────────────────── */}
       <section style={{background:C.white,padding:"32px 24px",borderBottom:`1px solid ${C.border}`}}>
         <div style={{maxWidth:1140,margin:"0 auto",textAlign:"center"}}>
@@ -569,24 +755,24 @@ export default function LandingPage(){
       </section>
 
       {/* ── FEATURE CALLOUT 1: Catalog ────────────────────────── */}
-      <section style={{background:`linear-gradient(160deg,${C.navy} 0%,${C.navyM} 100%)`,padding:"96px 24px",overflow:"hidden"}}>
+      <section style={{background:`linear-gradient(160deg,${C.white} 0%,${C.navy} 100%)`,padding:"96px 24px",overflow:"hidden"}}>
         <div style={{maxWidth:1140,margin:"0 auto",display:"flex",alignItems:"center",gap:72,flexWrap:"wrap"}}>
           {/* Text */}
           <div style={{flex:1,minWidth:260}}>
             <Chip color={C.coral}>Catálogo digital</Chip>
-            <h2 style={{fontSize:"clamp(26px,3.5vw,42px)",fontWeight:800,letterSpacing:"-1.2px",color:C.white,marginTop:16,marginBottom:16,lineHeight:1.15}}>
+            <h2 style={{fontSize:"clamp(26px,3.5vw,42px)",fontWeight:800,letterSpacing:"-1.2px",color:C.text,marginTop:16,marginBottom:16,lineHeight:1.15}}>
               Un menú que tus clientes van a amar
             </h2>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.55)",lineHeight:1.7,marginBottom:28,maxWidth:420}}>
+            <p style={{fontSize:15,color:C.mid,lineHeight:1.7,marginBottom:28,maxWidth:420}}>
               Crea un catálogo visualmente impactante con fotos, descripciones generadas por IA, etiquetas personalizadas y modo oscuro. Compártelo con un QR en segundos.
             </p>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
               {["Generación de descripciones con IA","Etiquetas de producto personalizadas","Popup promocional configurable","Modo oscuro para el cliente"].map(f=>(
                 <div key={f} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{width:20,height:20,borderRadius:"50%",background:"rgba(255,77,76,0.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <div style={{width:20,height:20,borderRadius:"50%",background:`${C.coral}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                     <Check size={11} color={C.coral} strokeWidth={3}/>
                   </div>
-                  <span style={{fontSize:14,color:"rgba(255,255,255,0.75)"}}>{f}</span>
+                  <span style={{fontSize:14,color:C.mid}}>{f}</span>
                 </div>
               ))}
             </div>
@@ -603,8 +789,8 @@ export default function LandingPage(){
         <div style={{maxWidth:1140,margin:"0 auto",display:"flex",alignItems:"center",gap:72,flexWrap:"wrap"}}>
           {/* Visual */}
           <div style={{flex:"0 0 auto",display:"flex",justifyContent:"center",animation:"float 4s 1s ease-in-out infinite"}}>
-            <div style={{background:C.navy,borderRadius:20,padding:24,width:400,boxShadow:"0 20px 60px rgba(0,0,0,0.12)"}}>
-              <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,0.9)",marginBottom:16,display:"flex",alignItems:"center",gap:8}}>
+            <div style={{background:C.white,borderRadius:20,padding:24,width:400,boxShadow:"0 20px 60px rgba(15,23,42,0.10)",border:`1px solid ${C.border}`}}>
+              <div style={{fontSize:12,fontWeight:800,color:C.text,marginBottom:16,display:"flex",alignItems:"center",gap:8}}>
                 🛵 Gestión de pedidos
                 <span style={{marginLeft:"auto",background:"rgba(5,150,105,0.2)",color:"#059669",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:5}}>● EN VIVO</span>
               </div>
@@ -614,19 +800,19 @@ export default function LandingPage(){
                   {col:"Preparando",color:"#d97706",items:["#003 Sushi Roll"]},
                   {col:"Entregado",color:"#059669",items:["#004 Limonada","#005 Flan"]},
                 ].map((k,ki)=>(
-                  <div key={ki} style={{flex:1,background:"rgba(255,255,255,0.05)",borderRadius:10,padding:10}}>
+                  <div key={ki} style={{flex:1,background:C.off,borderRadius:10,padding:10,border:`1px solid ${C.border}`}}>
                     <div style={{fontSize:8,fontWeight:800,color:k.color,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.5px"}}>{k.col}</div>
                     {k.items.map((it,ii)=>(
-                      <div key={ii} style={{background:"rgba(255,255,255,0.08)",borderRadius:6,padding:"6px 8px",marginBottom:6,fontSize:10,color:"rgba(255,255,255,0.8)"}}>{it}</div>
+                      <div key={ii} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:6,padding:"6px 8px",marginBottom:6,fontSize:10,color:C.mid}}>{it}</div>
                     ))}
                   </div>
                 ))}
               </div>
               <div style={{marginTop:14,display:"flex",gap:8}}>
                 {[{l:"47 pedidos",v:"hoy",c:"#059669"},{l:"$1.8M",v:"facturado",c:"#6d28d9"},{l:"18 min",v:"promedio",c:"#ff4d4c"}].map((s,i)=>(
-                  <div key={i} style={{flex:1,background:"rgba(255,255,255,0.05)",borderRadius:8,padding:8,textAlign:"center"}}>
+                  <div key={i} style={{flex:1,background:C.off,border:`1px solid ${C.border}`,borderRadius:8,padding:8,textAlign:"center"}}>
                     <div style={{fontSize:13,fontWeight:800,color:s.c}}>{s.l}</div>
-                    <div style={{fontSize:8,color:"rgba(255,255,255,0.35)",marginTop:2}}>{s.v}</div>
+                    <div style={{fontSize:8,color:C.light,marginTop:2}}>{s.v}</div>
                   </div>
                 ))}
               </div>
@@ -686,17 +872,17 @@ export default function LandingPage(){
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────────── */}
-      <section style={{background:C.navy,padding:"96px 24px"}} ref={stepRef}>
+      <section style={{background:`linear-gradient(160deg,${C.white} 0%,${C.navy} 100%)`,padding:"96px 24px"}} ref={stepRef}>
         <div style={{maxWidth:1140,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:64}}>
             <Chip color={C.coral}>Proceso</Chip>
-            <h2 style={{fontSize:"clamp(26px,3.5vw,42px)",fontWeight:800,letterSpacing:"-1.2px",color:C.white,marginTop:16}}>
+            <h2 style={{fontSize:"clamp(26px,3.5vw,42px)",fontWeight:800,letterSpacing:"-1.2px",color:C.text,marginTop:16}}>
               Listo en 3 pasos
             </h2>
           </div>
           <div className="steps-row" style={{display:"flex",gap:0,position:"relative"}}>
             {/* Line */}
-            <div style={{position:"absolute",top:28,left:"16.5%",right:"16.5%",height:1,background:"rgba(255,255,255,0.08)",zIndex:0}} className="hide-mobile"/>
+            <div style={{position:"absolute",top:28,left:"16.5%",right:"16.5%",height:1,background:C.border,zIndex:0}} className="hide-mobile"/>
             {STEPS.map((s,i)=>{
               const Icon = s.icon;
               return (
@@ -709,8 +895,8 @@ export default function LandingPage(){
                     <Icon size={22} color="#fff"/>
                   </div>
                   <div style={{fontSize:10,fontWeight:800,color:"rgba(255,77,76,0.7)",letterSpacing:"1px",marginBottom:8,textTransform:"uppercase"}}>{s.n}</div>
-                  <div style={{fontSize:17,fontWeight:800,color:C.white,marginBottom:10,lineHeight:1.2}}>{s.title}</div>
-                  <div style={{fontSize:13,color:"rgba(255,255,255,0.5)",lineHeight:1.65,maxWidth:220,margin:"0 auto"}}>{s.desc}</div>
+                  <div style={{fontSize:17,fontWeight:800,color:C.text,marginBottom:10,lineHeight:1.2}}>{s.title}</div>
+                  <div style={{fontSize:13,color:C.mid,lineHeight:1.65,maxWidth:220,margin:"0 auto"}}>{s.desc}</div>
                 </div>
               );
             })}
@@ -794,19 +980,17 @@ export default function LandingPage(){
 
       {/* ── CTA FINAL ─────────────────────────────────────────── */}
       <section style={{
-        background:`linear-gradient(135deg,${C.navy} 0%,#1a1040 100%)`,
+        background:`linear-gradient(135deg,${C.white} 0%,${C.coralL} 100%)`,
         padding:"100px 24px", textAlign:"center", position:"relative", overflow:"hidden",
       }}>
         <div className="hero-orb" style={{width:400,height:400,background:"rgba(255,77,76,0.1)",top:-100,left:"50%",transform:"translateX(-50%)"}}/>
         <div style={{maxWidth:600,margin:"0 auto",position:"relative",zIndex:1}}>
-          <div style={{width:64,height:64,borderRadius:18,background:"linear-gradient(135deg,#ff4d4c,#6d28d9)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",boxShadow:"0 16px 40px rgba(255,77,76,0.35)"}}>
-            <Sparkles size={28} color="#fff"/>
-          </div>
-          <h2 style={{fontSize:"clamp(28px,4.5vw,52px)",fontWeight:900,letterSpacing:"-2px",color:C.white,marginBottom:16,lineHeight:1.1}}>
+          
+          <h2 style={{fontSize:"clamp(28px,4.5vw,52px)",fontWeight:900,letterSpacing:"-2px",color:C.text,marginBottom:16,lineHeight:1.1}}>
             Empieza hoy.<br/>
             <span className="gradient-text">Gratis por 14 días.</span>
           </h2>
-          <p style={{fontSize:16,color:"rgba(255,255,255,0.55)",marginBottom:40,lineHeight:1.65}}>
+          <p style={{fontSize:16,color:C.mid,marginBottom:40,lineHeight:1.65}}>
             Sin tarjeta de crédito. Sin contratos. Tu catálogo digital listo en minutos — con IA de tu lado.
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
@@ -826,40 +1010,39 @@ export default function LandingPage(){
             <a
               href="#pricing"
               style={{
-                color:"rgba(255,255,255,0.65)", fontSize:15, fontWeight:600,
-                padding:"16px 28px", borderRadius:12, border:"1px solid rgba(255,255,255,0.15)",
+                color:C.mid, fontSize:15, fontWeight:600,
+                padding:"16px 28px", borderRadius:12, background:C.white, border:`1px solid ${C.border}`,
                 transition:"color .15s, border-color .15s", display:"inline-flex", alignItems:"center", gap:6,
               }}
-              onMouseEnter={e=>{ e.currentTarget.style.color="#fff"; e.currentTarget.style.borderColor="rgba(255,255,255,0.3)"; }}
-              onMouseLeave={e=>{ e.currentTarget.style.color="rgba(255,255,255,0.65)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"; }}
+              onMouseEnter={e=>{ e.currentTarget.style.color=C.text; e.currentTarget.style.borderColor=C.coral; }}
+              onMouseLeave={e=>{ e.currentTarget.style.color=C.mid; e.currentTarget.style.borderColor=C.border; }}
             >
               Ver planes <ChevronRight size={16}/>
             </a>
           </div>
-          <p style={{marginTop:24,fontSize:12,color:"rgba(255,255,255,0.3)"}}>
+          <p style={{marginTop:24,fontSize:12,color:C.light}}>
             Pago mensual · Cancela en cualquier momento · Soporte en español
           </p>
         </div>
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────── */}
-      <footer style={{background:C.navy,borderTop:"1px solid rgba(255,255,255,0.06)",padding:"48px 24px 32px"}}>
+      <footer style={{background:C.white,borderTop:`1px solid ${C.border}`,padding:"48px 24px 32px"}}>
         <div style={{maxWidth:1140,margin:"0 auto"}}>
           <div style={{display:"flex",flexWrap:"wrap",gap:40,marginBottom:48}}>
             {/* Brand */}
             <div style={{flex:"0 0 220px",minWidth:180}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                <div style={{width:32,height:32,borderRadius:9,background:"linear-gradient(135deg,#ff4d4c,#6d28d9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#fff"}}>P</div>
-                <span style={{fontSize:18,fontWeight:800,color:"#fff"}}>Picku</span>
+          <LogoFull width={300} height={50} color={C.text}/>
               </div>
-              <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",lineHeight:1.65,maxWidth:200}}>
+              <p style={{fontSize:13,color:C.mid,lineHeight:1.65,maxWidth:200}}>
                 El panel de gestión digital para negocios latinoamericanos.
               </p>
               <div style={{display:"flex",gap:8,marginTop:16}}>
                 {["𝕏","in","ig","📘"].map(s=>(
-                  <div key={s} style={{width:32,height:32,borderRadius:8,background:"rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.4)",cursor:"pointer",transition:"background .15s"}}
-                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.12)"}
-                    onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
+                  <div key={s} style={{width:32,height:32,borderRadius:8,background:C.off,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:C.mid,cursor:"pointer",transition:"background .15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background=C.navy}
+                    onMouseLeave={e=>e.currentTarget.style.background=C.off}
                   >{s}</div>
                 ))}
               </div>
@@ -871,12 +1054,12 @@ export default function LandingPage(){
               {title:"Legal",links:["Privacidad","Términos","Cookies","Seguridad"]},
             ].map(col=>(
               <div key={col.title} style={{flex:"0 0 140px",minWidth:120}}>
-                <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:16}}>{col.title}</div>
+                <div style={{fontSize:11,fontWeight:800,color:C.light,letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:16}}>{col.title}</div>
                 <div style={{display:"flex",flexDirection:"column",gap:10}}>
                   {col.links.map(l=>(
-                    <a key={l} href="#" style={{fontSize:13,color:"rgba(255,255,255,0.5)",textDecoration:"none",transition:"color .15s"}}
-                      onMouseEnter={e=>e.target.style.color="#fff"}
-                      onMouseLeave={e=>e.target.style.color="rgba(255,255,255,0.5)"}
+                    <a key={l} href="#" style={{fontSize:13,color:C.mid,textDecoration:"none",transition:"color .15s"}}
+                      onMouseEnter={e=>e.target.style.color=C.text}
+                      onMouseLeave={e=>e.target.style.color=C.mid}
                     >{l}</a>
                   ))}
                 </div>
@@ -884,13 +1067,13 @@ export default function LandingPage(){
             ))}
           </div>
           {/* Bottom bar */}
-          <div style={{borderTop:"1px solid rgba(255,255,255,0.06)",paddingTop:24,display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:12}}>
-            <span style={{fontSize:12,color:"rgba(255,255,255,0.25)"}}>© 2026 Picku. Hecho con ❤️ en Colombia.</span>
+          <div style={{borderTop:`1px solid ${C.border}`,paddingTop:24,display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:12}}>
+            <span style={{fontSize:12,color:C.light}}>© 2026 Picku. Hecho con ❤️ en Colombia.</span>
             <div style={{display:"flex",gap:16}}>
               {["Privacidad","Términos","Cookies"].map(l=>(
-                <a key={l} href="#" style={{fontSize:12,color:"rgba(255,255,255,0.25)",textDecoration:"none",transition:"color .15s"}}
-                  onMouseEnter={e=>e.target.style.color="rgba(255,255,255,0.6)"}
-                  onMouseLeave={e=>e.target.style.color="rgba(255,255,255,0.25)"}
+                <a key={l} href="#" style={{fontSize:12,color:C.light,textDecoration:"none",transition:"color .15s"}}
+                  onMouseEnter={e=>e.target.style.color=C.mid}
+                  onMouseLeave={e=>e.target.style.color=C.light}
                 >{l}</a>
               ))}
             </div>
