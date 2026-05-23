@@ -150,7 +150,7 @@ function SocialField({ icon, label, value, onChange, placeholder, color }) {
   );
 }
 
-export function SecDiseno({ config, onUpdate }) {
+export function SecDiseno({ config, onUpdate, cats = [], products = [] }) {
   const [d, setD] = useState(config);
   const [saved, setSaved] = useState(false);
 
@@ -182,9 +182,20 @@ export function SecDiseno({ config, onUpdate }) {
     []
   );
 
-  const previewBg = d.menuStyle === "dark" ? "#111009" : "#f8f7f4";
+  const previewBg   = d.menuStyle === "dark" ? "#111009" : "#f8f7f4";
   const previewText = d.menuStyle === "dark" ? "#fff" : "#111";
   const previewMuted = d.menuStyle === "dark" ? "rgba(255,255,255,.65)" : T.mid;
+
+  // Datos reales para el preview — máx 4 categorías activas con sus productos
+  const CAT_GRADS = [
+    ["#f97316","#ea580c"], ["#8b5cf6","#7c3aed"], ["#059669","#047857"],
+    ["#2563eb","#1d4ed8"], ["#db2777","#9d174d"], ["#d97706","#b45309"],
+  ];
+  const prevCats = cats.filter(c => c.active).slice(0, 4);
+  const hasCats  = prevCats.length > 0;
+  const prevProds = products.filter(p => p.active);
+  const firstProd = prevProds[0] || null;
+  const fmtPreview = n => new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(n);
 
   return (
     <div style={{ animation: "fadeUp .35s ease" }}>
@@ -734,92 +745,111 @@ export function SecDiseno({ config, onUpdate }) {
               </div>
             </div>
 
+            {/* ─────────────────────────────────────────────────
+                PREVIEW VIVO — refleja exactamente el catálogo
+                real: usa tus categorías y productos reales.
+                ───────────────────────────────────────────────── */}
             <div style={{ background: previewBg, position: "relative", overflow: "hidden" }}>
+
+              {/* bgImg sutil — igual que en el catálogo real */}
               {d.bgImg && (
                 <img src={d.bgImg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: d.menuStyle === "dark" ? 0.14 : 0.08 }} />
               )}
 
-              {/* ── SPLASH MINI ─────────────────────────────── */}
-              <div style={{ height: 88, background: d.primaryColor, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, position: "relative" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, overflow: "hidden", background: "rgba(255,255,255,.22)", display: "grid", placeItems: "center", border: "2px solid rgba(255,255,255,.3)" }}>
+              {/* ── SPLASH (pantalla de carga con tu color) ── */}
+              <div style={{ height: 72, background: d.primaryColor, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, position: "relative", flexShrink: 0 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, overflow: "hidden", background: "rgba(255,255,255,.22)", display: "grid", placeItems: "center", border: "2px solid rgba(255,255,255,.28)" }}>
                   {d.logo && (d.logo.startsWith("http") || d.logo.startsWith("data:"))
                     ? <img src={d.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                    : <Store size={16} color="#fff" strokeWidth={2.3} />}
+                    : <Store size={14} color="#fff" strokeWidth={2.3} />}
                 </div>
-                <div style={{ color: "#fff", fontSize: 10, fontWeight: 900, letterSpacing: "-.2px" }}>{d.name || "Tu negocio"}</div>
+                <div style={{ color: "#fff", fontSize: 9, fontWeight: 900, letterSpacing: "-.15px" }}>{d.name || "Tu negocio"}</div>
                 <div style={{ display: "flex", gap: 4 }}>
-                  {[0, 1, 2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: "rgba(255,255,255,.5)" }} />)}
+                  {[0,1,2].map(i => <div key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.55)" }} />)}
                 </div>
-                <div style={{ position: "absolute", top: 6, right: 8, fontSize: 8, color: "rgba(255,255,255,.5)", fontWeight: 700 }}>Splash</div>
+                <div style={{ position: "absolute", top: 5, right: 7, background: "rgba(0,0,0,.25)", borderRadius: 6, padding: "1px 6px", fontSize: 7, color: "rgba(255,255,255,.7)", fontWeight: 700, letterSpacing: ".5px", textTransform: "uppercase" }}>Splash</div>
               </div>
 
-              {/* ── MENU TOPBAR ─────────────────────────────── */}
-              <div style={{ background: d.menuStyle === "dark" ? "rgba(17,16,9,.97)" : "rgba(255,255,255,.97)", borderBottom: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)"}`, padding: "7px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, overflow: "hidden", background: d.primaryColor + "22", display: "grid", placeItems: "center", flexShrink: 0 }}>
+              {/* ── TOPBAR del catálogo ──────────────────────── */}
+              <div style={{ background: d.menuStyle === "dark" ? "rgba(17,16,9,.97)" : "rgba(255,255,255,.97)", borderBottom: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)"}`, padding: "6px 11px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: 7, overflow: "hidden", background: d.primaryColor + "22", display: "grid", placeItems: "center", flexShrink: 0 }}>
                     {d.logo && (d.logo.startsWith("http") || d.logo.startsWith("data:"))
                       ? <img src={d.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                      : <Store size={13} color={d.primaryColor} strokeWidth={2.3} />}
+                      : <Store size={12} color={d.primaryColor} strokeWidth={2.3} />}
                   </div>
                   <div>
-                    <div style={{ color: previewText, fontWeight: 800, fontSize: 11, lineHeight: 1 }}>{d.name || "Tu negocio"}</div>
+                    <div style={{ color: previewText, fontWeight: 800, fontSize: 10, lineHeight: 1 }}>{d.name || "Tu negocio"}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
                       <span style={{ width: 4, height: 4, borderRadius: "50%", background: d.openStatus ? "#22c55e" : "#ef4444", display: "inline-block" }} />
-                      <span style={{ color: d.openStatus ? "#22c55e" : "#ef4444", fontSize: 8, fontWeight: 700 }}>{d.openStatus ? "Abierto" : "Cerrado"}</span>
+                      <span style={{ color: d.openStatus ? "#22c55e" : "#ef4444", fontSize: 7, fontWeight: 700 }}>{d.openStatus ? "Abierto" : "Cerrado"}</span>
                     </div>
                   </div>
                 </div>
-                <div style={{ background: d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.05)", borderRadius: 20, padding: "3px 8px", fontSize: 8, fontWeight: 700, color: previewMuted }}>📍 Sucursal ‹</div>
+                <div style={{ background: d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.05)", borderRadius: 20, padding: "2px 7px", fontSize: 7, fontWeight: 700, color: previewMuted }}>📍 Sucursal ‹</div>
               </div>
 
-              {/* ── BANNER SLOT ─────────────────────────────── */}
+              {/* ── PORTADA (coverImg) — igual que en el catálogo real */}
               {d.coverImg ? (
-                <div style={{ height: 62, overflow: "hidden", position: "relative" }}>
-                  <img src={d.coverImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: .75 }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.1))" }} />
-                  <div style={{ position: "absolute", bottom: 7, left: 10, color: "#fff", fontWeight: 800, fontSize: 10 }}>🔥 Oferta especial</div>
+                <div style={{ height: 56, overflow: "hidden", position: "relative" }}>
+                  <img src={d.coverImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 35%", opacity: .82 }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(0,0,0,.6) 0%,rgba(0,0,0,.08) 100%)" }} />
                 </div>
               ) : (
-                <div style={{ height: 50, background: d.primaryColor + "12", border: `1.5px dashed ${d.primaryColor}33`, margin: "8px 10px", borderRadius: 10, display: "grid", placeItems: "center" }}>
-                  <div style={{ color: d.primaryColor, fontSize: 8, fontWeight: 700, opacity: .7, display: "flex", alignItems: "center", gap: 4 }}>
-                    <Upload size={10} strokeWidth={2.1} /> Banner (opcional)
+                <div style={{ height: 38, background: d.primaryColor + "10", border: `1.5px dashed ${d.primaryColor}30`, margin: "6px 8px", borderRadius: 9, display: "grid", placeItems: "center" }}>
+                  <div style={{ color: d.primaryColor, fontSize: 7, fontWeight: 700, opacity: .65, display: "flex", alignItems: "center", gap: 3 }}>
+                    <Upload size={8} strokeWidth={2.1} /> Foto de portada
                   </div>
                 </div>
               )}
 
-              {/* ── CATEGORÍAS ARCHIES STYLE ─────────────────── */}
-              <div style={{ padding: "8px 10px 4px" }}>
-                {[
-                  ["Entradas", "#f97316", "#ea580c"],
-                  ["Platos principales", "#8b5cf6", "#7c3aed"],
-                  ["Postres", "#059669", "#047857"],
-                ].map(([label, g0, g1], i) => (
-                  <div key={label} style={{ height: 46, borderRadius: 11, overflow: "hidden", position: "relative", marginBottom: 7, background: `linear-gradient(135deg,${g0},${g1})`, boxShadow: "0 3px 10px rgba(0,0,0,.2)" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 100%)" }} />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", padding: "0 10px 0 14px", justifyContent: "space-between" }}>
-                      <div>
-                        <div style={{ color: "#fff", fontWeight: 900, fontSize: 12, textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>{label}</div>
-                        <div style={{ color: "rgba(255,255,255,.65)", fontSize: 9, marginTop: 1 }}>{4 + i * 2} productos</div>
-                      </div>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", display: "grid", placeItems: "center" }}>
-                        <span style={{ color: "#fff", fontSize: 11, fontWeight: 900, lineHeight: 1, marginLeft: 1 }}>›</span>
+              {/* ── CATEGORÍAS — datos reales (o mock si aún no hay) */}
+              <div style={{ padding: "6px 8px 4px", position: "relative" }}>
+                {(hasCats ? prevCats : [
+                  { id:"m1", name:"Platos principales", icon:"🍽️", active:true, bgImg:"", bgColor:"", textColor:"#fff" },
+                  { id:"m2", name:"Bebidas",            icon:"🥤", active:true, bgImg:"", bgColor:"", textColor:"#fff" },
+                  { id:"m3", name:"Postres",            icon:"🍰", active:true, bgImg:"", bgColor:"", textColor:"#fff" },
+                ]).map((c, i) => {
+                  const [g0, g1] = CAT_GRADS[i % CAT_GRADS.length];
+                  const hasBg = !!c.bgImg;
+                  const bg    = hasBg ? "#111" : (c.bgColor || `linear-gradient(135deg,${g0},${g1})`);
+                  const count = hasCats ? prevProds.filter(p => p.catId === c.id).length : (4 + i * 2);
+                  return (
+                    <div key={c.id} style={{ height: 50, borderRadius: 10, overflow: "hidden", position: "relative", marginBottom: 5, background: bg, boxShadow: "0 3px 10px rgba(0,0,0,.2)" }}>
+                      {hasBg && <img src={c.bgImg} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} alt="" />}
+                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right,rgba(0,0,0,.62) 0%,rgba(0,0,0,.12) 100%)" }} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", padding: "0 9px 0 12px", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ color: c.textColor || "#fff", fontWeight: 900, fontSize: 10, textShadow: "0 1px 5px rgba(0,0,0,.5)", lineHeight: 1.2 }}>{c.icon} {c.name}</div>
+                          <div style={{ color: "rgba(255,255,255,.62)", fontSize: 8, marginTop: 2 }}>{count} {count === 1 ? "producto" : "productos"}</div>
+                        </div>
+                        <div style={{ width: 19, height: 19, borderRadius: "50%", background: "rgba(255,255,255,.22)", border: "1px solid rgba(255,255,255,.3)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                          <span style={{ color: "#fff", fontSize: 10, fontWeight: 900, lineHeight: 1, marginLeft: 1 }}>›</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* ── PRODUCTO CARD ───────────────────────────── */}
-              <div style={{ margin: "0 10px 14px", background: d.menuStyle === "dark" ? "rgba(255,255,255,.06)" : "#fff", border: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.07)"}`, borderRadius: 13, padding: 10, display: "flex", alignItems: "center", gap: 9 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: d.primaryColor + "18", color: d.primaryColor, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                  <ImageIcon size={18} strokeWidth={2.3} />
+              {/* ── PRODUCTO — real (o mock si aún no hay) ─── */}
+              <div style={{ margin: "0 8px 12px", background: d.menuStyle === "dark" ? "rgba(255,255,255,.06)" : "#fff", border: `1px solid ${d.menuStyle === "dark" ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.07)"}`, borderRadius: 11, padding: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 9, background: d.primaryColor + "18", color: d.primaryColor, display: "grid", placeItems: "center", flexShrink: 0, overflow: "hidden" }}>
+                  {firstProd?.img
+                    ? <img src={firstProd.img} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="" />
+                    : firstProd?.emoji
+                      ? <span style={{ fontSize: 18 }}>{firstProd.emoji}</span>
+                      : <ImageIcon size={16} strokeWidth={2.3} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: previewText, marginBottom: 2 }}>Producto destacado</div>
-                  <div style={{ fontSize: 10, color: previewMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Descripción corta del producto</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: previewText, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{firstProd?.name || "Producto de ejemplo"}</div>
+                  <div style={{ fontSize: 9, color: previewMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{firstProd?.desc || "Descripción del producto"}</div>
                 </div>
-                <div style={{ color: d.primaryColor, fontSize: 12, fontWeight: 900 }}>$25K</div>
+                <div style={{ color: d.primaryColor, fontSize: 11, fontWeight: 900, flexShrink: 0 }}>
+                  {firstProd ? fmtPreview(firstProd.price) : "$25K"}
+                </div>
               </div>
+
             </div>
           </Card>
 
@@ -832,20 +862,12 @@ export function SecDiseno({ config, onUpdate }) {
             />
 
             {[
-              ["Nombre configurado", Boolean(d.name?.trim())],
+              ["Nombre configurado",        Boolean(d.name?.trim())],
               ["Color principal seleccionado", Boolean(d.primaryColor)],
-              ["Logo cargado", Boolean(d.logo)],
-              ["Foto de portada cargada", Boolean(d.coverImg)],
-              [
-                "Al menos una red social",
-                Boolean(
-                  d.socialLinks?.whatsapp ||
-                    d.socialLinks?.instagram ||
-                    d.socialLinks?.facebook ||
-                    d.socialLinks?.tiktok ||
-                    d.socialLinks?.tripadvisor
-                ),
-              ],
+              ["Logo cargado",              Boolean(d.logo)],
+              ["Foto de portada cargada",   Boolean(d.coverImg)],
+              ["Fondo del catálogo cargado",Boolean(d.bgImg)],
+              ["Al menos una red social",   Boolean(d.socialLinks?.whatsapp || d.socialLinks?.instagram || d.socialLinks?.facebook || d.socialLinks?.tiktok || d.socialLinks?.tripadvisor)],
             ].map(([label, ok]) => (
               <div
                 key={label}

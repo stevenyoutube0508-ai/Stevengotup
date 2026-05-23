@@ -4,6 +4,7 @@ import {
   ArrowRight, Check, Star, Zap, Globe, BarChart3, Layers, Cpu,
   MapPin, QrCode, ChevronRight, Play, ShoppingBag, Truck, Palette,
   Shield, Clock, Users, Menu, X, Sparkles, TrendingUp, Store,
+  Calendar,
 } from "lucide-react";
 import { LogoFull } from "../../shared/components/Logo";
 
@@ -63,32 +64,57 @@ const FEATURES = [
 ];
 
 const VERTICALS = [
-  { icon:"🍽️", name:"Restaurantes",      color:"#f97316" },
-  { icon:"👗", name:"Moda & Ropa",        color:"#ec4899" },
-  { icon:"🛒", name:"Tiendas & Supermer", color:"#059669" },
-  { icon:"💄", name:"Belleza & Salud",    color:"#db2777" },
-  { icon:"📱", name:"Tecnología",         color:"#2563eb" },
-  { icon:"🐾", name:"Mascotas",           color:"#d97706" },
-  { icon:"🔧", name:"Ferretería",         color:"#d97706" },
-  { icon:"🧸", name:"Juguetería",         color:"#8b5cf6" },
-  { icon:"🏢", name:"Servicios Prof.",    color:"#4338ca" },
+  { icon:"/icons/restaurantes.svg", name:"Restaurantes",       color:"#f97316" },
+  { icon:"/icons/moda.svg",         name:"Moda & Ropa",        color:"#ec4899" },
+  { icon:"/icons/mercado.svg",      name:"Tiendas & Supermer", color:"#059669" },
+  { icon:"/icons/cosmeticos.svg",   name:"Belleza & Salud",    color:"#db2777" },
+  { icon:"/icons/phone.svg",        name:"Tecnología",         color:"#2563eb" },
+  { icon:"/icons/mascotas.svg",     name:"Mascotas",           color:"#d97706" },
+  { icon:"/icons/ferreteria.svg",   name:"Ferretería",         color:"#d97706" },
+  { icon:"/icons/jugueteria.svg",   name:"Juguetería",         color:"#8b5cf6" },
+  { icon:"/icons/business.svg",     name:"Servicios Prof.",    color:"#4338ca" },
 ];
 
 const PLANS = [
   {
-    id:"starter", name:"Starter", price:49900, color:C.blue,
-    desc:"Para negocios que empiezan a digitalizarse.",
-    features:["Catálogo digital con QR","Hasta 30 productos","1 sucursal","Pedidos y delivery básico","Soporte por email"],
+    id:"core", name:"Picku Core", priceCOP:"$99.900", priceCAD:"$49 USD",
+    color:C.blue,
+    desc:"Todo lo que necesita tu negocio para empezar a vender digital.",
+    features:[
+      "Catálogo digital con QR",
+      "Pedidos y reservas online",
+      "Panel administrador",
+      "Pickup y delivery básico",
+      "Analytics básico",
+      "Soporte estándar",
+    ],
   },
   {
-    id:"pro", name:"Pro", price:99900, color:C.violet, popular:true,
-    desc:"La elección de la mayoría de negocios en Colombia.",
-    features:["Todo lo de Starter","Productos ilimitados","Zonas de delivery en mapa","Asistente IA incluido","Banners y popups promo","Analytics avanzados","Soporte 24/7"],
+    id:"smart", name:"Picku Smart", priceCOP:"$199.900", priceCAD:"$129 USD",
+    color:C.violet, popular:true,
+    desc:"Automatización, IA y campañas para escalar tu negocio.",
+    features:[
+      "Todo lo de Core",
+      "WhatsApp automático",
+      "Bot IA + agente entrenado",
+      "Recuperación de pedidos abandonados",
+      "Recordatorios automáticos",
+      "Campañas básicas",
+      "Analytics avanzado",
+      "Soporte prioritario",
+    ],
   },
   {
-    id:"business", name:"Business", price:189900, color:C.pink,
-    desc:"Para cadenas y negocios con múltiples sedes.",
-    features:["Todo lo de Pro","Multi-sucursal ilimitada","API de integración","Manager dedicado","Onboarding personalizado","SLA prioritario"],
+    id:"custom", name:"Custom", custom:true, color:C.pink,
+    desc:"Para empresas que necesitan una solución personalizada a su medida.",
+    features:[
+      "Todo lo de Smart",
+      "Multi-sucursal ilimitada",
+      "Integraciones a medida",
+      "Manager dedicado",
+      "Onboarding personalizado",
+      "SLA y soporte premium",
+    ],
   },
 ];
 
@@ -102,7 +128,7 @@ const TESTIMONIALS = [
     text:"Tenemos 4 sucursales y Picku nos permite gestionarlas desde un solo panel. El catálogo por QR fue un hit con los clientes. Nuestro equipo aprendió a usarlo en una tarde.",
   },
   {
-    name:"Diego Park", role:"Chef & Dueño · Sushi Nakama, Medellín", avatar:"👨‍🍽️", stars:5,
+    name:"Diego Park", role:"Chef & Dueño · Sushi Nakama, Medellín", avatar:"👨", stars:5,
     text:"El asistente IA me escribió todas las descripciones del menú en minutos. Los reportes de productos más pedidos me ayudaron a rediseñar la carta. Increíble herramienta.",
   },
 ];
@@ -178,36 +204,47 @@ function PlanCard({ plan, visible, delay = 0 }){
       <div style={{marginBottom:8}}>
         <span style={{fontSize:11,fontWeight:800,letterSpacing:"1px",textTransform:"uppercase",color:plan.color}}>{plan.name}</span>
       </div>
-      <div style={{marginBottom:8, display:"flex", alignItems:"baseline", gap:4}}>
-        <span style={{fontSize:36, fontWeight:800, color: C.text, lineHeight:1}}>
-          {fmtCOP(plan.price)}
-        </span>
-        <span style={{fontSize:12,color: C.light}}>/mes</span>
-      </div>
-      <div style={{fontSize:13, color: C.mid, marginBottom:24, lineHeight:1.5}}>{plan.desc}</div>
+
+      {/* Price block */}
+      {plan.custom ? (
+        <div style={{marginBottom:8}}>
+          <span style={{fontSize:32, fontWeight:800, color:C.text, lineHeight:1}}>A medida</span>
+        </div>
+      ) : (
+        <div style={{marginBottom:4}}>
+          <div style={{display:"flex", alignItems:"baseline", gap:4}}>
+            <span style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1}}>{plan.priceCOP}</span>
+            <span style={{fontSize:11,color:C.light}}>/sucursal/mes</span>
+          </div>
+          <div style={{fontSize:11, color:C.light, marginTop:3}}>{plan.priceCAD} / sucursal / mes</div>
+        </div>
+      )}
+
+      <div style={{fontSize:13, color:C.mid, marginBottom:24, marginTop:10, lineHeight:1.5}}>{plan.desc}</div>
       <div style={{flex:1, display:"flex", flexDirection:"column", gap:10, marginBottom:28}}>
         {plan.features.map(f=>(
           <div key={f} style={{display:"flex", alignItems:"center", gap:10}}>
             <div style={{width:18,height:18,borderRadius:"50%",background:`${plan.color}20`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
               <Check size={10} color={plan.color} strokeWidth={3}/>
             </div>
-            <span style={{fontSize:13, color: C.mid}}>{f}</span>
+            <span style={{fontSize:13, color:C.mid}}>{f}</span>
           </div>
         ))}
       </div>
       <button
-        onClick={()=>navigate("/login")}
+        onClick={()=> plan.custom ? window.open("mailto:hola@picku.co","_blank") : navigate("/login")}
         style={{
           width:"100%", padding:"13px 0", borderRadius:12, fontWeight:700, fontSize:14,
-          cursor:"pointer", border:"none", fontFamily:"'Plus Jakarta Sans',sans-serif",
-          background: plan.popular ? `linear-gradient(135deg,${C.coral},${C.violet})` : `${plan.color}12`,
+          cursor:"pointer", border: plan.custom ? `1.5px solid ${plan.color}` : "none",
+          fontFamily:"'Plus Jakarta Sans',sans-serif",
+          background: plan.popular ? `linear-gradient(135deg,${C.coral},${C.violet})` : plan.custom ? "transparent" : `${plan.color}12`,
           color: plan.popular ? C.white : plan.color,
           transition:"transform .15s, box-shadow .15s",
         }}
         onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 8px 24px ${plan.color}40`; }}
         onMouseLeave={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}
       >
-        Empezar con {plan.name} →
+        {plan.custom ? "Contáctanos →" : `Empezar con ${plan.name} →`}
       </button>
     </div>
   );
@@ -340,7 +377,7 @@ function Nav({ scrolled }){
   return (
     <nav style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100,
-      background: scrolled ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.36)",
+      background: scrolled ? "rgba(255, 255, 255, 0.46)" : "rgba(255,255,255,0.36)",
       backdropFilter: scrolled ? "blur(12px)" : "none",
       borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
       transition:"background .3s, border-color .3s",
@@ -418,6 +455,14 @@ export default function LandingPage(){
   const [stepRef,   stepVis]   = useVisible();
   const [vertRef,   vertVis]   = useVisible();
 
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
+
+  useEffect(()=>{
+    const h = ()=>setShowFloatingButton(window.scrollY > 300);
+    window.addEventListener("scroll",h);
+    return ()=>window.removeEventListener("scroll",h);
+  },[]);
+
   return (
     <div style={{fontFamily:"'Plus Jakarta Sans',sans-serif",overflowX:"hidden",background:C.off}}>
       <style>{`
@@ -463,6 +508,44 @@ export default function LandingPage(){
       `}</style>
 
       <Nav scrolled={scrolled} />
+
+      {showFloatingButton && (
+        <button
+          onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}
+          style={{
+            position:"fixed",
+            bottom:24,
+            right:24,
+            width:48,
+            height:48,
+            borderRadius:"50%",
+            background:"rgba(255, 255, 255, 0.46)",
+            backdropFilter:"blur(12px)",
+            border:`1px solid ${C.border}`,
+            cursor:"pointer",
+            display:"flex",
+            alignItems:"center",
+            justifyContent:"center",
+            zIndex:99,
+            transition:"all .3s ease",
+            boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+          }}
+          onMouseEnter={e=>{
+            e.currentTarget.style.background="rgba(255, 255, 255, 0.56)";
+            e.currentTarget.style.transform="translateY(-4px)";
+            e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,0.15)";
+          }}
+          onMouseLeave={e=>{
+            e.currentTarget.style.background="rgba(255, 255, 255, 0.46)";
+            e.currentTarget.style.transform="translateY(0)";
+            e.currentTarget.style.boxShadow="0 4px 12px rgba(0,0,0,0.1)";
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color:C.text}}>
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
+      )}
 
      {/* ── HERO ──────────────────────────────────────────────── */}
 <section
@@ -573,7 +656,7 @@ export default function LandingPage(){
         }}
       >
         <div style={{ display: "flex" }}>
-          {["👨‍🍳", "👩‍💼", "👨‍🍽️", "👩‍🍳", "👨‍💻"].map((a, i) => (
+          {["👨‍🍳", "👩‍💼", "👨", "👩‍🍳", "👨‍💻"].map((a, i) => (
             <div
               key={i}
               style={{
@@ -684,7 +767,7 @@ export default function LandingPage(){
             e.currentTarget.style.transform = "none";
           }}
         >
-          <Play size={14} fill="currentColor" /> Ver demo
+          <Calendar size={14} fill="currentColor" /> Agendar demo
         </a>
       </div>
     </div>
@@ -863,7 +946,7 @@ export default function LandingPage(){
                 onMouseEnter={e=>{ e.currentTarget.style.background=`${v.color}0a`; e.currentTarget.style.borderColor=`${v.color}40`; e.currentTarget.style.transform="translateY(-3px)"; }}
                 onMouseLeave={e=>{ e.currentTarget.style.background=C.white; e.currentTarget.style.borderColor=C.border; e.currentTarget.style.transform="none"; }}
               >
-                <span style={{fontSize:26,lineHeight:1}}>{v.icon}</span>
+                <img src={v.icon} alt={v.name} style={{width:52,height:52,objectFit:"contain"}} loading="lazy"/>
                 <span style={{fontSize:11,fontWeight:700,color:C.mid,textAlign:"center",lineHeight:1.3}}>{v.name}</span>
               </div>
             ))}
@@ -988,7 +1071,7 @@ export default function LandingPage(){
           
           <h2 style={{fontSize:"clamp(28px,4.5vw,52px)",fontWeight:900,letterSpacing:"-2px",color:C.text,marginBottom:16,lineHeight:1.1}}>
             Empieza hoy.<br/>
-            <span className="gradient-text">Gratis por 14 días.</span>
+            <span className="gradient-text">10% de descuento en tus primeros 3 meses.</span>
           </h2>
           <p style={{fontSize:16,color:C.mid,marginBottom:40,lineHeight:1.65}}>
             Sin tarjeta de crédito. Sin contratos. Tu catálogo digital listo en minutos — con IA de tu lado.
@@ -1039,12 +1122,19 @@ export default function LandingPage(){
                 El panel de gestión digital para negocios latinoamericanos.
               </p>
               <div style={{display:"flex",gap:8,marginTop:16}}>
-                {["𝕏","in","ig","📘"].map(s=>(
-                  <div key={s} style={{width:32,height:32,borderRadius:8,background:C.off,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:C.mid,cursor:"pointer",transition:"background .15s"}}
-                    onMouseEnter={e=>e.currentTarget.style.background=C.navy}
-                    onMouseLeave={e=>e.currentTarget.style.background=C.off}
-                  >{s}</div>
-                ))}
+                {[`
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 264.583 264.583"><defs><radialGradient xlink:href="#instagram_icon__a" id="instagram_icon__f" cx="158.429" cy="578.088" r="52.352" fx="158.429" fy="578.088" gradientTransform="matrix(0 -4.03418 4.28018 0 -2332.227 942.236)" gradientUnits="userSpaceOnUse"/><radialGradient xlink:href="#instagram_icon__b" id="instagram_icon__g" cx="172.615" cy="600.692" r="65" fx="172.615" fy="600.692" gradientTransform="matrix(.67441 -1.16203 1.51283 .87801 -814.366 -47.835)" gradientUnits="userSpaceOnUse"/><radialGradient xlink:href="#instagram_icon__c" id="instagram_icon__h" cx="144.012" cy="51.337" r="67.081" fx="144.012" fy="51.337" gradientTransform="matrix(-2.3989 .67549 -.23008 -.81732 464.996 -26.404)" gradientUnits="userSpaceOnUse"/><radialGradient xlink:href="#instagram_icon__d" id="instagram_icon__e" cx="199.788" cy="628.438" r="52.352" fx="199.788" fy="628.438" gradientTransform="matrix(-3.10797 .87652 -.6315 -2.23914 1345.65 1374.198)" gradientUnits="userSpaceOnUse"/><linearGradient id="instagram_icon__d"><stop offset="0" stop-color="#ff005f"/><stop offset="1" stop-color="#fc01d8"/></linearGradient><linearGradient id="instagram_icon__c"><stop offset="0" stop-color="#780cff"/><stop offset="1" stop-color="#820bff" stop-opacity="0"/></linearGradient><linearGradient id="instagram_icon__b"><stop offset="0" stop-color="#fc0"/><stop offset="1" stop-color="#fc0" stop-opacity="0"/></linearGradient><linearGradient id="instagram_icon__a"><stop offset="0" stop-color="#fc0"/><stop offset=".124" stop-color="#fc0"/><stop offset=".567" stop-color="#fe4a05"/><stop offset=".694" stop-color="#ff0f3f"/><stop offset="1" stop-color="#fe0657" stop-opacity="0"/></linearGradient></defs><path fill="url(#instagram_icon__e)" d="M204.15 18.143c-55.23 0-71.383.057-74.523.317-11.334.943-18.387 2.728-26.07 6.554-5.922 2.942-10.592 6.351-15.201 11.13-8.394 8.716-13.481 19.439-15.323 32.184-.895 6.188-1.156 7.45-1.209 39.056-.02 10.536 0 24.4 0 42.999 0 55.2.062 71.341.326 74.476.916 11.032 2.645 17.973 6.308 25.565 7 14.533 20.37 25.443 36.12 29.514 5.453 1.404 11.476 2.178 19.208 2.544 3.277.142 36.669.244 70.081.244 33.413 0 66.826-.04 70.02-.203 8.954-.422 14.153-1.12 19.901-2.606 15.852-4.09 28.977-14.838 36.12-29.575 3.591-7.409 5.412-14.614 6.236-25.07.18-2.28.255-38.626.255-74.924 0-36.304-.082-72.583-.26-74.863-.835-10.625-2.656-17.77-6.364-25.32-3.042-6.182-6.42-10.799-11.324-15.519-8.752-8.361-19.455-13.45-32.21-15.29-6.18-.894-7.41-1.158-39.033-1.213z" transform="translate(-71.816 -18.143)"/><path fill="url(#instagram_icon__f)" d="M204.15 18.143c-55.23 0-71.383.057-74.523.317-11.334.943-18.387 2.728-26.07 6.554-5.922 2.942-10.592 6.351-15.201 11.13-8.394 8.716-13.481 19.439-15.323 32.184-.895 6.188-1.156 7.45-1.209 39.056-.02 10.536 0 24.4 0 42.999 0 55.2.062 71.341.326 74.476.916 11.032 2.645 17.973 6.308 25.565 7 14.533 20.37 25.443 36.12 29.514 5.453 1.404 11.476 2.178 19.208 2.544 3.277.142 36.669.244 70.081.244 33.413 0 66.826-.04 70.02-.203 8.954-.422 14.153-1.12 19.901-2.606 15.852-4.09 28.977-14.838 36.12-29.575 3.591-7.409 5.412-14.614 6.236-25.07.18-2.28.255-38.626.255-74.924 0-36.304-.082-72.583-.26-74.863-.835-10.625-2.656-17.77-6.364-25.32-3.042-6.182-6.42-10.799-11.324-15.519-8.752-8.361-19.455-13.45-32.21-15.29-6.18-.894-7.41-1.158-39.033-1.213z" transform="translate(-71.816 -18.143)"/><path fill="url(#instagram_icon__g)" d="M204.15 18.143c-55.23 0-71.383.057-74.523.317-11.334.943-18.387 2.728-26.07 6.554-5.922 2.942-10.592 6.351-15.201 11.13-8.394 8.716-13.481 19.439-15.323 32.184-.895 6.188-1.156 7.45-1.209 39.056-.02 10.536 0 24.4 0 42.999 0 55.2.062 71.341.326 74.476.916 11.032 2.645 17.973 6.308 25.565 7 14.533 20.37 25.443 36.12 29.514 5.453 1.404 11.476 2.178 19.208 2.544 3.277.142 36.669.244 70.081.244 33.413 0 66.826-.04 70.02-.203 8.954-.422 14.153-1.12 19.901-2.606 15.852-4.09 28.977-14.838 36.12-29.575 3.591-7.409 5.412-14.614 6.236-25.07.18-2.28.255-38.626.255-74.924 0-36.304-.082-72.583-.26-74.863-.835-10.625-2.656-17.77-6.364-25.32-3.042-6.182-6.42-10.799-11.324-15.519-8.752-8.361-19.455-13.45-32.21-15.29-6.18-.894-7.41-1.158-39.033-1.213z" transform="translate(-71.816 -18.143)"/><path fill="url(#instagram_icon__h)" d="M204.15 18.143c-55.23 0-71.383.057-74.523.317-11.334.943-18.387 2.728-26.07 6.554-5.922 2.942-10.592 6.351-15.201 11.13-8.394 8.716-13.481 19.439-15.323 32.184-.895 6.188-1.156 7.45-1.209 39.056-.02 10.536 0 24.4 0 42.999 0 55.2.062 71.341.326 74.476.916 11.032 2.645 17.973 6.308 25.565 7 14.533 20.37 25.443 36.12 29.514 5.453 1.404 11.476 2.178 19.208 2.544 3.277.142 36.669.244 70.081.244 33.413 0 66.826-.04 70.02-.203 8.954-.422 14.153-1.12 19.901-2.606 15.852-4.09 28.977-14.838 36.12-29.575 3.591-7.409 5.412-14.614 6.236-25.07.18-2.28.255-38.626.255-74.924 0-36.304-.082-72.583-.26-74.863-.835-10.625-2.656-17.77-6.364-25.32-3.042-6.182-6.42-10.799-11.324-15.519-8.752-8.361-19.455-13.45-32.21-15.29-6.18-.894-7.41-1.158-39.033-1.213z" transform="translate(-71.816 -18.143)"/><path fill="#fff" d="M132.345 33.973c-26.716 0-30.07.117-40.563.594-10.472.48-17.62 2.136-23.876 4.567-6.47 2.51-11.958 5.87-17.426 11.335-5.472 5.464-8.834 10.948-11.354 17.412-2.44 6.252-4.1 13.397-4.57 23.858-.47 10.486-.593 13.838-.593 40.535 0 26.697.119 30.037.594 40.522.482 10.465 2.14 17.609 4.57 23.859 2.515 6.465 5.876 11.95 11.346 17.414 5.466 5.468 10.955 8.834 17.42 11.345 6.26 2.431 13.41 4.088 23.881 4.567 10.493.477 13.844.594 40.559.594 26.719 0 30.061-.117 40.555-.594 10.472-.48 17.63-2.136 23.888-4.567 6.468-2.51 11.948-5.877 17.414-11.345 5.472-5.464 8.834-10.949 11.354-17.412 2.419-6.252 4.079-13.398 4.57-23.858.472-10.486.595-13.828.595-40.525s-.123-30.047-.594-40.533c-.492-10.465-2.152-17.608-4.57-23.858-2.521-6.466-5.883-11.95-11.355-17.414-5.472-5.468-10.944-8.827-17.42-11.335-6.271-2.431-13.424-4.088-23.897-4.567-10.493-.477-13.834-.594-40.558-.594zm-8.825 17.715c2.62-.004 5.542 0 8.825 0 26.266 0 29.38.094 39.752.565 9.591.438 14.797 2.04 18.264 3.385 4.591 1.782 7.864 3.912 11.305 7.352 3.443 3.44 5.575 6.717 7.362 11.305 1.346 3.46 2.951 8.663 3.388 18.247.47 10.363.573 13.475.573 39.71 0 26.233-.102 29.346-.573 39.709-.44 9.584-2.042 14.786-3.388 18.247-1.783 4.587-3.919 7.854-7.362 11.292-3.443 3.441-6.712 5.57-11.305 7.352-3.463 1.352-8.673 2.95-18.264 3.388-10.37.47-13.486.573-39.752.573-26.268 0-29.38-.102-39.751-.573-9.592-.443-14.797-2.044-18.267-3.39-4.59-1.781-7.87-3.911-11.313-7.352-3.443-3.44-5.574-6.709-7.362-11.298-1.346-3.461-2.95-8.663-3.387-18.247-.472-10.363-.566-13.476-.566-39.726s.094-29.347.566-39.71c.438-9.584 2.04-14.786 3.387-18.25 1.783-4.588 3.919-7.865 7.362-11.305 3.443-3.441 6.722-5.57 11.313-7.357 3.468-1.351 8.675-2.949 18.267-3.389 9.075-.41 12.592-.532 30.926-.553zm61.337 16.322c-6.518 0-11.805 5.277-11.805 11.792 0 6.512 5.287 11.796 11.805 11.796 6.517 0 11.804-5.284 11.804-11.796 0-6.513-5.287-11.796-11.805-11.796zm-52.512 13.782c-27.9 0-50.519 22.603-50.519 50.482 0 27.879 22.62 50.471 50.52 50.471s50.51-22.592 50.51-50.471c0-27.879-22.613-50.482-50.513-50.482zm0 17.715c18.11 0 32.792 14.67 32.792 32.767 0 18.096-14.683 32.767-32.792 32.767-18.11 0-32.791-14.671-32.791-32.767 0-18.098 14.68-32.767 32.791-32.767z"/></svg>
+`,
+`<svg preserveAspectRatio="xMidYMid" viewBox="0 0 256 256"><path d="M218.123 218.127h-37.931v-59.403c0-14.165-.253-32.4-19.728-32.4-19.756 0-22.779 15.434-22.779 31.369v60.43h-37.93V95.967h36.413v16.694h.51a39.907 39.907 0 0 1 35.928-19.733c38.445 0 45.533 25.288 45.533 58.186l-.016 67.013ZM56.955 79.27c-12.157.002-22.014-9.852-22.016-22.009-.002-12.157 9.851-22.014 22.008-22.016 12.157-.003 22.014 9.851 22.016 22.008A22.013 22.013 0 0 1 56.955 79.27m18.966 138.858H37.95V95.967h37.97v122.16ZM237.033.018H18.89C8.58-.098.125 8.161-.001 18.471v219.053c.122 10.315 8.576 18.582 18.89 18.474h218.144c10.336.128 18.823-8.139 18.966-18.474V18.454c-.147-10.33-8.635-18.588-18.966-18.453" fill="#0A66C2"/></svg>`,
+`<svg viewBox="0 0 666.667 666.667"><defs><clipPath id="facebook_icon__a" clipPathUnits="userSpaceOnUse"><path d="M0 700h700V0H0Z"/></clipPath></defs><g clip-path="url(#facebook_icon__a)" transform="matrix(1.33333 0 0 -1.33333 -133.333 800)"><path d="M0 0c0 138.071-111.929 250-250 250S-500 138.071-500 0c0-117.245 80.715-215.622 189.606-242.638v166.242h-51.552V0h51.552v32.919c0 85.092 38.508 124.532 122.048 124.532 15.838 0 43.167-3.105 54.347-6.211V81.986c-5.901.621-16.149.932-28.882.932-40.993 0-56.832-15.528-56.832-55.9V0h81.659l-14.028-76.396h-67.631v-171.773C-95.927-233.218 0-127.818 0 0" style="fill:#0866ff;fill-opacity:1;fill-rule:nonzero;stroke:none" transform="translate(600 350)"/><path d="m0 0 14.029 76.396H-67.63v27.019c0 40.372 15.838 55.899 56.831 55.899 12.733 0 22.981-.31 28.882-.931v69.253c-11.18 3.106-38.509 6.212-54.347 6.212-83.539 0-122.048-39.441-122.048-124.533V76.396h-51.552V0h51.552v-166.242a250.559 250.559 0 0 1 60.394-7.362c10.254 0 20.358.632 30.288 1.831V0Z" style="fill:#fff;fill-opacity:1;fill-rule:nonzero;stroke:none" transform="translate(447.918 273.604)"/></g></svg>`,
+`<svg id="tiktok_icon_dark__Layer_2" viewBox="0 0 352.28 398.67"><g id="tiktok_icon_dark__Layer_1-2"><path d="M137.17 156.98v-15.56c-5.34-.73-10.76-1.18-16.29-1.18C54.23 140.24 0 194.47 0 261.13c0 40.9 20.43 77.09 51.61 98.97-20.12-21.6-32.46-50.53-32.46-82.31 0-65.7 52.69-119.28 118.03-120.81Z"/><path d="M140.02 333c29.74 0 54-23.66 55.1-53.13l.11-263.2h48.08c-1-5.41-1.55-10.97-1.55-16.67h-65.67l-.11 263.2c-1.1 29.47-25.36 53.13-55.1 53.13-9.24 0-17.95-2.31-25.61-6.34C105.3 323.9 121.6 333 140.02 333ZM333.13 106V91.37c-18.34 0-35.43-5.45-49.76-14.8 12.76 14.65 30.09 25.22 49.76 29.43Z"/><path d="M283.38 76.57c-13.98-16.05-22.47-37-22.47-59.91h-17.59c4.63 25.02 19.48 46.49 40.06 59.91ZM120.88 205.92c-30.44 0-55.21 24.77-55.21 55.21 0 21.2 12.03 39.62 29.6 48.86-6.55-9.08-10.45-20.18-10.45-32.2 0-30.44 24.77-55.21 55.21-55.21 5.68 0 11.13.94 16.29 2.55v-67.05c-5.34-.73-10.76-1.18-16.29-1.18-.96 0-1.9.05-2.85.07v51.49c-5.16-1.61-10.61-2.55-16.29-2.55Z"/><path d="M333.13 106v51.04c-34.05 0-65.61-10.89-91.37-29.38v133.47c0 66.66-54.23 120.88-120.88 120.88-25.76 0-49.64-8.12-69.28-21.91 22.08 23.71 53.54 38.57 88.42 38.57 66.66 0 120.88-54.23 120.88-120.88V144.33c25.76 18.49 57.32 29.38 91.37 29.38v-65.68c-6.57 0-12.97-.71-19.14-2.03Z"/><path d="M241.76 261.13V127.66c25.76 18.49 57.32 29.38 91.37 29.38V106c-19.67-4.21-37-14.77-49.76-29.43-20.58-13.42-35.43-34.88-40.06-59.91h-48.08l-.11 263.2c-1.1 29.47-25.36 53.13-55.1 53.13-18.42 0-34.72-9.1-44.75-23.01-17.57-9.25-29.6-27.67-29.6-48.86 0-30.44 24.77-55.21 55.21-55.21 5.68 0 11.13.94 16.29 2.55v-51.49C71.83 158.5 19.14 212.08 19.14 277.78c0 31.78 12.34 60.71 32.46 82.31C71.23 373.87 95.12 382 120.88 382c66.65 0 120.88-54.23 120.88-120.88Z" style="fill:#fff"/></g></svg>`
+  ].map((svg,i)=>(
+    <div key={i} style={{width:16,height:16,borderRadius:8,background:C.off,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:C.mid,cursor:"pointer",transition:"background .15s"}}
+      onMouseEnter={e=>e.currentTarget.style.background=C.navy}
+      onMouseLeave={e=>e.currentTarget.style.background=C.off}
+      dangerouslySetInnerHTML={{__html: svg}}
+    />
+  ))}
               </div>
             </div>
             {/* Links */}
@@ -1068,7 +1158,7 @@ export default function LandingPage(){
           </div>
           {/* Bottom bar */}
           <div style={{borderTop:`1px solid ${C.border}`,paddingTop:24,display:"flex",flexWrap:"wrap",alignItems:"center",justifyContent:"space-between",gap:12}}>
-            <span style={{fontSize:12,color:C.light}}>© 2026 Picku. Hecho con ❤️ en Colombia.</span>
+            <span style={{fontSize:12,color:C.light}}>© 2026 Picku. Todos los derechos reservados.</span>
             <div style={{display:"flex",gap:16}}>
               {["Privacidad","Términos","Cookies"].map(l=>(
                 <a key={l} href="#" style={{fontSize:12,color:C.light,textDecoration:"none",transition:"color .15s"}}

@@ -437,7 +437,14 @@ export const useAdminStore = create((set, get) => ({
   // ─── Configuración / Diseño ──────────────────────────────────────────────
   updateConfig: async config => {
     const { error } = await updateRestaurantConfig(get().ownerId, config);
-    if (error) { get().showToast("❌ Error guardando diseño", "error"); return; }
+    if (error) {
+      console.error("[updateConfig] Supabase error:", error);
+      const msg = error.message?.includes("API key")
+        ? "❌ Sin conexión con la base de datos. Verifica que bg_img exista en restaurant_config (ver README)."
+        : `❌ Error guardando diseño: ${error.message}`;
+      get().showToast(msg, "error");
+      return;
+    }
     set({ config });
     get().showToast("✓ Diseño guardado");
   },

@@ -126,9 +126,14 @@ function ChartHeader({ icon, title, subtitle, color = T.coral }) {
 
 const DAY_LABELS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-function buildWeekData(orders, totalViews) {
+function buildWeekData(orders, totalViews, viewsData = []) {
   const now = new Date();
   const totalOrdCount = orders.length || 1;
+  // Mapa de vistas reales por fecha (desde tabla menu_views)
+  const viewsByDate = {};
+  viewsData.forEach(v => { viewsByDate[v.date] = v.count; });
+  const hasRealViews = viewsData.length > 0;
+
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(now - (6 - i) * 24 * 60 * 60 * 1000);
     const dayStr = d.toISOString().slice(0, 10);
@@ -140,17 +145,22 @@ function buildWeekData(orders, totalViews) {
     return {
       d: DAY_LABELS[d.getDay()],
       o: dayOrders.length,
-      v: Math.round(totalViews * (dayOrders.length / totalOrdCount)),
+      // Si hay datos reales de menu_views, úsalos; si no, estimación proporcional
+      v: hasRealViews
+        ? (viewsByDate[dayStr] || 0)
+        : Math.round(totalViews * (dayOrders.length / totalOrdCount)),
     };
   });
 }
 
-export function SecInformes({ products = [], orders = [] }) {
+export function SecInformes({ products = [], orders = [], viewsData = [] }) {
   const now = new Date();
   const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
 
-  // Vistas totales — sum of all product clicks
+  // Vistas totales — suma acumulada de clicks en productos (métrica de engagement histórico)
   const totalViews = products.reduce((s, p) => s + (p.clicks || 0), 0);
+  // Vistas de la semana — desde menu_views (aperturas reales del catálogo, últimos 7 días)
+  const weekViews = viewsData.reduce((s, v) => s + v.count, 0);
 
   // Pedidos en los últimos 7 días
   const weekOrders = orders.filter((o) => {
@@ -185,8 +195,9 @@ export function SecInformes({ products = [], orders = [] }) {
       : "—";
   const peakHourCount = peakEntry ? peakEntry[1] : 0;
 
-  // Chart data (last 7 days)
-  const weekData = buildWeekData(orders, totalViews);
+  // Chart data (last 7 days) — usa datos reales de menu_views cuando están disponibles
+  const hasRealViews = viewsData.length > 0;
+  const weekData = buildWeekData(orders, totalViews, viewsData);
 
   // Top product by clicks
   const topProduct = [...products]
@@ -321,9 +332,9 @@ export function SecInformes({ products = [], orders = [] }) {
       >
         <StatCard
           icon={<DashboardStatIcon src={totalViewsIcon} alt="Vistas totales" />}
-          label="Vistas totales"
-          value={totalViews.toLocaleString("es-CO")}
-          sub={totalViews > 0 ? "Acumuladas" : "Sin datos aún"}
+          label="Vistas esta semana"
+          value={(hasRealViews ? weekViews : totalViews).toLocaleString("es-CO")}
+          sub={hasRealViews ? "Aperturas reales del catálogo" : "Acumuladas (sin tracking aún)"}
           color={T.coral}
         />
 
@@ -381,7 +392,9 @@ export function SecInformes({ products = [], orders = [] }) {
           <ChartHeader
             icon={TrendingUp}
             title="Vistas por día"
-            subtitle="Evolución de visitas al catálogo durante la semana"
+            subtitle={hasRealViews
+              ? "Aperturas reales del catálogo esta semana"
+              : "Estimación basada en pedidos · activa después de la primera visita real"}
             color={T.coral}
           />
 

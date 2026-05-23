@@ -299,6 +299,7 @@ export async function updateRestaurantConfig(userId, c){
     whatsapp: c.whatsapp,
     schedule: c.schedule,
     cover_img: c.coverImg,
+    bg_img: c.bgImg ?? null,
     open_status: c.openStatus,
     delivery_fee: c.deliveryFee,
     show_allergens: c.showAllergens,

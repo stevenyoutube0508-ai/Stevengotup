@@ -26,21 +26,38 @@ export function MenuPreview({config,products,cats}){
   const bdr=isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.08)";
   const activeCats=cats.filter(c=>c.active&&products.some(p=>p.catId===c.id&&p.active));
   const catProds=products.filter(p=>p.catId===selCat&&p.active);
-  return <div style={{height:"100%",display:"flex",flexDirection:"column",background:bg,overflow:"hidden"}}>
-    <div style={{position:"relative",height:100,overflow:"hidden",flexShrink:0}}>
-      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.55}} alt=""/>}
-      <div style={{position:"absolute",inset:0,background:isDark?"linear-gradient(to top,rgba(17,16,9,1),rgba(0,0,0,.2))":"linear-gradient(to top,rgba(248,247,244,1),rgba(255,255,255,.1))"}}/>
-      <div style={{position:"absolute",bottom:10,left:10,right:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{width:32,height:32,borderRadius:10,background:pc+"28",border:`1.5px solid ${pc}44`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>{config.logo&&(config.logo.startsWith("http")||config.logo.startsWith("data:"))?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:17}}>{config.logo||"🏪"}</span>}</div>
-          <div><div style={{color:txt,fontWeight:800,fontSize:13,lineHeight:1}}>{config.name}</div><div style={{color:pc,fontSize:9,fontStyle:"italic",marginTop:1}}>{config.tagline}</div></div>
+  return <div style={{height:"100%",display:"flex",flexDirection:"column",background:bg,overflow:"hidden",position:"relative"}}>
+    {/* bgImg — fondo sutil exactamente como en SecDiseno preview */}
+    {config.bgImg&&<img src={config.bgImg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:isDark?0.14:0.08,zIndex:0,pointerEvents:"none"}}/>}
+    {/* Topbar */}
+    <div style={{position:"relative",zIndex:1,background:isDark?"rgba(17,16,9,.97)":"rgba(255,255,255,.97)",borderBottom:`1px solid ${bdr}`,padding:"6px 10px",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+      <div style={{width:26,height:26,borderRadius:8,background:pc+"22",border:`1px solid ${pc}33`,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
+        {config.logo&&(config.logo.startsWith("http")||config.logo.startsWith("data:"))?<img src={config.logo} style={{width:"100%",height:"100%",objectFit:"contain"}} alt=""/>:<span style={{fontSize:13}}>{config.logo||"🏪"}</span>}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{color:txt,fontWeight:800,fontSize:11,lineHeight:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{config.name||"Tu negocio"}</div>
+        <div style={{display:"flex",alignItems:"center",gap:3,marginTop:2}}>
+          <span style={{width:4,height:4,borderRadius:"50%",background:config.openStatus?"#22c55e":"#ef4444",display:"inline-block"}}/>
+          <span style={{color:config.openStatus?"#22c55e":"#ef4444",fontSize:8,fontWeight:700}}>{config.openStatus?"Abierto":"Cerrado"}</span>
         </div>
       </div>
     </div>
-    <div style={{background:isDark?"rgba(17,16,9,.97)":bg,borderBottom:`1px solid ${bdr}`,display:"flex",overflowX:"auto",scrollbarWidth:"none",flexShrink:0}}>
-      {activeCats.map(c=><button key={c.id} onClick={()=>setSelCat(c.id)} style={{flexShrink:0,padding:"8px 10px",background:"none",border:"none",borderBottom:selCat===c.id?`2.5px solid ${pc}`:"2.5px solid transparent",cursor:"pointer",fontSize:9,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:selCat===c.id?800:500,color:selCat===c.id?pc:mid,whiteSpace:"nowrap"}}>{c.icon} {c.name}</button>)}
+    {/* Cover banner strip — franja con coverImg, sin texto superpuesto */}
+    {config.coverImg
+      ?<div style={{position:"relative",zIndex:1,height:56,overflow:"hidden",flexShrink:0}}>
+          <img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.75}} alt=""/>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,.5) 0%,rgba(0,0,0,.08) 100%)"}}/>
+        </div>
+      :<div style={{position:"relative",zIndex:1,height:36,background:pc+"10",border:`1.5px dashed ${pc}28`,margin:"6px 8px",borderRadius:8,display:"grid",placeItems:"center",flexShrink:0}}>
+          <span style={{color:pc,fontSize:8,fontWeight:700,opacity:.6}}>📸 Foto de portada</span>
+        </div>
+    }
+    {/* Category tabs */}
+    <div style={{position:"relative",zIndex:1,background:isDark?"rgba(17,16,9,.97)":bg,borderBottom:`1px solid ${bdr}`,display:"flex",overflowX:"auto",scrollbarWidth:"none",flexShrink:0}}>
+      {activeCats.map(c=><button key={c.id} onClick={()=>setSelCat(c.id)} style={{flexShrink:0,padding:"7px 9px",background:"none",border:"none",borderBottom:selCat===c.id?`2.5px solid ${pc}`:"2.5px solid transparent",cursor:"pointer",fontSize:9,fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:selCat===c.id?800:500,color:selCat===c.id?pc:mid,whiteSpace:"nowrap"}}>{c.icon} {c.name}</button>)}
     </div>
-    <div style={{flex:1,overflowY:"auto",padding:"8px 8px 14px"}}>
+    {/* Product list */}
+    <div style={{position:"relative",zIndex:1,flex:1,overflowY:"auto",padding:"8px 8px 14px"}}>
       {catProds.map(p=>(
         <div key={p.id} style={{background:surf,borderRadius:10,marginBottom:7,overflow:"hidden",border:`1px solid ${bdr}`,opacity:p.stock?1:0.5}}>
           {p.img&&<div style={{height:75,overflow:"hidden",position:"relative"}}>
@@ -302,6 +319,15 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const [submitting,setSubmitting]=useState(false);
   const [trackedOrder,setTrackedOrder]=useState(null);
   const [selProd,setSelProd]=useState(null);
+  // Abre modal de producto Y registra la vista en Supabase (solo menú público, no preview admin)
+  const openProduct = useCallback((p) => {
+    setSelProd(p);
+    if (storeKey && p?.id) {
+      supabase.from("products")
+        .update({ clicks: (p.clicks || 0) + 1 })
+        .eq("id", p.id);
+    }
+  }, [storeKey]);
   const pc=config.primaryColor||"#f97316";
   const isDark=config.menuStyle==="dark";
   const bg=isDark?CM.bg:"#f8f7f4";
@@ -501,7 +527,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   if(screen==="city"){
     return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
       <style>{STYLES}</style>
-      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.28}} alt=""/>}
+      {(config.bgImg||config.coverImg)&&<img src={config.bgImg||config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.28}} alt=""/>}
       <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.9) 100%)"}}/>
       <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"52px 24px 80px"}}>
         {config.logo&&(()=>{const isImg=config.logo.startsWith("http")||config.logo.startsWith("data:");
@@ -546,7 +572,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     const cityBranches=selCity?(branches||[]).filter(b=>b.city===selCity):(branches||[]);
     return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
       <style>{STYLES}</style>
-      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.22}} alt=""/>}
+      {(config.bgImg||config.coverImg)&&<img src={config.bgImg||config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.22}} alt=""/>}
       <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.6) 0%,rgba(0,0,0,.92) 100%)"}}/>
       <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column"}}>
         {/* Topbar */}
@@ -602,7 +628,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       textAlign:"left",transition:"background .18s",width:"100%"};
     return <div style={{minHeight:"100vh",background:"#0d0d0d",position:"relative",display:"flex",flexDirection:"column"}}>
       <style>{STYLES}</style>
-      {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.2}} alt=""/>}
+      {(config.bgImg||config.coverImg)&&<img src={config.bgImg||config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:.2}} alt=""/>}
       <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,.6) 0%,rgba(0,0,0,.92) 100%)"}}/>
       <div style={{position:"relative",flex:1,display:"flex",flexDirection:"column"}}>
         {/* Topbar */}
@@ -673,6 +699,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     const btnBase={width:"100%",padding:"14px 18px",borderRadius:14,cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontFamily:"'Plus Jakarta Sans',sans-serif",fontSize:14,fontWeight:700,border:"none",textAlign:"left"};
     return <div style={{minHeight:"100vh",background:isDark?CM.bg:"#fff",paddingBottom:72}}>
       <style>{STYLES}</style>
+      {config.bgImg&&<img src={config.bgImg} style={{position:"fixed",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:isDark?0.14:0.08,zIndex:-1,pointerEvents:"none"}} alt=""/>}
       {/* Hero */}
       <div style={{position:"relative",height:250,overflow:"hidden",flexShrink:0}}>
         {config.coverImg&&<img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 25%"}} alt=""/>}
@@ -695,7 +722,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
             <span style={{color:isDark?CM.text:"#111",fontWeight:800,fontSize:14}}>{vl.featured_label}</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16}}>
-            {featured.slice(0,6).map(p=><div key={p.id} onClick={()=>{setScreen("menu");setTimeout(()=>setSelProd(p),80);}} style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:isDark?CM.card:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,.08)",border:`1px solid ${isDark?CM.border:"#f0f0f0"}`}}>
+            {featured.slice(0,6).map(p=><div key={p.id} onClick={()=>{setScreen("menu");setTimeout(()=>openProduct(p),80);}} style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:isDark?CM.card:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,.08)",border:`1px solid ${isDark?CM.border:"#f0f0f0"}`}}>
               <div style={{aspectRatio:"1",position:"relative",background:isDark?"rgba(255,255,255,.04)":"#f0f0f0"}}>
                 {p.img?<img src={p.img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={p.name}/>:<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:30}}>{p.emoji}</div>}
                 {p.label&&<div style={{position:"absolute",top:5,left:5,background:p.labelColor,color:"#fff",borderRadius:8,padding:"2px 6px",fontSize:8,fontWeight:800}}>{p.label}</div>}
@@ -713,7 +740,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
             <span style={{color:isDark?CM.text:"#111",fontWeight:800,fontSize:14}}>{vl.popular_label}</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-            {mostOrdered.slice(0,6).map(p=><div key={p.id} onClick={()=>{setScreen("menu");setTimeout(()=>setSelProd(p),80);}} style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:isDark?CM.card:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,.08)",border:`1px solid ${isDark?CM.border:"#f0f0f0"}`}}>
+            {mostOrdered.slice(0,6).map(p=><div key={p.id} onClick={()=>{setScreen("menu");setTimeout(()=>openProduct(p),80);}} style={{borderRadius:14,overflow:"hidden",cursor:"pointer",background:isDark?CM.card:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,.08)",border:`1px solid ${isDark?CM.border:"#f0f0f0"}`}}>
               <div style={{aspectRatio:"1",position:"relative",background:isDark?"rgba(255,255,255,.04)":"#f0f0f0"}}>
                 {p.img?<img src={p.img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={p.name}/>:<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:30}}>{p.emoji}</div>}
               </div>
@@ -840,6 +867,8 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
     </div>;
   }
   return <div style={{minHeight:"100vh",background:bg,paddingBottom:130}}>
+    {/* FONDO DEL CATÁLOGO — bgImg como textura de fondo (muy sutil) */}
+    {config.bgImg&&<img src={config.bgImg} style={{position:"fixed",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:isDark?0.14:0.08,zIndex:-1,pointerEvents:"none"}} alt=""/>}
     {/* POPUP PROMOCIONAL */}
     {showPopup&&popup&&<div onClick={closePopup} style={{position:"fixed",inset:0,zIndex:800,background:"rgba(0,0,0,.82)",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,animation:"fadeIn .3s ease"}}>
       <div onClick={e=>e.stopPropagation()} style={{position:"relative",width:"100%",maxWidth:380,animation:"scaleIn .3s ease"}}>
@@ -900,13 +929,18 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
         <span>📍</span>{selBranch?.name||"Sucursal"}<span style={{opacity:.4}}>‹</span>
       </button>}
     </div>
+    {/* PORTADA — franja visual compacta (sin texto, el topbar ya muestra el nombre) */}
+    {config.coverImg&&!activeCat&&!q&&<div style={{position:"relative",height:90,overflow:"hidden",flexShrink:0}}>
+      <img src={config.coverImg} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 35%",opacity:.82}} alt="portada"/>
+      <div style={{position:"absolute",inset:0,background:isDark?"linear-gradient(to top,rgba(17,16,9,.68) 0%,rgba(0,0,0,.18) 100%)":"linear-gradient(to top,rgba(248,247,244,.72) 0%,rgba(255,255,255,.08) 100%)"}}/>
+    </div>}
     {/* BANNERS INICIO */}
     {banners.filter(b=>b.active&&(b.position==="inicio"||b.position==="ambos"||!b.position)).length>0&&
       <BannersCarousel banners={banners.filter(b=>b.active&&(b.position==="inicio"||b.position==="ambos"||!b.position))} primaryColor={pc} isDark={isDark} cats={activeCats} onSelectCat={id=>{setActiveCat(id);}} catalogBtn={vl.catalog_btn}/>}
     {featured.length>0&&!q&&!activeCat&&<div style={{padding:"12px 0 4px"}}>
       <div style={{padding:"0 14px 8px",fontSize:10,fontWeight:700,color:mid,textTransform:"uppercase",letterSpacing:"1px"}}>⭐ {vl.featured_label}</div>
       <div style={{display:"flex",gap:10,overflowX:"auto",scrollbarWidth:"none",padding:"0 14px"}}>
-        {featured.map(p=><div key={p.id} onClick={()=>setSelProd(p)} style={{flexShrink:0,width:148,background:card,border:`1px solid ${bdr}`,borderRadius:14,overflow:"hidden",cursor:"pointer"}}>
+        {featured.map(p=><div key={p.id} onClick={()=>openProduct(p)} style={{flexShrink:0,width:148,background:card,border:`1px solid ${bdr}`,borderRadius:14,overflow:"hidden",cursor:"pointer"}}>
           <div style={{height:95,overflow:"hidden",position:"relative"}}>{p.img?<img src={p.img} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={p.name}/>:<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:34,background:isDark?"rgba(255,255,255,.04)":"#f0f0f0"}}>{p.emoji}</div>}{p.label&&<div style={{position:"absolute",bottom:5,left:6,background:p.labelColor,color:"#fff",borderRadius:12,padding:"2px 7px",fontSize:9,fontWeight:800}}>{p.label}</div>}</div>
           <div style={{padding:"8px 10px 11px"}}><div style={{color:txt,fontWeight:700,fontSize:11,lineHeight:1.3,marginBottom:2}}>{p.name}</div><div style={{color:pc,fontWeight:900,fontSize:13}}>{fmtCOP(p.price)}</div></div>
         </div>)}
@@ -942,7 +976,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       {(()=>{
         const prodBanners=banners.filter(b=>b.active&&(b.position==="productos"||b.position==="ambos"));
         return catProds.flatMap((p,i)=>{
-          const productEl=<div key={p.id} onClick={()=>setSelProd(p)} style={{background:card,borderRadius:16,marginBottom:8,border:`1px solid ${p.stock?bdr:"rgba(220,38,38,.12)"}`,cursor:"pointer",opacity:p.stock?1:0.65,animation:`fadeUp .3s ease ${i*.04}s both`,display:"flex",alignItems:"stretch",overflow:"hidden",minHeight:88}} onMouseEnter={e=>e.currentTarget.style.background=isDark?"rgba(255,255,255,.04)":card} onMouseLeave={e=>e.currentTarget.style.background=card}>
+          const productEl=<div key={p.id} onClick={()=>openProduct(p)} style={{background:card,borderRadius:16,marginBottom:8,border:`1px solid ${p.stock?bdr:"rgba(220,38,38,.12)"}`,cursor:"pointer",opacity:p.stock?1:0.65,animation:`fadeUp .3s ease ${i*.04}s both`,display:"flex",alignItems:"stretch",overflow:"hidden",minHeight:88}} onMouseEnter={e=>e.currentTarget.style.background=isDark?"rgba(255,255,255,.04)":card} onMouseLeave={e=>e.currentTarget.style.background=card}>
             <div style={{flexShrink:0,width:90,height:90,position:"relative",alignSelf:"center",margin:8,borderRadius:12,overflow:"hidden",background:isDark?"rgba(255,255,255,.06)":"#f0f0f0"}}>
               {p.img?<img src={p.img} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={p.name} loading="lazy"/>:<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",fontSize:32}}>{p.emoji}</div>}
               {!p.stock&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{background:"rgba(220,38,38,.9)",color:"#fff",fontSize:9,fontWeight:800,padding:"3px 7px",borderRadius:8,textAlign:"center",lineHeight:1.2}}>Agotado</span></div>}
@@ -982,7 +1016,7 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
       <button onClick={()=>{setActiveCat("");setQ("");document.querySelector('input[placeholder*="Buscar"]')?.focus();}} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:q?pc:mid}}>
         <span style={{fontSize:17}}>🔍</span><span style={{fontSize:9,fontWeight:600}}>Buscar</span>
       </button>
-      {config.whatsapp&&<a href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noreferrer" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:mid,textDecoration:"none"}}>
+      {(config.socialLinks?.whatsapp||config.whatsapp)&&<a href={`https://wa.me/${(config.socialLinks?.whatsapp||config.whatsapp||"").replace(/\D/g,"")}`} target="_blank" rel="noreferrer" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,color:mid,textDecoration:"none"}}>
         <span style={{fontSize:17}}>💬</span><span style={{fontSize:9,fontWeight:600}}>Contacto</span>
       </a>}
     </div>
@@ -1235,6 +1269,15 @@ export function PublicMenu({onBack, userId, branchId, initialMode=null}){
         label:p.label, labelColor:p.label_color, allergens:p.allergens||[],
         clicks:p.clicks||0, branchIds:p.branch_ids||["all"],
       })));
+
+      // ── Registrar visita al catálogo (una vez por tab/sesión por día) ──
+      const _sk = `pv_${cfg.user_id}_${new Date().toISOString().slice(0,10)}`;
+      if (!sessionStorage.getItem(_sk)) {
+        // Seteamos la key DESPUÉS de insertar para que si falla, el próximo intento lo reintente
+        supabase.from("menu_views")
+          .insert({ owner_id: cfg.user_id })
+          .then(({ error }) => { if (!error) sessionStorage.setItem(_sk, "1"); });
+      }
 
       setLoading(false);
     })();

@@ -29,6 +29,7 @@ import {
 import { T } from "../../../constants/theme";
 import { fmtCOP, newId } from "../../../utils/format";
 import { Card, Btn } from "../../../shared/components";
+import { supabase } from "../../../lib/supabase";
 
 function InlineIcon({ icon: Icon, size = 14, color = "currentColor", style }) {
   return (
@@ -496,52 +497,16 @@ REGLAS CRÍTICAS:
       },
     ]);
 
-    const apiKey = import.meta.env.VITE_ANTHROPIC_KEY;
-
-    if (!apiKey) {
-      setMsgs((p) => [
-        ...p,
-        {
-          role: "assistant",
-          text:
-            "Falta configurar la clave de API.\n\nAgrega tu clave de Anthropic en el archivo `.env`:\n`VITE_ANTHROPIC_KEY=sk-ant-...`\n\nLuego reinicia el servidor de desarrollo.",
-          acts: [],
-          type: "text",
-        },
-      ]);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-5",
-          max_tokens: 900,
-          system: SYS(),
-          messages: [
-            {
-              role: "user",
-              content: txt,
-            },
-          ],
-        }),
+      // Llamar a la Edge Function de Supabase (API key guardada de forma segura en el servidor)
+      const { data, error: fnError } = await supabase.functions.invoke("ai-chat", {
+        body: { system: SYS(), message: txt },
       });
 
-      const data = await res.json();
+      if (fnError) throw new Error(fnError.message || "Error en Edge Function");
+      if (data?.error) throw new Error(data.error);
 
-      if (data.error) {
-        throw new Error(data.error.message || "API error");
-      }
-
-      const raw = (data.content?.[0]?.text || "{}")
+      const raw = (data?.content?.[0]?.text || "{}")
         .replace(/```json\n?|```/g, "")
         .trim();
 
