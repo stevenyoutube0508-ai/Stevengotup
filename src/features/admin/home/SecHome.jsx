@@ -14,20 +14,22 @@ import { VERTICALS } from "../../../constants/verticals";
 
 const DAY_LABELS_HOME = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-function buildHomeWeekData(orders, totalViews) {
+/**
+ * Construye la gráfica de 7 días.
+ * - Si hay datos reales de menu_views → los usa directamente.
+ * - Si no hay datos aún → muestra ceros (no inventa datos).
+ */
+function buildHomeWeekData(viewsData = []) {
   const now = new Date();
-  const totalOrdCount = orders.length || 1;
+  const viewsByDate = {};
+  viewsData.forEach(v => { viewsByDate[v.date] = v.count; });
+
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(now - (6 - i) * 24 * 60 * 60 * 1000);
+    const d      = new Date(now - (6 - i) * 24 * 60 * 60 * 1000);
     const dayStr = d.toISOString().slice(0, 10);
-    const dayOrders = orders.filter((o) => {
-      const ts = o.createdAt ? String(o.createdAt).slice(0, 10) : null;
-      const od = o.date    ? String(o.date).slice(0, 10)    : null;
-      return ts === dayStr || od === dayStr;
-    });
     return {
       d: DAY_LABELS_HOME[d.getDay()],
-      v: Math.round(totalViews * (dayOrders.length / totalOrdCount)),
+      v: viewsByDate[dayStr] || 0,
     };
   });
 }
@@ -54,22 +56,34 @@ function DashboardStatIcon({ src, alt }) {
   );
 }
 
-export function SecHome({ products, orders, config, billing, onNav, vertical }) {
+export function SecHome({ products, orders, config, billing, viewsData = [], onNav, vertical }) {
   const currentVertical = vertical || VERTICALS.restaurant;
   const vl = currentVertical.labels;
   const vc = currentVertical.color || T.coral;
 
+  // ── Métricas reales ───────────────────────────────────────────
   const activeProducts = products.filter((p) => p.active && p.stock);
-  const pendingOrders = orders.filter((o) => o.status === "pendiente").length;
+  const pendingOrders  = orders.filter((o) => o.status === "pendiente").length;
+
+  // Ingresos solo de HOY (no acumulados)
+  const todayStr = new Date().toISOString().slice(0, 10);
   const todayRev = orders
-    .filter((o) => o.status === "entregado")
+    .filter((o) => {
+      if (o.status !== "entregado") return false;
+      const ts = String(o.createdAt || "").slice(0, 10);
+      const od = String(o.date      || "").slice(0, 10);
+      return ts === todayStr || od === todayStr;
+    })
     .reduce((s, o) => s + (o.total || 0), 0);
 
-  const catalogViews = products.reduce((s, p) => s + (p.clicks || 0), 0);
+  // Vistas reales de esta semana desde menu_views
+  const weekViews = viewsData.reduce((s, v) => s + v.count, 0);
+  const hasRealViews = viewsData.length > 0;
 
-  // Build last-7-days chart data from real orders
-  const weekChartData = buildHomeWeekData(orders, catalogViews);
+  // Gráfica 7 días con datos reales
+  const weekChartData = buildHomeWeekData(viewsData);
 
+  // Top productos por clicks (dato real del catálogo público)
   const topProducts = [...products]
     .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
     .slice(0, 5);
@@ -346,6 +360,7 @@ export function SecHome({ products, orders, config, billing, onNav, vertical }) 
           }
           label="Ingresos hoy"
           value={fmtCOP(todayRev)}
+          sub={todayRev === 0 ? "Sin entregas hoy aún" : undefined}
           color={T.green}
         />
 
@@ -357,8 +372,8 @@ export function SecHome({ products, orders, config, billing, onNav, vertical }) 
             />
           }
           label={`Vistas ${vl.catalog.toLowerCase()}`}
-          value={catalogViews}
-          sub="↑ Esta semana"
+          value={weekViews}
+          sub={hasRealViews ? "↑ Últimos 7 días" : "Sin datos aún"}
           color={T.blue}
         />
       </div>
@@ -406,7 +421,9 @@ export function SecHome({ products, orders, config, billing, onNav, vertical }) 
                   marginTop: 4,
                 }}
               >
-                Evolución de visitas al {vl.catalog.toLowerCase()}
+                {hasRealViews
+                  ? `${weekViews} aperturas reales en 7 días`
+                  : "Aún no hay visitas registradas esta semana"}
               </div>
             </div>
           </div>

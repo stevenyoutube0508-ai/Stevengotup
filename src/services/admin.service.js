@@ -240,7 +240,7 @@ export async function insertOrder(userId, o){
     branch_id: o.branchId || null,
     status: o.status,
     mode: o.mode,
-    created_at: typeof o.createdAt === "number" ? new Date(o.createdAt).toISOString() : (o.createdAt || new Date().toISOString()),
+    created_at: typeof o.createdAt === "number" ? o.createdAt : (o.createdAt ? new Date(o.createdAt).getTime() : Date.now()),
     time: o.time,
     date: o.date,
     customer_name: o.customerName,
@@ -286,7 +286,8 @@ export async function updateOrderStatus(id, status){
 }
 
 export async function updateRestaurantConfig(userId, c){
-  return supabase.from("restaurant_config").update({
+  return supabase.from("restaurant_config").upsert({
+    user_id: userId,
     name: c.name,
     tagline: c.tagline,
     logo: c.logo,
@@ -306,20 +307,22 @@ export async function updateRestaurantConfig(userId, c){
     banners: c.banners || [],
     promo_popup: c.promoPopup ?? null,
     social_links: c.socialLinks || {},
-  }).eq("user_id", userId);
+  }, { onConflict: "user_id" });
 }
 
 export async function updateRestaurantBanners(userId, c){
-  return supabase.from("restaurant_config").update({
+  return supabase.from("restaurant_config").upsert({
+    user_id: userId,
     banners: c.banners || [],
     promo_popup: c.promoPopup || null,
-  }).eq("user_id", userId);
+  }, { onConflict: "user_id" });
 }
 
 export async function saveBranches(userId, branches){
-  return supabase.from("restaurant_config").update({
-    branches: branches || [],
-  }).eq("user_id", userId);
+  return supabase.from("restaurant_config").upsert(
+    { user_id: userId, branches: branches || [] },
+    { onConflict: "user_id" }
+  );
 }
 
 // ── Soporte: tickets que el admin envía ─────────────────────────────────────

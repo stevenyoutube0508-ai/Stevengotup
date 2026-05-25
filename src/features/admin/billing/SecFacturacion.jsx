@@ -778,23 +778,36 @@ export function SecFacturacion({
               )}
 
               {isCurrent && (
-                <div
-                  style={{
-                    marginTop: 15,
-                    padding: "9px 10px",
-                    background: `${p.color}15`,
-                    borderRadius: 12,
-                    fontSize: 12,
-                    fontWeight: 900,
-                    color: p.color,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                  }}
-                >
-                  <InlineIcon icon={CheckCircle2} size={14} />
-                  Plan activo
+                <div style={{ marginTop: 15, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    style={{
+                      padding: "9px 10px",
+                      background: `${p.color}15`,
+                      borderRadius: 12,
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: p.color,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <InlineIcon icon={CheckCircle2} size={14} />
+                    Plan activo
+                  </div>
+                  {!pendingReq && (
+                    <Btn
+                      full
+                      v="ghost"
+                      onClick={() => setModal({ ...p, isRenewal: true })}
+                    >
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                        <InlineIcon icon={ReceiptText} size={14} />
+                        Renovar / Enviar pago
+                      </span>
+                    </Btn>
+                  )}
                 </div>
               )}
             </Card>
@@ -1032,7 +1045,7 @@ export function SecFacturacion({
 
       {modal && (
         <Modal
-          title={`Cambiar a Plan ${modal.name}`}
+          title={modal.isRenewal ? `Renovar Plan ${modal.name}` : `Cambiar a Plan ${modal.name}`}
           icon={
             <CreditCard
               size={20}
@@ -1066,7 +1079,7 @@ export function SecFacturacion({
                   marginBottom: 4,
                 }}
               >
-                Nuevo plan
+                {modal.isRenewal ? "Renovación" : "Nuevo plan"}
               </div>
 
               <div
@@ -1394,7 +1407,9 @@ export function SecFacturacion({
             }}
           >
             <InlineIcon icon={AlertCircle} size={15} />
-            Tu plan cambiará cuando el comprobante sea aprobado por el equipo.
+            {modal.isRenewal
+              ? "Tu suscripción se renovará cuando el comprobante sea aprobado por el equipo."
+              : "Tu plan cambiará cuando el comprobante sea aprobado por el equipo."}
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>

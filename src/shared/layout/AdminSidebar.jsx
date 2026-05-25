@@ -47,12 +47,28 @@ export const getAdminNav = (vl, verticalId = "restaurant") => {
   ];
 };
 
-export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,onClose,vertical}){
+export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,isOpen,onClose,vertical,enabledServices}){
   const [showPwModal, setShowPwModal] = useState(false);
   const plan=billing?.plan||"pro";
   const planColor={starter:T.blue,pro:T.violet,business:T.pink}[plan]||T.coral;
   const vl = vertical?.labels || VERTICALS.restaurant.labels;
   const nav = getAdminNav(vl, vertical?.id || "restaurant");
+
+  // Filter nav items based on CEO-activated services and billing plan
+  const filteredNav = nav.filter(item => {
+    // IA: only for pro / business plans
+    if (item.id === "ai") return plan === "pro" || plan === "business";
+    // If no branches yet (enabledServices=null) → show everything
+    if (!enabledServices) return true;
+    // Delivery/Pedidos: needs domicilios, pickup, or pedidoMesa
+    if (item.id === "delivery") {
+      return enabledServices.has("domicilios") || enabledServices.has("pickup") || enabledServices.has("pedidoMesa");
+    }
+    // Reservas: needs reservas service
+    if (item.id === "reservas") return enabledServices.has("reservas");
+    return true;
+  });
+
   return <>
     {/* Overlay mobile */}
     {isOpen&&<div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:98,display:"none"}} className="mob-overlay"/>}
@@ -71,7 +87,7 @@ export function AdminSidebar({active,onSelect,billing,newOrders,user,onLogout,is
           <div style={{color:T.light,fontSize:9}}>{vl.catalog}</div>
         </div>
       </div>}
-      {nav.map(item=>{
+      {filteredNav.map(item=>{
         const badge=item.id==="delivery"&&newOrders>0?newOrders:0;
         const isActive=active===item.id;
         return <div key={item.id} onClick={()=>onSelect(item.id)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",borderRadius:10,cursor:"pointer",background:isActive?T.coralL:"transparent",marginBottom:2,transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background=isActive?T.coralL:T.bg} onMouseLeave={e=>e.currentTarget.style.background=isActive?T.coralL:"transparent"}>

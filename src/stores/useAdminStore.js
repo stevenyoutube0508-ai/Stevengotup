@@ -151,9 +151,10 @@ export const useAdminStore = create((set, get) => ({
     //   pero garantiza que los pedidos aparezcan aunque WebSockets fallen.
     const poll = setInterval(async () => {
       const mostRecent = get().orders[0];
+      // created_at en la BD es bigint (Unix ms) — nunca mandar ISO string
       const since = mostRecent?.createdAt
-        ? mostRecent.createdAt
-        : new Date(Date.now() - 60 * 60 * 1000).toISOString(); // última hora si no hay pedidos
+        ? (typeof mostRecent.createdAt === "number" ? mostRecent.createdAt : new Date(mostRecent.createdAt).getTime())
+        : Date.now() - 60 * 60 * 1000; // última hora como número (ms)
 
       const { data } = await supabase
         .from("orders")
@@ -307,6 +308,22 @@ export const useAdminStore = create((set, get) => ({
       set({ dbLoaded: true, adminLoading: false });
       get().showToast("❌ Error cargando datos", "error");
     }
+  },
+
+  // ─── Refresca solo los clicks de productos (sin recargar toda la sesión) ──
+  refreshClicks: async () => {
+    const ownerId = get().ownerId;
+    if (!ownerId) return;
+    const { data } = await supabase
+      .from("products")
+      .select("id, clicks")
+      .eq("user_id", ownerId);
+    if (!data?.length) return;
+    const clicksMap = {};
+    data.forEach(p => { clicksMap[p.id] = p.clicks || 0; });
+    set(state => ({
+      products: state.products.map(p => ({ ...p, clicks: clicksMap[p.id] ?? p.clicks })),
+    }));
   },
 
   // ─── CRUD productos ─────────────────────────────────────────────────────

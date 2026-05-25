@@ -32,6 +32,7 @@ import {
   Printer,
   QrCode,
   Settings,
+  ShieldCheck,
   Store,
   Trash2,
   User,
@@ -2075,62 +2076,7 @@ export function SecSucursales({
                   ))}
                 </div>
 
-                {Object.values(br.services || {}).some((v) => !v) && (
-                  <div
-                    style={{
-                      marginTop: 14,
-                      border: `1.5px solid ${T.amber}44`,
-                      borderRadius: 14,
-                      padding: "12px 14px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 900,
-                        color: T.amber,
-                        fontSize: 13,
-                        marginBottom: 8,
-                      }}
-                    >
-                      Servicios disponibles para activar
-                    </div>
-
-                    {SERVICES_DEFS.filter((s) => !br.services?.[s.id]).map(
-                      (s) => (
-                        <div
-                          key={s.id}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            fontSize: 12,
-                            color: T.mid,
-                            marginBottom: 6,
-                          }}
-                        >
-                          <InlineIcon icon={s.Icon} size={14} color={s.color} />
-                          <span>{s.label}</span>
-                          <button
-                            onClick={() => setSubTab("servicios")}
-                            style={{
-                              marginLeft: "auto",
-                              fontSize: 10,
-                              color: T.coral,
-                              background: "none",
-                              border: `1px solid ${T.coral}`,
-                              borderRadius: 20,
-                              padding: "3px 9px",
-                              cursor: "pointer",
-                              fontWeight: 800,
-                            }}
-                          >
-                            Activar
-                          </button>
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
+                {/* Los servicios son configurados exclusivamente por el CEO — no se muestran opciones para activar */}
               </Card>
             )}
 
@@ -2144,71 +2090,51 @@ export function SecSucursales({
                     fontSize: 14,
                     fontWeight: 900,
                     color: T.text,
-                    marginBottom: 16,
+                    marginBottom: 6,
                   }}
                 >
                   <InlineIcon icon={Settings} size={16} color={T.coral} />
-                  Activar / desactivar servicios
+                  Servicios activos
                 </div>
 
-                {SERVICES_DEFS.map((s) => (
-                  <div
-                    key={s.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      padding: "15px 0",
-                      borderBottom: `1px solid ${T.border}`,
-                    }}
-                  >
-                    <SoftIcon icon={s.Icon} color={s.color} box={46} size={21} />
+                <div style={{ fontSize: 12, color: T.mid, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                  <InlineIcon icon={ShieldCheck} size={13} color={T.mid} />
+                  Los servicios son configurados por el administrador de Picku.
+                </div>
 
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontWeight: 800,
-                          fontSize: 14,
-                          color: T.text,
-                        }}
-                      >
-                        {s.label}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: T.mid,
-                          marginTop: 2,
-                        }}
-                      >
-                        {s.desc}
-                      </div>
-                    </div>
-
+                {SERVICES_DEFS.filter((s) => br.services?.[s.id]).length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "28px 0", color: T.light, fontSize: 13 }}>
+                    No hay servicios activos en esta sucursal.
+                  </div>
+                ) : (
+                  SERVICES_DEFS.filter((s) => br.services?.[s.id]).map((s) => (
                     <div
+                      key={s.id}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
+                        gap: 14,
+                        padding: "15px 0",
+                        borderBottom: `1px solid ${T.border}`,
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 800,
-                          color: br.services?.[s.id] ? T.green : T.light,
-                        }}
-                      >
-                        {br.services?.[s.id] ? "Activo" : "Inactivo"}
+                      <SoftIcon icon={s.Icon} color={s.color} box={46} size={21} />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: T.text }}>
+                          {s.label}
+                        </div>
+                        <div style={{ fontSize: 12, color: T.mid, marginTop: 2 }}>
+                          {s.desc}
+                        </div>
+                      </div>
+
+                      <span style={{ fontSize: 11, fontWeight: 800, color: T.green }}>
+                        ✓ Activo
                       </span>
-                      <Toggle
-                        value={br.services?.[s.id] || false}
-                        onChange={() => togSvc(s.id)}
-                        sm
-                      />
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </Card>
             )}
 

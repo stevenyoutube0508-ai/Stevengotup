@@ -12,6 +12,7 @@ import { supabaseAdmin } from "../lib/supabaseAdmin";
  * "auth.uid() = user_id" RLS policy on restaurant_config.
  */
 export async function loadBusinessBranches(ownerId) {
+  // Política "CEO acceso completo restaurant_config" permite leer cualquier fila.
   const { data, error } = await supabase
     .from("restaurant_config")
     .select("branches")
@@ -22,10 +23,13 @@ export async function loadBusinessBranches(ownerId) {
 }
 
 export async function saveBusinessBranches(ownerId, branches) {
+  // Política "CEO acceso completo restaurant_config" permite INSERT/UPDATE.
   const { error } = await supabase
     .from("restaurant_config")
-    .update({ branches: branches || [] })
-    .eq("user_id", ownerId);
+    .upsert(
+      { user_id: ownerId, branches: branches || [] },
+      { onConflict: "user_id" }
+    );
   return { error };
 }
 

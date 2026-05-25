@@ -319,13 +319,11 @@ export function CustomerView({config,products,cats,onBack,onAddOrder,branches,ba
   const [submitting,setSubmitting]=useState(false);
   const [trackedOrder,setTrackedOrder]=useState(null);
   const [selProd,setSelProd]=useState(null);
-  // Abre modal de producto Y registra la vista en Supabase (solo menú público, no preview admin)
+  // Abre modal de producto Y registra el click en Supabase via RPC (seguro para anon)
   const openProduct = useCallback((p) => {
     setSelProd(p);
     if (storeKey && p?.id) {
-      supabase.from("products")
-        .update({ clicks: (p.clicks || 0) + 1 })
-        .eq("id", p.id);
+      supabase.rpc("increment_product_clicks", { product_id: p.id });
     }
   }, [storeKey]);
   const pc=config.primaryColor||"#f97316";

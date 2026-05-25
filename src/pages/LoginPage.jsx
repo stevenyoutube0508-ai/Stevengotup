@@ -143,7 +143,7 @@ function MiniDashboardRow({ icon: Icon, title, value, color, width = "70%" }) {
   );
 }
 
-export function Login({ onLogin }) {
+export function Login({ onLogin, inactivityLogout = false }) {
   const [email,        setEmail]        = useState("");
   const [pass,         setPass]         = useState("");
   const [err,          setErr]          = useState("");
@@ -601,6 +601,27 @@ export function Login({ onLogin }) {
                     : "Ingresa para administrar tu catálogo, pedidos, sucursales y operación."}
                 </p>
               </div>
+
+              {/* ── Aviso de cierre por inactividad ──────────────────── */}
+              {inactivityLogout && !forgotMode && (
+                <div style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fcd34d",
+                  borderRadius: 12,
+                  padding: "11px 14px",
+                  fontSize: 12,
+                  color: "#92400e",
+                  fontWeight: 600,
+                  lineHeight: 1.55,
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                }}>
+                  <InlineIcon icon={AlertTriangle} size={15} color="#d97706" />
+                  Tu sesión fue cerrada automáticamente por inactividad. Inicia sesión de nuevo.
+                </div>
+              )}
 
               {/* ── Modo "olvidé contraseña" ──────────────────────────── */}
               {forgotMode && (

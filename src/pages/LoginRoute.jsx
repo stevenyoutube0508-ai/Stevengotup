@@ -23,9 +23,12 @@ export default function LoginRoute(){
   if(!authChecked) return <PageLoader label="Verificando sesión…" />;
   if(user) return <Navigate to={routeForRole(user)} replace />;
 
-  return <Login onLogin={loggedUser => {
-    setUser(loggedUser);
-    const target = location.state?.from?.pathname || routeForRole(loggedUser);
-    navigate(target, { replace: true });
-  }} />;
+  return <Login
+    inactivityLogout={location.state?.reason === "inactivity"}
+    onLogin={loggedUser => {
+      setUser(loggedUser);
+      const target = location.state?.from?.pathname || routeForRole(loggedUser);
+      navigate(target, { replace: true });
+    }}
+  />;
 }

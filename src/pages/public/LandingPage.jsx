@@ -376,58 +376,66 @@ function Nav({ scrolled }){
 
   return (
     <nav style={{
-      position:"fixed", top:0, left:0, right:0, zIndex:100,
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
       background: scrolled ? "rgba(255, 255, 255, 0.46)" : "rgba(255,255,255,0.36)",
       backdropFilter: scrolled ? "blur(12px)" : "none",
       borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
-      transition:"background .3s, border-color .3s",
-      padding:"0 24px",
+      transition: "background .3s, border-color .3s",
+      padding: "0 24px",
     }}>
-      <div style={{maxWidth:1140,margin:"0 auto",height:64,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        {/* Logo */}
-        <div style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
-          <LogoFull width={300} height={50} color={C.text}/>
+      <div style={{
+        
+        margin: "0",
+        height: 64,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between"
+      }}>
+        {/* Grupo izquierdo: logo + links */}
+        <div style={{display: "flex", alignItems: "center", gap: 32, flex: 1}}>
+          <div style={{display: "flex", alignItems: "center", gap: 9, cursor: "pointer"}} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <LogoFull width={140} height={40} color={C.text} />
+          </div>
+          <div style={{display: "flex", alignItems: "center", gap: 32}} className="hide-mobile">
+            {links.map(({ l, h }) => (
+              <a key={h} href={h} style={{ fontSize: 13, fontWeight: 500, color: C.mid, textDecoration: "none", transition: "color .15s" }}
+                onMouseEnter={e => e.target.style.color = C.text}
+                onMouseLeave={e => e.target.style.color = C.mid}
+              >{l}</a>
+            ))}
+          </div>
         </div>
-        {/* Desktop links */}
-        <div style={{display:"flex",alignItems:"center",gap:32}} className="hide-mobile">
-          {links.map(({l,h})=>(
-            <a key={h} href={h} style={{fontSize:13,fontWeight:500,color:C.mid,textDecoration:"none",transition:"color .15s"}}
-              onMouseEnter={e=>e.target.style.color=C.text}
-              onMouseLeave={e=>e.target.style.color=C.mid}
-            >{l}</a>
-          ))}
-        </div>
-        {/* CTAs */}
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
+        {/* Grupo derecho: CTAs */}
+        <div style={{display: "flex", alignItems: "center", gap: 10, marginLeft: 32}}>
           <button
-            onClick={()=>navigate("/login")}
-            style={{background:C.white,border:`1px solid ${C.border}`,color:C.mid,padding:"8px 18px",borderRadius:9,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"border-color .15s, color .15s"}}
-            onMouseEnter={e=>{ e.currentTarget.style.borderColor=C.coral; e.currentTarget.style.color=C.text; }}
-            onMouseLeave={e=>{ e.currentTarget.style.borderColor=C.border; e.currentTarget.style.color=C.mid; }}
+            onClick={() => navigate("/login")}
+            style={{ background: C.white, border: `1px solid ${C.border}`, color: C.mid, padding: "8px 18px", borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", transition: "border-color .15s, color .15s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.coral; e.currentTarget.style.color = C.text; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.mid; }}
           >
             Iniciar sesión
           </button>
           <button
-            onClick={()=>navigate("/login")}
-            style={{background:"linear-gradient(135deg,#ff4d4c,#e03c3b)",color:"#fff",border:"none",padding:"8px 20px",borderRadius:9,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif",transition:"transform .15s, box-shadow .15s"}}
-            onMouseEnter={e=>{ e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(255,77,76,0.4)"; }}
-            onMouseLeave={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}
+            onClick={() => navigate("/login")}
+            style={{ background: "linear-gradient(135deg,#ff4d4c,#e03c3b)", color: "#fff", border: "none", padding: "8px 20px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif", transition: "transform .15s, box-shadow .15s" }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,77,76,0.4)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
           >
             Empezar gratis
           </button>
           {/* Mobile hamburger */}
-          <button onClick={()=>setOpen(o=>!o)} className="show-mobile" style={{background:"transparent",border:"none",color:C.text,cursor:"pointer",padding:4,display:"none"}}>
-            {open ? <X size={20}/> : <Menu size={20}/>}
+          <button onClick={() => setOpen(o => !o)} className="show-mobile" style={{ background: "transparent", border: "none", color: C.text, cursor: "pointer", padding: 4, display: "none" }}>
+            {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
       {/* Mobile menu */}
       {open && (
-        <div style={{background:C.white,borderTop:`1px solid ${C.border}`,padding:"16px 24px 24px",boxShadow:"0 20px 40px rgba(15,23,42,.08)"}}>
-          {links.map(({l,h})=>(
-            <a key={h} href={h} onClick={()=>setOpen(false)} style={{display:"block",padding:"12px 0",fontSize:15,fontWeight:500,color:C.text,textDecoration:"none",borderBottom:`1px solid ${C.border}`}}>{l}</a>
+        <div style={{ background: C.white, borderTop: `1px solid ${C.border}`, padding: "16px 24px 24px", boxShadow: "0 20px 40px rgba(15,23,42,.08)" }}>
+          {links.map(({ l, h }) => (
+            <a key={h} href={h} onClick={() => setOpen(false)} style={{ display: "block", padding: "12px 0", fontSize: 15, fontWeight: 500, color: C.text, textDecoration: "none", borderBottom: `1px solid ${C.border}` }}>{l}</a>
           ))}
-          <button onClick={()=>navigate("/login")} style={{marginTop:16,width:"100%",padding:"13px 0",borderRadius:12,background:"linear-gradient(135deg,#ff4d4c,#6d28d9)",color:"#fff",border:"none",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+          <button onClick={() => navigate("/login")} style={{ marginTop: 16, width: "100%", padding: "13px 0", borderRadius: 12, background: "linear-gradient(135deg,#ff4d4c,#6d28d9)", color: "#fff", border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
             Empezar gratis →
           </button>
         </div>

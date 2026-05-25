@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { T, STYLES } from "../../constants/theme";
 import { getVertical } from "../../constants/verticals";
@@ -45,11 +45,22 @@ export default function AdminLayout() {
   const config = useAdminStore((s) => s.config);
   const billing = useAdminStore((s) => s.billing);
   const orders = useAdminStore((s) => s.orders);
+  const branches = useAdminStore((s) => s.branches);
   const dbLoaded = useAdminStore((s) => s.dbLoaded);
   const toast = useAdminStore((s) => s.toast);
   const sidebarOpen = useAdminStore((s) => s.sidebarOpen);
   const setSidebarOpen = useAdminStore((s) => s.setSidebarOpen);
   const loadAdminData = useAdminStore((s) => s.loadAdminData);
+
+  // Compute enabled services across all branches (Set of service keys)
+  const enabledServices = useMemo(() => {
+    if (!branches || branches.length === 0) return null; // null = no filter, show all
+    const s = new Set();
+    branches.forEach((br) => {
+      Object.entries(br.services || {}).forEach(([k, v]) => { if (v) s.add(k); });
+    });
+    return s;
+  }, [branches]);
 
   useEffect(() => {
     if (user?.role === "admin") {
@@ -147,6 +158,7 @@ export default function AdminLayout() {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           vertical={vertical}
+          enabledServices={enabledServices}
         />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
